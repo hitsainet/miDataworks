@@ -1,0 +1,60 @@
+# Redis 7 — Celery broker and result backend, preview results (ADR-006). hostPath storage, no PVC.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: midataworks
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      # PINNED. This volume is a hostPath, so the data lives on ONE node's disk and the pod is only
+      # correct where that disk is. Unpinned, the scheduler may place it anywhere; `type:
+      # DirectoryOrCreate` then makes an EMPTY directory on the new node and Redis starts with
+      # nothing queued — every waiting job's message gone, with no error. miLLM lost its postgres
+      # data to exactly this on 2026-08-30 (see postgres.yaml). Pinned to mcs-lnxhost02 (decision 1.2).
+      nodeSelector:
+        kubernetes.io/hostname: mcs-lnxhost02
+      containers:
+        - name: redis
+          image: redis:7
+          ports:
+            - containerPort: 6379
+          readinessProbe:
+            exec:
+              command: ["redis-cli", "ping"]
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+      volumes:
+        - name: redis-data
+          hostPath:
+            path: /data/midataworks/redis
+            type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: midataworks
+spec:
+  selector:
+    app: redis
+  ports:
+    - port: 6379
+      targetPort: 6379

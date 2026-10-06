@@ -1,0 +1,31 @@
+# Downloaded and generated data stays out of git; scripts, plan and records are tracked.
+dataset/
+venv/
+__pycache__/
+*.pyc
+.cache/
+.pytest_cache/
+.env
+.env.*
+# The template holds no secrets and is required by Foundation task 2.4.
+!.env.example
+# Application (Foundation task 2.6)
+backend/.venv/
+backend/.python/
+backend/venv/
+backend/.coverage
+backend/htmlcov/
+backend/coverage.xml
+.coverage
+coverage/
+.mypy_cache/
+.ruff_cache/
+frontend/node_modules/
+frontend/dist/
+frontend/coverage/
+frontend/test-results/
+frontend/playwright-report/
+frontend/e2e/captures/
+backups/
+data/
+celerybeat-schedule*

@@ -1,0 +1,79 @@
+# The Data-Juicer worker (ADR-010; Foundation tasks 10.1, 16.1). Its own image,
+# hitsai/midataworks-datajuicer, consuming only the `datajuicer` queue (feature 003 adds
+# `datajuicer_preview`; see the runner's docstring). It holds NO database credentials and no
+# secrets at all: rows arrive and leave as Parquet paths on the shared data volume, and Celery
+# reaches it through Redis. Image tag/digest is managed by ArgoCD Image Updater.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: midataworks-datajuicer
+  namespace: midataworks
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: midataworks-datajuicer
+  template:
+    metadata:
+      labels:
+        app: midataworks-datajuicer
+    spec:
+      # PINNED to the node holding the data volume, for the reason in backend.yaml: an unpinned
+      # hostPath pod reads an EMPTY directory on another node and reports nothing wrong.
+      nodeSelector:
+        kubernetes.io/hostname: mcs-lnxhost02
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+      # Same idempotent ownership step as the backend pod, so either may start first.
+      initContainers:
+        - name: data-volume-owner
+          image: busybox:1.37
+          securityContext:
+            runAsNonRoot: false
+            runAsUser: 0
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              cd /data/dataworks
+              for d in . sources versions runs exports publish staging cache cache/hf tmp; do
+                mkdir -p "$d"
+                chown 10001:10001 "$d"
+              done
+          volumeMounts:
+            - name: dataworks-data
+              mountPath: /data/dataworks
+      containers:
+        # The command is the image's own CMD (datajuicer/Dockerfile), not repeated here.
+        - name: datajuicer
+          image: hitsai/midataworks-datajuicer:latest
+          env:
+            - name: REDIS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: midataworks-config
+                  key: REDIS_URL
+            - name: DATA_DIR
+              valueFrom:
+                configMapKeyRef:
+                  name: midataworks-config
+                  key: DATA_DIR
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+          volumeMounts:
+            - name: dataworks-data
+              mountPath: /data/dataworks
+      volumes:
+        - name: dataworks-data
+          hostPath:
+            path: /data/midataworks/data
+            type: DirectoryOrCreate

@@ -1,0 +1,214 @@
+name: Sync to Clean Repository
+
+# Publishes a FILTERED, SINGLE-COMMIT snapshot of this private repository
+# (Onegaishimas/miDataworks) to the public mirror (hitsainet/miDataworks)
+# (ADR-023; Foundation task 14.2). Adapted from miStudio's sync, the hardened
+# orphan-snapshot version, via miForge's copy (which already excludes the xcc
+# template's AGENT.md and GEMINI.md) — NOT miLLM's, which still force-pushes the
+# branch itself.
+#
+# ── WHY AN ORPHAN COMMIT, NOT A FILTERED BRANCH ─────────────────────────────
+# Removing excluded paths and force-pushing `main` leaves the TIP clean but ships
+# every earlier commit with it, so an excluded file stays one
+# `git show HEAD~1:<path>` away, and GitHub serves commits by SHA whether or not
+# they are reachable. miStudio published an SSH password and five database dumps
+# exactly that way (its MIS-E2E-143). `git checkout --orphan` creates a commit
+# with NO PARENTS: excluded by construction, because no history is pushed.
+#
+# ── THE EXCLUSION LIST LIVES IN ONE PLACE ──────────────────────────────────
+# `EXCLUDED_PATHS` and `DOCS_KEPT` below are read by BOTH the removal step and
+# the verify step, so the two cannot drift. AGENT.md warned that this repo's list
+# must cover its OWN layout — the prototype's `scripts/`, `records/`,
+# `PLAN-*.md` and `dataset/` — not a copy of miStudio's.
+# `backend/tests/unit/test_mirror_exclusions.py` pins the list, RUNS the removal
+# step against a copy of the tracked tree, and fails if a path survives.
+#
+# ── WHAT DIFFERS FROM miStudio'S COPY, AND WHY ─────────────────────────────
+# * The list covers AGENT.md, GEMINI.md and the prototype's files.
+# * Tracked files that match .gitignore are removed too: a file force-added past
+#   the ignore rules is exactly the kind of thing that was never meant to ship.
+# * No `deploy-manual` dispatch: miDataworks has no manual site yet.
+# * Verify also requires README.md, backend/ and frontend/ to be present, so it
+#   cannot pass vacuously on an empty snapshot (miForge's positive control).
+# * Tag retargeting tolerates a mirror with no tags, which the first run has.
+#
+# ⚠ RETARGETED TAGS ARE PUSHES TOO. Every existing mirror tag is force-moved
+# onto each snapshot, and that fires the mirror's `docker-images.yml` again.
+# Its `detect` job builds on a tag push only when the tag is NEW
+# (`github.event.created`), so a retarget builds nothing. That guard is what stops
+# the double build that cost miStudio two rollouts (its commit 7f27b520).
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    # HARD STOP: only run in the private source repo. Both casings, because a
+    # gate that fails to match does not error — the job is silently skipped.
+    if: github.repository == 'Onegaishimas/miDataworks' || github.repository == 'Onegaishimas/midataworks'
+
+    runs-on: ubuntu-latest
+
+    env:
+      MIRROR: hitsainet/miDataworks
+      # Root-relative paths and globs removed from every snapshot. Pinned by
+      # backend/tests/unit/test_mirror_exclusions.py; change both together.
+      EXCLUDED_PATHS: >-
+        0xcc .claude AGENT.md CLAUDE.md GEMINI.md PLAN-*.md scripts records
+        dataset backups venv backend/.python .understand-anything
+      # Everything under docs/ goes EXCEPT these: the vendored public contracts,
+      # which mirror tests and external consumers both read.
+      DOCS_KEPT: schemas mcp-contract.md
+
+    steps:
+      - name: Checkout source repository
+        uses: actions/checkout@v4
+        with:
+          # A snapshot needs no history; fetching it is what made the leak possible.
+          fetch-depth: 1
+          # A tag event must snapshot the tagged tree, not whatever main is.
+          ref: ${{ github.ref }}
+
+      - name: Remove excluded files and folders
+        run: |
+          set -euo pipefail
+          # Tracked files that match .gitignore first, while the index still
+          # describes the tree. Nothing ignored should be tracked; if something
+          # was force-added, it does not ship.
+          git ls-files -ci --exclude-standard -z | xargs -0 -r rm -rf --
+          # Unquoted on purpose so `PLAN-*.md` expands; a glob that matches
+          # nothing stays literal and `rm -rf` of a missing path is a no-op.
+          for p in $EXCLUDED_PATHS; do
+            rm -rf -- $p
+          done
+          if [ -d docs ]; then
+            keep=()
+            for k in $DOCS_KEPT; do keep+=( ! -name "$k" ); done
+            find docs/ -mindepth 1 -maxdepth 1 "${keep[@]}" -exec rm -rf {} +
+          fi
+          echo "Removed excluded files"
+
+      - name: Build the orphan snapshot
+        run: |
+          set -euo pipefail
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+
+          git checkout --orphan clean
+          git add -A
+          git commit -q -m "miDataworks — filtered snapshot from ${GITHUB_SHA::7}"
+
+          PARENTS="$(git rev-list --parents -n1 HEAD | wc -w)"
+          if [ "$PARENTS" -ne 1 ]; then
+            echo "::error::orphan commit has parents — refusing to push"
+            exit 1
+          fi
+          echo "Built orphan snapshot: $(git rev-parse --short HEAD)"
+
+      - name: Push to clean repository
+        env:
+          SYNC_TOKEN: ${{ secrets.HITSAINET_SYNC }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SYNC_TOKEN}" ]; then
+            echo "::error::HITSAINET_SYNC is not set on this repo, so nothing can be pushed"
+            exit 1
+          fi
+          git config --unset-all http.https://github.com/.extraheader || true
+          git config --global --unset-all http.https://github.com/.extraheader || true
+
+          REMOTE="https://x-access-token:${SYNC_TOKEN}@github.com/${MIRROR}.git"
+          git push --force "$REMOTE" clean:main
+
+          # Tags must point at the orphan, never the source commit: pushing a
+          # source tag pushes that commit AND its ancestors, reintroducing the
+          # history the snapshot exists to exclude.
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            TAG="${GITHUB_REF_NAME}"
+            git tag -f "$TAG" HEAD
+            git push --force "$REMOTE" "refs/tags/${TAG}"
+            echo "Tagged the orphan snapshot as ${TAG}"
+          fi
+
+          # Retarget stale tags: any other ref keeps old commits reachable, and a
+          # clone then fetches the whole history back. `|| true` because the first
+          # run finds no tags, and grep -v on empty input exits 1.
+          for ref in $(git ls-remote --tags "$REMOTE" | awk '{print $2}' | grep -v '\^{}$' || true); do
+            T="${ref#refs/tags/}"
+            git tag -f "$T" HEAD
+            git push --force "$REMOTE" "refs/tags/${T}"
+            echo "Retargeted stale tag ${T} onto the snapshot"
+          done
+
+      # The check whose absence let MIS-E2E-143 run unnoticed for months in
+      # miStudio: clone the PUBLISHED result and assert the exclusions hold in
+      # every commit, not just the tip.
+      - name: Verify the published mirror
+        env:
+          SYNC_TOKEN: ${{ secrets.HITSAINET_SYNC }}
+        run: |
+          set -euo pipefail
+          REMOTE="https://x-access-token:${SYNC_TOKEN}@github.com/${MIRROR}.git"
+          rm -rf /tmp/verify
+          git clone --quiet "$REMOTE" /tmp/verify
+          cd /tmp/verify
+
+          FAILED=0
+
+          # --all covers tags too: a tag on old history keeps it reachable even
+          # when main is a clean orphan.
+          COMMITS="$(git rev-list --all --count)"
+          echo "Published commits: ${COMMITS}"
+          if [ "$COMMITS" -ne 1 ]; then
+            echo "::error::mirror has ${COMMITS} commits; a snapshot must have exactly 1"
+            echo "::error::a ref other than main is probably anchoring old history:"
+            git show-ref | sed 's/^/    /'
+            FAILED=1
+          fi
+
+          # The SAME list the removal step used, checked against every commit.
+          # `git log --all -- <pathspec>` matches globs such as PLAN-*.md.
+          for p in $EXCLUDED_PATHS; do
+            if [ -n "$(git log --all --oneline -- "$p" 2>/dev/null)" ]; then
+              echo "::error::LEAK — '${p}' is present in published history"
+              FAILED=1
+            fi
+          done
+
+          # Under docs/, only the kept names may exist.
+          pattern="^docs/($(echo $DOCS_KEPT | sed 's/\./\\./g; s/ /|/g'))(/|$)"
+          stray="$(git log --all --name-only --format= -- docs | sort -u | grep -vE "$pattern" || true)"
+          if [ -n "$stray" ]; then
+            echo "::error::LEAK — docs/ paths other than ${DOCS_KEPT}:"
+            echo "$stray" | sed 's/^/    /'
+            FAILED=1
+          fi
+
+          # Nothing tracked may match the ignore rules.
+          if [ -n "$(git ls-files -ci --exclude-standard)" ]; then
+            echo "::error::LEAK — tracked files that match .gitignore:"
+            git ls-files -ci --exclude-standard | sed 's/^/    /'
+            FAILED=1
+          fi
+
+          # Positive control. A clone that silently came back empty would pass
+          # every absence check above, so these must be present.
+          for p in README.md backend/src frontend/src docs/schemas .github/workflows/backend-tests.yml; do
+            if [ ! -e "$p" ]; then
+              echo "::error::MISSING — '${p}' must be published but is absent"
+              FAILED=1
+            fi
+          done
+
+          if [ "$FAILED" -ne 0 ]; then
+            echo "::error::mirror verification FAILED"
+            exit 1
+          fi
+          echo "Mirror verified: 1 commit, no excluded path in any commit."

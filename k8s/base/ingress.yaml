@@ -1,0 +1,74 @@
+# Ingress (microk8s nginx, class `public`): the backend under /api/, everything else to the UI.
+#
+# THE INTERNAL EMIT ROUTE IS NEVER EXPOSED (ADR-008; Foundation tasks 6.3, 16.1). It lives at
+# /internal/ws/emit, deliberately outside /api/, so the /api rule cannot reach it by
+# construction (backend/tests/unit/test_internal_route_not_exposed.py). As defence in depth, as
+# miStudio does for its own internal route, /internal is routed at `midataworks-denied`, a Service
+# with no endpoints, so it answers 503 rather than falling through to the UI.
+# backend/tests/unit/test_k8s_manifests.py fails if any backend-routed path leaves /api.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: midataworks-ingress
+  namespace: midataworks
+  annotations:
+    # Uploads of source files can be large; label runs and exports stream for minutes.
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "3600"
+spec:
+  ingressClassName: public
+  rules:
+    - host: k8s-midataworks.hitsai.local
+      http:
+        paths:
+          - path: /internal
+            pathType: Prefix
+            backend:
+              service:
+                name: midataworks-denied
+                port:
+                  number: 8000
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: midataworks-backend
+                port:
+                  number: 8000
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: midataworks-frontend
+                port:
+                  number: 80
+---
+# Socket.IO (ADR-008) answers at /api/ws/socket.io. A separate ingress for clean WebSocket upgrade
+# handling; the longer prefix wins over /api above. Do NOT add a configuration-snippet with Upgrade
+# headers — it duplicates them (miLLM and miStudio both record this).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: midataworks-websocket-ingress
+  namespace: midataworks
+  annotations:
+    nginx.ingress.kubernetes.io/websocket-services: "midataworks-backend"
+    nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "86400"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "86400"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "3600"
+spec:
+  ingressClassName: public
+  rules:
+    - host: k8s-midataworks.hitsai.local
+      http:
+        paths:
+          - path: /api/ws
+            pathType: Prefix
+            backend:
+              service:
+                name: midataworks-backend
+                port:
+                  number: 8000

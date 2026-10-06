@@ -1,0 +1,56 @@
+name: Frontend CI
+
+# Type-check, lint, unit tests and the production build (ADR-022; Foundation
+# task 13.2). Adapted from miLLM's `frontend-ci.yml`, plus the lint step ADR-022
+# names, and without its `paths:` filter: ADR-022 says workflows run for every
+# push and pull request, on the private repository and again on the mirror.
+#
+# Playwright (frontend/e2e) is not run here: it needs a browser download and the
+# API fixtures it drives are local-only. It is run before a feature closes, and
+# 18.0 records its result.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npm run type-check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npx vitest run
+
+      - name: Build
+        run: npm run build

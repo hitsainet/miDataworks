@@ -1,0 +1,406 @@
+# miDataworks backend pod: the API, one Celery worker container per queue group, and Beat
+# (ADR-006, ADR-025; Foundation task 16.1). All seven containers run ONE image,
+# hitsai/midataworks-backend; `SERVICE_TYPE` picks the process (backend/docker-entrypoint.sh).
+# Image tag/digest is managed by ArgoCD Image Updater through the kustomization `images` entry and
+# the `.argocd-source-midataworks.yaml` pin file on gitops/pilot — do not hand-edit tags here.
+#
+# QUEUE GROUPS (ADR-006). One worker container per group, so a long job in one group never holds
+# the slot another group needs. miStudio learned this when one solo worker consumed every queue and
+# a 12-hour NLP pass sat in front of the very janitors that un-wedge stuck jobs.
+#   worker-default    default      quick tasks, the janitor, queued-job dispatch (Beat sends here)
+#   worker-curation   curation     native operators, profiling, recipe runs
+#   worker-labeling   labeling     classifier, judge and generation calls (NeMo Data Designer)
+#   worker-publish    publish      Hub and miStudio handoffs (long uploads)
+#   worker-preview    preview      native, plugin and Data Designer previews (60 s soft limit)
+# `datajuicer` and `datajuicer_preview` are consumed ONLY by the Data-Juicer image (datajuicer.yaml).
+# backend/tests/unit/test_k8s_manifests.py derives the expected set from the live Celery QUEUES.
+#
+# NO GPU: no `nvidia.com/gpu` request and no NVIDIA_VISIBLE_DEVICES anywhere (BRD-03 §3).
+#
+# SECRETS come from `midataworks-secrets` (created out of band; the command is in postgres.yaml).
+# DATABASE_URL is composed from POSTGRES_PASSWORD by Kubernetes' $(VAR) expansion, which only sees
+# variables defined EARLIER in the same list — keep POSTGRES_PASSWORD above DATABASE_URL.
+# INTERNAL_API_SECRET (the worker-to-API emit route's shared secret) is the Secret's SECRET_KEY.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: midataworks-backend
+  namespace: midataworks
+spec:
+  replicas: 1
+  # Recreate, not RollingUpdate: two Beat processes would each schedule the janitor and the
+  # dispatcher. ⚠ A rollout stops every worker in this pod and nothing requeues a running job;
+  # check for running jobs before a deploy (docs/RUNBOOK.md).
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: midataworks-backend
+  template:
+    metadata:
+      labels:
+        app: midataworks-backend
+    spec:
+      # PINNED. The data volume below is a hostPath: the Parquet rows exist on ONE node's disk.
+      # Unpinned, the scheduler may place this pod anywhere, `DirectoryOrCreate` makes an EMPTY
+      # directory there, and the app comes up healthy reading no data (miLLM's postgres pod did
+      # exactly this after a reboot on 2026-08-30). Decision 1.2: mcs-lnxhost02.
+      nodeSelector:
+        kubernetes.io/hostname: mcs-lnxhost02
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+      # The kubelet creates a DirectoryOrCreate hostPath root-owned, and the app runs as uid
+      # 10001. This root init container hands the volume root (and the layout directories, not
+      # their contents) to 10001; the app's ensure_layout() creates anything missing as 10001.
+      initContainers:
+        - name: data-volume-owner
+          image: busybox:1.37
+          securityContext:
+            runAsNonRoot: false
+            runAsUser: 0
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              cd /data/dataworks
+              for d in . sources versions runs exports publish staging cache cache/hf tmp; do
+                mkdir -p "$d"
+                chown 10001:10001 "$d"
+              done
+          volumeMounts:
+            - name: dataworks-data
+              mountPath: /data/dataworks
+      containers:
+        - name: api
+          image: hitsai/midataworks-backend:latest
+          ports:
+            - containerPort: 8000
+          # GET /api/health answers 200 whenever the API is up and REPORTS a down dependency
+          # rather than failing (ADR-013), so these probes test the process, not miLLM.
+          # startupProbe covers `alembic upgrade head`, which the API runs before it serves.
+          startupProbe:
+            httpGet:
+              path: /api/health
+              port: 8000
+            periodSeconds: 10
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 8000
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 4
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 8000
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+          env:
+            - name: SERVICE_TYPE
+              value: api
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: midataworks-secrets
+                  key: POSTGRES_PASSWORD
+            - name: DATABASE_URL
+              value: postgresql+asyncpg://midataworks:$(POSTGRES_PASSWORD)@postgres:5432/midataworks
+            - name: SETTINGS_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: midataworks-secrets
+                  key: SETTINGS_ENCRYPTION_KEY
+            - name: INTERNAL_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: midataworks-secrets
+                  key: SECRET_KEY
+          envFrom:
+            - configMapRef:
+                name: midataworks-config
+          volumeMounts:
+            - name: dataworks-data
+              mountPath: /data/dataworks
+          securityContext:
+            allowPrivilegeEscalation: false
+        # default: quick tasks, the janitor and queued-job dispatch.
+        - name: worker-default
+          image: hitsai/midataworks-backend:latest
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+          env:
+            - name: SERVICE_TYPE
+              value: worker
+            - name: CELERY_QUEUES
+              value: default
+            - name: CELERY_WORKER_NAME
+              value: default
+            - name: CELERY_CONCURRENCY
+              value: "1"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: midataworks-secrets
+                  key: POSTGRES_PASSWORD
+            - name: DATABASE_URL
+              value: postgresql+asyncpg://midataworks:$(POSTGRES_PASSWORD)@postgres:5432/midataworks
+            - name: SETTINGS_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: midataworks-secrets
+                  key: SETTINGS_ENCRYPTION_KEY
+            - name: INTERNAL_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: midataworks-secrets
+                  key: SECRET_KEY
+          envFrom:
+            - configMapRef:
+                name: midataworks-config
+          volumeMounts:
+            - name: dataworks-data
+              mountPath: /data/dataworks
+          securityContext:
+            allowPrivilegeEscalation: false
+        # curation: native operators, profiling and recipe runs.
+        - name: worker-curation
+          image: hitsai/midataworks-backend:latest
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+          env:
+            - name: SERVICE_TYPE
+              value: worker
+            - name: CELERY_QUEUES
+              value: curation
+            - name: CELERY_WORKER_NAME
+              value: curation
+            - name: CELERY_CONCURRENCY
+              value: "2"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: midataworks-secrets
+                  key: POSTGRES_PASSWORD
+            - name: DATABASE_URL
+              value: postgresql+asyncpg://midataworks:$(POSTGRES_PASSWORD)@postgres:5432/midataworks
+            - name: SETTINGS_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: midataworks-secrets
+                  key: SETTINGS_ENCRYPTION_KEY
+            - name: INTERNAL_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: midataworks-secrets
+                  key: SECRET_KEY
+          envFrom:
+            - configMapRef:
+                name: midataworks-config
+          volumeMounts:
+            - name: dataworks-data
+              mountPath: /data/dataworks
+          securityContext:
+            allowPrivilegeEscalation: false
+        # labeling: classifier, judge and generation calls.
+        - name: worker-labeling
+          image: hitsai/midataworks-backend:latest
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+          env:
+            - name: SERVICE_TYPE
+              value: worker
+            - name: CELERY_QUEUES
+              value: labeling
+            - name: CELERY_WORKER_NAME
+              value: labeling
+            - name: CELERY_CONCURRENCY
+              value: "2"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: midataworks-secrets
+                  key: POSTGRES_PASSWORD
+            - name: DATABASE_URL
+              value: postgresql+asyncpg://midataworks:$(POSTGRES_PASSWORD)@postgres:5432/midataworks
+            - name: SETTINGS_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: midataworks-secrets
+                  key: SETTINGS_ENCRYPTION_KEY
+            - name: INTERNAL_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: midataworks-secrets
+                  key: SECRET_KEY
+          envFrom:
+            - configMapRef:
+                name: midataworks-config
+          volumeMounts:
+            - name: dataworks-data
+              mountPath: /data/dataworks
+          securityContext:
+            allowPrivilegeEscalation: false
+        # publish: Hub and miStudio handoffs.
+        - name: worker-publish
+          image: hitsai/midataworks-backend:latest
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+          env:
+            - name: SERVICE_TYPE
+              value: worker
+            - name: CELERY_QUEUES
+              value: publish
+            - name: CELERY_WORKER_NAME
+              value: publish
+            - name: CELERY_CONCURRENCY
+              value: "1"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: midataworks-secrets
+                  key: POSTGRES_PASSWORD
+            - name: DATABASE_URL
+              value: postgresql+asyncpg://midataworks:$(POSTGRES_PASSWORD)@postgres:5432/midataworks
+            - name: SETTINGS_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: midataworks-secrets
+                  key: SETTINGS_ENCRYPTION_KEY
+            - name: INTERNAL_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: midataworks-secrets
+                  key: SECRET_KEY
+          envFrom:
+            - configMapRef:
+                name: midataworks-config
+          volumeMounts:
+            - name: dataworks-data
+              mountPath: /data/dataworks
+          securityContext:
+            allowPrivilegeEscalation: false
+        # preview: previews; results live in Redis for an hour.
+        - name: worker-preview
+          image: hitsai/midataworks-backend:latest
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+          env:
+            - name: SERVICE_TYPE
+              value: worker
+            - name: CELERY_QUEUES
+              value: preview
+            - name: CELERY_WORKER_NAME
+              value: preview
+            - name: CELERY_CONCURRENCY
+              value: "2"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: midataworks-secrets
+                  key: POSTGRES_PASSWORD
+            - name: DATABASE_URL
+              value: postgresql+asyncpg://midataworks:$(POSTGRES_PASSWORD)@postgres:5432/midataworks
+            - name: SETTINGS_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: midataworks-secrets
+                  key: SETTINGS_ENCRYPTION_KEY
+            - name: INTERNAL_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: midataworks-secrets
+                  key: SECRET_KEY
+          envFrom:
+            - configMapRef:
+                name: midataworks-config
+          volumeMounts:
+            - name: dataworks-data
+              mountPath: /data/dataworks
+          securityContext:
+            allowPrivilegeEscalation: false
+        - name: beat
+          image: hitsai/midataworks-backend:latest
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+          env:
+            - name: SERVICE_TYPE
+              value: beat
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: midataworks-secrets
+                  key: POSTGRES_PASSWORD
+            - name: DATABASE_URL
+              value: postgresql+asyncpg://midataworks:$(POSTGRES_PASSWORD)@postgres:5432/midataworks
+            - name: SETTINGS_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: midataworks-secrets
+                  key: SETTINGS_ENCRYPTION_KEY
+            - name: INTERNAL_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: midataworks-secrets
+                  key: SECRET_KEY
+          envFrom:
+            - configMapRef:
+                name: midataworks-config
+          volumeMounts:
+            - name: dataworks-data
+              mountPath: /data/dataworks
+          securityContext:
+            allowPrivilegeEscalation: false
+      volumes:
+        - name: dataworks-data
+          hostPath:
+            path: /data/midataworks/data
+            type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: midataworks-backend
+  namespace: midataworks
+spec:
+  selector:
+    app: midataworks-backend
+  ports:
+    - port: 8000
+      targetPort: 8000
+---
+# DEFENCE IN DEPTH for the internal emit route (ingress.yaml). A Service with no endpoints: the
+# ingress routes /internal here, so it answers 503 instead of forwarding. Copied from miStudio's
+# `mistudio-denied` (its MIS-E2E-148). It selects nothing on purpose.
+apiVersion: v1
+kind: Service
+metadata:
+  name: midataworks-denied
+  namespace: midataworks
+spec:
+  selector:
+    app: midataworks-denied-no-such-pod
+  ports:
+    - port: 8000
+      targetPort: 8000

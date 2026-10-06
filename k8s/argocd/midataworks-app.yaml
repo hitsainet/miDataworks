@@ -1,0 +1,121 @@
+# ArgoCD GitOps definition for miDataworks (ADR-025; Foundation tasks 16.3, 16.7). Copied from
+# miLLM's `k8s/argocd/millm-app.yaml` and miStudio's `mistudio-app.yaml`: the same AppProject,
+# Application and CRD-based ImageUpdater, with the same annotation set.
+#
+# Apply once by hand (kubectl apply -f k8s/argocd/midataworks-app.yaml); ArgoCD manages the
+# workloads from then on.
+#
+# Flow (as miLLM and miStudio):
+#   push to Onegaishimas/miDataworks main
+#     → sync-main-to-gitops-pilot.yml merges main → gitops/pilot
+#     → sync-to-clean.yml publishes an orphan snapshot → hitsainet/miDataworks
+#     → docker-images.yml (hitsainet) builds ONLY the changed images, the backend and
+#       Data-Juicer images only over a green Backend Tests run
+#     → ArgoCD Image Updater sees the new :latest digest on Docker Hub and commits a pin to
+#       gitops/pilot (k8s/base/.argocd-source-midataworks.yaml)
+#     → ArgoCD syncs k8s/base from gitops/pilot and rolls the deployment
+#
+# One-time prerequisites (not in git; docs/RUNBOOK.md has each command, never a value):
+#   1. Namespace `midataworks` and the `midataworks-secrets` Secret in it
+#      (POSTGRES_PASSWORD, SECRET_KEY, SETTINGS_ENCRYPTION_KEY — see k8s/base/postgres.yaml).
+#   2. Repository credential Secret `midataworks-repo-creds` in the argocd namespace for
+#      https://github.com/Onegaishimas/miDataworks.git, with a token that has contents:write
+#      (Image Updater pushes pins through it), labelled argocd.argoproj.io/secret-type: repository.
+#      Same shape as millm-repo-creds.
+#   3. The gitops/pilot branch, created from main.
+#
+# Shared argocd-namespace secrets that ALREADY EXIST for miLLM and miStudio (do NOT recreate):
+#   - regcred (the image pull secret referenced below)
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: midataworks
+  namespace: argocd
+spec:
+  description: miDataworks — the suite's data plane (import, curate, label, calibrate, publish)
+  sourceRepos:
+    - https://github.com/Onegaishimas/miDataworks.git
+  destinations:
+    - namespace: midataworks
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    # The Namespace object is part of k8s/base.
+    - group: '*'
+      kind: '*'
+  namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: midataworks
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: midataworks
+  annotations:
+    # ── ArgoCD Image Updater ────────────────────────────────────────────
+    # Track :latest by digest (same strategy as miLLM, miStudio and the WASAT apps): every new
+    # push of hitsai/midataworks-*:latest to Docker Hub gets pinned by digest and committed to
+    # gitops/pilot, which ArgoCD then syncs.
+    argocd-image-updater.argoproj.io/image-list: backend=docker.io/hitsai/midataworks-backend:latest, frontend=docker.io/hitsai/midataworks-frontend:latest, datajuicer=docker.io/hitsai/midataworks-datajuicer:latest
+    argocd-image-updater.argoproj.io/backend.update-strategy: digest
+    argocd-image-updater.argoproj.io/backend.kustomize.image-name: hitsai/midataworks-backend
+    argocd-image-updater.argoproj.io/frontend.update-strategy: digest
+    argocd-image-updater.argoproj.io/frontend.kustomize.image-name: hitsai/midataworks-frontend
+    argocd-image-updater.argoproj.io/datajuicer.update-strategy: digest
+    argocd-image-updater.argoproj.io/datajuicer.kustomize.image-name: hitsai/midataworks-datajuicer
+    argocd-image-updater.argoproj.io/write-back-method: git
+    argocd-image-updater.argoproj.io/git-branch: gitops/pilot
+    # Default write-back target: parameter-override file
+    # k8s/base/.argocd-source-midataworks.yaml (kept off main; the sync-main-to-gitops-pilot
+    # workflow preserves it during merges).
+spec:
+  project: midataworks
+  source:
+    repoURL: https://github.com/Onegaishimas/miDataworks.git
+    targetRevision: gitops/pilot
+    path: k8s/base
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: midataworks
+  revisionHistoryLimit: 10
+  syncPolicy:
+    automated:
+      selfHeal: true
+      # prune intentionally NOT enabled, as in miLLM and miStudio: enable after a burn-in period.
+      # postgres and redis also carry Prune=false,Delete=false.
+    syncOptions:
+      - ServerSideApply=true
+  ignoreDifferences:
+    # Tolerate kubectl rollout restart during incident response without a self-heal fight over
+    # the restartedAt annotation.
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/template/metadata/annotations/kubectl.kubernetes.io~1restartedAt
+---
+# This cluster runs the CRD-based Image Updater: applications are reconciled only when selected by
+# an ImageUpdater resource (see millm-images and mistudio-images). useAnnotations pulls the
+# per-image configuration from the Application annotations above. Without this resource the
+# annotations are inert and no digest is ever pinned.
+apiVersion: argocd-image-updater.argoproj.io/v1alpha1
+kind: ImageUpdater
+metadata:
+  name: midataworks-images
+  namespace: argocd
+spec:
+  applicationRefs:
+    - namePattern: midataworks
+      useAnnotations: true
+  commonUpdateSettings:
+    forceUpdate: false
+    pullSecret: pullsecret:argocd/regcred
+    updateStrategy: digest
+  writeBackConfig:
+    method: git
+    gitConfig:
+      branch: gitops/pilot
+      # No writeBackTarget: the default parameter-override file
+      # (k8s/base/.argocd-source-midataworks.yaml) is used for this Kustomize app.

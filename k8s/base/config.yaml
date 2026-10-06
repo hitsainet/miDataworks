@@ -1,0 +1,22 @@
+# Non-secret configuration shared by every backend container and the Data-Juicer worker
+# (PADR §2.5). Secrets are NOT here: they come from `midataworks-secrets`, created out of band
+# (see postgres.yaml for the command and docs/RUNBOOK.md for the procedure).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: midataworks-config
+  namespace: midataworks
+data:
+  # Without this the Settings default of "development" applies.
+  ENVIRONMENT: production
+  LOG_LEVEL: INFO
+  REDIS_URL: redis://redis:6379/0
+  # The data volume (ADR-004); mounted at this path on every row-touching container.
+  DATA_DIR: /data/dataworks
+  HF_HOME: /data/dataworks/cache/hf
+  # Where workers reach the API's internal emit route. In-cluster only; the ingress never
+  # routes /internal (ingress.yaml).
+  DATAWORKS_API_URL: http://midataworks-backend:8000
+  # Used only by GET /api/health and the top-bar connection chips.
+  MILLM_BASE_URL: http://millm-backend.millm.svc.cluster.local:8000
+  MISTUDIO_BASE_URL: http://mistudio-backend.mistudio.svc.cluster.local:8000

@@ -1,0 +1,9 @@
+# Build context for hitsai/midataworks-frontend is frontend/ (docker-images.yml).
+node_modules/
+dist/
+coverage/
+test-results/
+playwright-report/
+e2e/captures/
+.env
+.env.*

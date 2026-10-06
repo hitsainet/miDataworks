@@ -1,0 +1,15 @@
+# Test and quality tooling. Install with: pip install -r requirements-dev.txt
+-r requirements.txt
+aiohttp==3.14.4
+black==26.10.0
+celery-types==0.26.0
+mypy==2.4.0
+pytest==9.1.1
+pytest-asyncio==1.4.0
+pytest-cov==7.1.0
+pytest-xdist==3.8.0
+# Workflow and manifest guards read YAML (test_ci_runs_whole_tree, test_mirror_exclusions, test_k8s_manifests).
+pyyaml==6.0.3
+ruff==0.16.10
+types-jsonschema==4.26.0.20260518
+types-psutil==7.2.2.20260906

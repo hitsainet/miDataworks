@@ -1,0 +1,61 @@
+[project]
+name = "midataworks-backend"
+version = "0.1.0"
+description = "miDataworks backend: the suite's data plane (import, curate, label, calibrate, publish)"
+requires-python = ">=3.11,<3.12"
+license = { text = "Apache-2.0" }
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["alembic/versions", ".venv", ".python"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "C4", "UP", "S"]
+ignore = [
+    "E501",  # Black owns line length.
+    "B008",  # FastAPI's Depends() in argument defaults is the framework's idiom.
+    "S101",  # asserts narrow types; the backend never runs under python -O.
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+"tests/**" = ["S101", "S105", "S106", "S108", "S110", "S603", "S607", "S608", "S311"]
+"alembic/**" = ["S"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unused_configs = true
+plugins = ["pydantic.mypy"]
+files = ["src"]
+
+[[tool.mypy.overrides]]
+module = ["socketio.*", "pyarrow.*", "kombu.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+minversion = "9.0"
+# NO `-q` here: a caller's own -q would make -qq, at which pytest drops its own
+# "N passed" line. tests/conftest.py prints a SUITE TOTALS line at every verbosity.
+addopts = "-ra --strict-markers"
+testpaths = ["tests"]
+pythonpath = ["."]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+markers = [
+    "integration: needs the real PostgreSQL 15 and Redis 7 (docker-compose.yml)",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["*/tests/*", "*/alembic/*"]
+
+[tool.coverage.report]
+precision = 2
+fail_under = 80
+exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:", "raise NotImplementedError"]

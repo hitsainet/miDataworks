@@ -1,0 +1,35 @@
+# miDataworks GitOps base (ADR-025; Foundation task 16.1) — deployed by the `midataworks` ArgoCD
+# Application (k8s/argocd/midataworks-app.yaml) from the gitops/pilot branch.
+#
+# Image tags below are the *defaults*; ArgoCD Image Updater overrides them with digest pins via
+# the parameter-override file `.argocd-source-midataworks.yaml` it commits to gitops/pilot. Never
+# hand-edit that file, and never create it on main: sync-main-to-gitops-pilot.yml leaves it alone.
+#
+# One `images` entry per image rewrites every container using it: the seven containers of
+# midataworks-backend move together (and, from feature 010, the MCP server).
+#
+# MCP (task 16.5): feature 010 adds `mcp.yaml` here (ADR-016), a separate Deployment running
+# SERVICE_TYPE=mcp from the backend image, with NO DATABASE_URL, NO Redis URL and NO data volume —
+# its tools reach the backend over HTTP only. miStudio registered a tool in a pod with no database
+# and it raised on its first real call; that deployment shape is the guard.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - namespace.yaml
+  - config.yaml
+  - postgres.yaml
+  - redis.yaml
+  - backend.yaml
+  - datajuicer.yaml
+  - frontend.yaml
+  - ingress.yaml
+  - db-backup.yaml
+
+images:
+  - name: hitsai/midataworks-backend
+    newTag: latest
+  - name: hitsai/midataworks-frontend
+    newTag: latest
+  - name: hitsai/midataworks-datajuicer
+    newTag: latest

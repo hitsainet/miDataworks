@@ -1,0 +1,6 @@
+# The Data-Juicer image's own pins (ADR-010). Upgrades are separate, tested changes: feature 003's
+# contract test runs every allowlisted operator on a fixture dataset before a version moves.
+py-data-juicer==1.6.0
+celery==5.6.3
+redis==8.1.0
+pyarrow==25.0.1
