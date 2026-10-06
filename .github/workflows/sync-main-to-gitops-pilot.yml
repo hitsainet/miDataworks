@@ -36,7 +36,7 @@ jobs:
       PIN_FILE: k8s/base/.argocd-source-midataworks.yaml
     steps:
       - name: Checkout gitops/pilot
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: gitops/pilot
           fetch-depth: 0

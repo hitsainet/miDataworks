@@ -69,7 +69,7 @@ jobs:
 
     steps:
       - name: Checkout source repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           # A snapshot needs no history; fetching it is what made the leak possible.
           fetch-depth: 1
