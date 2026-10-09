@@ -1,0 +1,55 @@
+# Non-secret configuration shared by every backend container and the Data-Juicer worker
+# (PADR §2.5). Secrets are NOT here: they come from `midataworks-secrets`, created out of band
+# (see postgres.yaml for the command and docs/RUNBOOK.md for the procedure).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: midataworks-config
+  namespace: midataworks
+data:
+  # Without this the Settings default of "development" applies.
+  ENVIRONMENT: production
+  LOG_LEVEL: INFO
+  REDIS_URL: redis://redis:6379/0
+  # The data volume (ADR-004); mounted at this path on every row-touching container.
+  DATA_DIR: /data/dataworks
+  HF_HOME: /data/dataworks/cache/hf
+  # Where workers reach the API's internal emit route. In-cluster only; the ingress never
+  # routes /internal (ingress.yaml).
+  DATAWORKS_API_URL: http://midataworks-backend:8000
+  # Optional siblings: leave either unset and miDataworks runs standalone. miLLM: health, and the
+  # probe-verdict and feature-tag label runs. miStudio: health, and the detector-set send, results
+  # refresh and reward marks, which refuse with mistudio_not_configured while it is unset.
+  MILLM_BASE_URL: http://millm-backend.millm.svc.cluster.local:8000
+  MISTUDIO_BASE_URL: http://mistudio-backend.mistudio.svc.cluster.local:8000
+  # Feature 008 (publishing). The Hub's recommended per-file size; its hard limit is 500GB.
+  PUBLISH_MAX_FILE_BYTES: "200000000000"
+  PUBLISH_HUB_RETRIES: "5"
+  PUBLISH_JANITOR_LIMIT_SECONDS: "1800"
+  PUBLISH_DEFAULT_NAMESPACE: ""
+  # Feature 005: labeling and endpoints (FTDD 005 section 11). The P-07 threshold is the
+  # Settings default AGENT_LABEL_ROW_THRESHOLD (5000); the window is the ledger's 24 h.
+  LABEL_CHUNK_SIZE: "200"
+  LABEL_MAX_CONSECUTIVE_FAILURES: "20"
+  LABEL_BACKOFF_CAP_SECONDS: "60"
+  JUDGE_PARSE_FAILURE_STOP_SHARE: "0.05"
+  KEEP_SHARE_SAMPLE_ROWS: "400"
+  MILLM_LEASE_TTL_SECONDS: "1800"
+  MILLM_LEASE_HOLDER: midataworks
+  # Feature 010 (MCP). Shown on, and read for, the Settings screen's Agent access card only; the
+  # MCP pod itself reads none of this ConfigMap (it has no database or Redis, ADR-016).
+  MCP_PUBLIC_URL: http://mcp-dataworks.hitsai.local/mcp
+  MCP_INTERNAL_URL: http://midataworks-mcp:8765
+  APPROVAL_TTL_HOURS: "24"
+  AGENT_LABEL_WINDOW_HOURS: "24"
+  AGENT_LABEL_ROW_THRESHOLD: "5000"
+  # Feature 004: curation (FTDD 004 section 11.2). The warning MARGIN is not configuration: it is
+  # data with history (Settings and each dataset's page) and a code default of 10 points (P-19).
+  CURATION_INLINE_MAX_ROWS: "20000"
+  CURATION_AUDIT_FOLDS: "5"
+  CURATION_CONTROL_RUNS: "5"
+  CURATION_CONTROL_TOLERANCE_PP: "2"
+  CURATION_MINHASH_PERMUTATIONS: "128"
+  CURATION_EMBED_EXACT_MAX_ROWS: "200000"
+  CURATION_SWEEP_INTERVAL_S: "60"
+  CURATION_CELL_SAMPLE_SIZE: "30"

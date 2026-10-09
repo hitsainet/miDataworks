@@ -1,0 +1,15 @@
+# The Data Designer image's own pins (ADR-010 amendment, 2026-10-07: Data Designer runs in its own
+# image and queue, following the Data-Juicer pattern). data-designer 0.9.4 requires
+# huggingface-hub<2, which the backend's 2.1.1 pin forbids — the reason it cannot live in the main
+# worker image (FR-003.15). constraints.txt pins the whole resolved set.
+data-designer==0.9.4
+huggingface-hub==1.33.0
+celery==5.6.3
+redis==8.1.0
+# data-designer 0.9.4 caps pyarrow below 25 (the backend pins 25.0.1); Parquet on the volume is
+# read and written by both versions.
+pyarrow==24.0.0
+jsonschema==4.26.0
+cryptography==50.0.2
+httpx==0.28.1
+uvicorn==0.54.0

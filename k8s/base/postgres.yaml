@@ -1,0 +1,105 @@
+# PostgreSQL 15 — metadata, labels and lineage (ADR-003). Rows live on the data volume as Parquet,
+# not here. Data on a hostPath, NOT a PVC: ArgoCD prune can never delete it, and the Deployment is
+# annotated Prune=false,Delete=false as a second guard (miLLM's pattern).
+#
+# SECRETS ARE CREATED OUT OF BAND — never committed, because this repository syncs to a public
+# mirror. One Secret, three keys, generated in place so no value is ever typed or pasted:
+#
+#   kubectl create secret generic midataworks-secrets -n midataworks \
+#     --from-literal=POSTGRES_PASSWORD="$(openssl rand -hex 24)" \
+#     --from-literal=SECRET_KEY="$(openssl rand -hex 32)" \
+#     --from-literal=SETTINGS_ENCRYPTION_KEY="$(openssl rand -hex 32)" \
+#     --from-literal=DESIGNER_HANDOFF_KEY="$(openssl rand -hex 32)" \
+#     --from-literal=MCP_BEARER_TOKEN="$(openssl rand -hex 32)"
+#
+# MCP_BEARER_TOKEN (feature 010) is the one bearer token agents present to midataworks-mcp (P-12).
+# On an existing Secret, add it with:
+#   kubectl -n midataworks patch secret midataworks-secrets --type merge \
+#     -p "{\"stringData\":{\"MCP_BEARER_TOKEN\":\"$(openssl rand -hex 32)\"}}"
+#
+# DESIGNER_HANDOFF_KEY (feature 003, 2026-10-07) seals a model key the backend hands to the Data
+# Designer worker for one step. On an existing Secret, add it with:
+#   kubectl -n midataworks patch secret midataworks-secrets --type merge \
+#     -p "{\"stringData\":{\"DESIGNER_HANDOFF_KEY\":\"$(openssl rand -hex 32)\"}}"
+#
+# Hex on purpose: POSTGRES_PASSWORD is interpolated into DATABASE_URL (backend.yaml), where a
+# '@', '/' or ':' would break the URL. SETTINGS_ENCRYPTION_KEY encrypts every stored secret;
+# losing it loses them, so copy it somewhere safe (docs/RUNBOOK.md, "Secrets").
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: midataworks
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+spec:
+  replicas: 1
+  # Recreate: two postgres pods must never share the hostPath PGDATA during a rolling update.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      # PINNED. This volume is a hostPath, so the data lives on ONE node's disk and the pod is only
+      # correct where that disk is. Unpinned, the scheduler may place it anywhere; `type:
+      # DirectoryOrCreate` then makes an EMPTY directory on the new node and postgres initialises a
+      # BRAND NEW EMPTY DATABASE. Nothing errors — the service comes up healthy against an empty DB
+      # while the real data sits untouched on the original node.
+      #
+      # That happened to miLLM on 2026-08-30: a reboot moved its postgres pod to another node and it
+      # came back reporting 2 models where it had had 30+, reading a database created minutes
+      # earlier. Every miDataworks pod with storage is pinned to mcs-lnxhost02 for that reason
+      # (Foundation decision 1.2, 2026-10-06; /data had 1.6 TB free there). Moving the pin means
+      # moving /data/midataworks first.
+      nodeSelector:
+        kubernetes.io/hostname: mcs-lnxhost02
+      containers:
+        - name: postgres
+          image: postgres:15
+          env:
+            - name: POSTGRES_DB
+              value: midataworks
+            - name: POSTGRES_USER
+              value: midataworks
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: midataworks-secrets
+                  key: POSTGRES_PASSWORD
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          ports:
+            - containerPort: 5432
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "midataworks", "-d", "midataworks"]
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: postgres-data
+          hostPath:
+            path: /data/midataworks/postgres
+            type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: midataworks
+spec:
+  selector:
+    app: postgres
+  ports:
+    - port: 5432
+      targetPort: 5432

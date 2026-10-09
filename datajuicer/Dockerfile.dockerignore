@@ -1,0 +1,15 @@
+# Dockerfile-specific ignore file (BuildKit reads <Dockerfile>.dockerignore beside the Dockerfile).
+# The Data-Juicer image is built from the REPOSITORY ROOT because it copies the runner package
+# from backend/src, so everything is excluded except what datajuicer/Dockerfile COPYs.
+*
+!datajuicer/requirements.txt
+!datajuicer/constraints.txt
+!datajuicer/dj_paths.py
+!datajuicer/contract.py
+!datajuicer/contract_cases.json
+!datajuicer/scripts/check_no_runtime_installs.py
+!backend/tests/fixtures/operators/contract_fixture.parquet
+!backend/src/__init__.py
+!backend/src/operators/__init__.py
+!backend/src/operators/datajuicer/
+**/__pycache__

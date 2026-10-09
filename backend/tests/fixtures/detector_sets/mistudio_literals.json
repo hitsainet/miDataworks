@@ -1,0 +1,6 @@
+{
+  "x-origin": "miStudio (Onegaishimas/miStudio) backend/src/schemas/probe_monitor.py lines 59-61 @ c829a2cc, copied 2026-10-07",
+  "DatasetRole": ["train", "eval", "calibration"],
+  "Distribution": ["in_distribution", "out_of_distribution"],
+  "LabelTarget": ["positive", "negative", "excluded"]
+}

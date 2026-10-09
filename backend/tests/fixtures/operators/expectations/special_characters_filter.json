@@ -1,0 +1,82 @@
+{
+ "distinct_stats": 13,
+ "dropped": [
+  {
+   "kept_key": null,
+   "occurrence": 0,
+   "row_key": "57fdfdd5e3c496a7a781248841adc1c71654f24b656adfe577db16e7e00ad16c",
+   "stats": {
+    "special_char_ratio": 1.0
+   }
+  },
+  {
+   "kept_key": null,
+   "occurrence": 0,
+   "row_key": "cd5a2a1629db7ab4d7e5b6fee9288bbb565a33e1d47fce87f8b5de0e6985233d",
+   "stats": {
+    "special_char_ratio": 1.0
+   }
+  }
+ ],
+ "kept": [
+  [
+   "08e93d0af90339e648f3da7680a77db6af80eb97511bf9880a3389de19f2e065",
+   0
+  ],
+  [
+   "278f9bf24f6e65ca483ccda75fe4ec89bc47c76de98aa5237d7f1cc63dc1256e",
+   0
+  ],
+  [
+   "5c085db9aaab0365a2a678b8a219ddd799719d8faf8ae46a7f92ad42065bfc82",
+   0
+  ],
+  [
+   "64eb8b0c5779f92a137eff81cc815e29c00db20a22e120f7d08363404f367a21",
+   0
+  ],
+  [
+   "85e6b0750559e82a9eac52b52a8e50ddaff0b050cd2c38fd79bd3bb0f8c6e070",
+   0
+  ],
+  [
+   "9b6e52361db822e6713800f02750e5f7170a121c19ed5ff04845dd55fce13df9",
+   0
+  ],
+  [
+   "c06638b63104378cfcb1cfc55a8a6f31b2f13715cdc5f883d6709632edf51b79",
+   0
+  ],
+  [
+   "c3227fc79887ce0acb0b1a6a8e7ab089a73dc1f2706cfc53d0644147b9a67edd",
+   0
+  ],
+  [
+   "cc2cd933c5dbb7e0d2149bbaa3d6bf1d3d9113510c73a3e2362d49905f8db305",
+   0
+  ],
+  [
+   "ebc4429cdd219afc891f528f9ea3687b5efda63c6fd92f8f9ab9ad9725ccd80f",
+   0
+  ],
+  [
+   "ecd7d10dcd5731637acc3ef5fb638b0f028c71c6a67d60f78edd9162cae1c414",
+   0
+  ],
+  [
+   "ecd7d10dcd5731637acc3ef5fb638b0f028c71c6a67d60f78edd9162cae1c414",
+   1
+  ],
+  [
+   "f213e574a67027e0f5a88c0a86511043e01d0495448221ca18320c99136b72d9",
+   0
+  ],
+  [
+   "f74148a29fde4b5948f8659c1ba1fdafe2ef352ef31e0610664ec1c8f90904a6",
+   0
+  ]
+ ],
+ "params": {
+  "max_ratio": 0.25
+ }
+}

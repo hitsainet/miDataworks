@@ -1,0 +1,160 @@
+name: Backend Tests
+
+# The WHOLE backend test tree, on every push and pull request (R-03.66, ADR-022;
+# Foundation task 13.1). Adapted from miLLM's `backend-tests.yml`, with its two
+# defects removed:
+#
+# * miLLM runs `pytest tests/unit/` with eight `--ignore=` flags and
+#   `-m "not slow"`, and miStudio runs `--ignore=tests/integration`. miStudio's CI
+#   was red for a week over a stale test outside the directory it ran, while every
+#   local run that mattered was green. Here the command is `pytest tests` with no
+#   path or marker exclusion, against real PostgreSQL 15 and Redis 7, and
+#   `tests/unit/test_ci_runs_whole_tree.py` reads THIS file and fails if an
+#   `--ignore`, `--deselect`, `-m` or `-k` is ever added to it.
+# * No `paths:` filter. A filtered trigger produces no run at all for a push it
+#   does not match, and `docker-images.yml`'s test gate then has nothing to read.
+#   ADR-022: "workflows run for every push and pull request".
+#
+# It runs on the private repository AND again on the public mirror, because the
+# mirror's image build is gated on this workflow's result for the same commit
+# (docker-images.yml, job `gate`). Tests that read a file the mirror strips skip
+# loudly there (tests/support/source_tree.py); a shipping file that is missing
+# fails.
+#
+# ⚠ The workflow NAME is load-bearing: the gate selects runs by
+# `.name == "Backend Tests"`. Renaming this file's `name:` silently turns every
+# image build into a ten-minute wait followed by a refusal.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        # Production's major version (k8s/base/postgres.yaml). The ORM-versus-
+        # migration test asserts it runs on 15.
+        image: postgres:15
+        env:
+          POSTGRES_USER: midataworks
+          POSTGRES_PASSWORD: midataworks-ci
+          POSTGRES_DB: midataworks_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U midataworks -d midataworks_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      # The database name contains "test": tests/conftest.py refuses any other.
+      # Each xdist worker provisions its own `_gwN` copy from this URL.
+      DATABASE_URL: postgresql+asyncpg://midataworks:midataworks-ci@localhost:5432/midataworks_test
+      REDIS_URL: redis://localhost:6379/15
+      # Test-only values. No real secret is ever needed or present here.
+      SETTINGS_ENCRYPTION_KEY: ci-only-encryption-key-0123456789abcdef
+      INTERNAL_API_SECRET: ci-only-internal-secret-0123456789
+      DATA_DIR: /tmp/midataworks-ci-data
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/requirements-dev.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      # Proves the migrations apply from empty through the same CLI path a
+      # deployment uses (docker-entrypoint.sh runs `alembic upgrade head`). The
+      # suite then migrates each worker's own database itself.
+      - name: Alembic upgrade on an empty database
+        run: alembic upgrade head
+
+      - name: Run the whole backend test tree
+        run: pytest tests -n 4 --dist loadfile
+
+  # Feature 003 (FTASKS 13.4; FTDD 003 section 11.1): the Data-Juicer image's own tests, in an
+  # environment built from ITS pins — catalogue byte-sync, the schema-subset byte copy and every
+  # offered operator on the contract fixture. A required check; never skipped in the backend job
+  # (which cannot import data_juicer). `tests/unit/test_ci_runs_whole_tree.py` reads this job.
+  # It GATES the Data-Juicer image: docker-images.yml's `gate` requires the whole "Backend Tests"
+  # workflow to conclude `success`, and a failed job here makes that conclusion `failure`.
+  # It includes test_no_runtime_installs.py (T-10).
+  datajuicer-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: datajuicer/requirements.txt
+
+      - name: Install the Data-Juicer image's pins
+        run: pip install -r datajuicer/requirements.txt -c datajuicer/constraints.txt pytest==9.1.1 pyyaml==6.0.3
+
+      - name: Run the Data-Juicer tests
+        run: pytest datajuicer/tests
+
+  # PADR ADR-010 amendment (2026-10-07): the Data Designer image's own tests, in an environment
+  # built from ITS pins (data-designer 0.9.4 needs huggingface-hub<2) — catalogue byte-sync and
+  # every offered column through the REAL library and the loopback relay against a fake
+  # OpenAI-compatible server. It gates the Data Designer image the same way datajuicer-tests
+  # gates the Data-Juicer image (this workflow's conclusion).
+  designer-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: designer/requirements.txt
+
+      - name: Install the Data Designer image's pins
+        run: pip install -r designer/requirements.txt -c designer/constraints.txt pytest==9.1.1
+
+      - name: Run the Data Designer tests
+        run: pytest designer/tests

@@ -1,0 +1,260 @@
+# Nightly logical backup of the miDataworks database (R-03.65, ADR-026; Foundation task 17.1).
+# Adapted from miStudio's `k8s/base/db-backup.yaml` (verify before it counts, publish by rename,
+# prune only after a verified publish, RESTORE.md written beside the archives every run) and
+# miLLM's (a small database; BACKUP_DIR is the mount itself, not a subdirectory of it).
+#
+# WHAT IS AND IS NOT IN HERE. PostgreSQL holds metadata, labels, review decisions and lineage
+# (ADR-003): the human labels and decisions are the part nothing can regenerate. Parquet rows on
+# the data volume are NOT in this backup; they are rebuildable from sources and recipes, and
+# published versions also exist on the Hub. Unpublished uploaded sources are the known gap
+# (PADR §10).
+#
+# WHY A SEPARATE DISK. /data — where the database lives — is the node's NVMe, so a backup there
+# survives a bad DELETE but not the disk failing. /mnt/hdd2 is a different physical spindle
+# (904 GB free when measured for decision 1.2). Its pair has already failed SMART, so this is one
+# aging disk: a real improvement over nothing, not a substitute for an off-box copy.
+#
+# hostPath + DirectoryOrCreate + a node pin (decision 1.2), unlike miStudio and miLLM, which bind
+# a `local` PersistentVolume. A local PV refuses a directory that does not exist, so it would need
+# a `mkdir` on the node before the first run; DirectoryOrCreate needs nothing, and the pin is what
+# keeps it on the disk that holds the earlier dumps.
+#
+# 04:10 ET: after miStudio (03:30) and miLLM (03:50), so the three never contend for the spindle.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: midataworks-db-backup
+  namespace: midataworks
+spec:
+  schedule: "10 4 * * *"
+  # The operator's own timezone, so "nightly" does not drift twice a year.
+  timeZone: "America/New_York"
+  # A second dump while the first runs would race on the same file names.
+  concurrencyPolicy: Forbid
+  # Enough history to SEE a pattern. One retained failure is indistinguishable from a one-off.
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 5
+  startingDeadlineSeconds: 3600
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          restartPolicy: OnFailure
+          # PINNED: the backups live on THIS node's /mnt/hdd2. Unpinned, a run on another node
+          # writes to an empty directory there, and retention counts nothing — the history is
+          # still on the original disk, but no run ever sees it again (see postgres.yaml).
+          nodeSelector:
+            kubernetes.io/hostname: mcs-lnxhost02
+          containers:
+            - name: dump
+              # The server's major version: a pg_dump older than its server refuses outright.
+              image: postgres:15
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: PGHOST
+                  value: postgres
+                - name: PGUSER
+                  value: midataworks
+                - name: PGDATABASE
+                  value: midataworks
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: midataworks-secrets
+                      key: POSTGRES_PASSWORD
+                - name: KEEP
+                  value: "30"
+                # `/backups`, NOT `/backups/midataworks`: the hostPath is ALREADY
+                # /mnt/hdd2/pv/midataworks. miLLM's first run doubled the directory by copying
+                # miStudio's value without checking the mount.
+                - name: BACKUP_DIR
+                  value: /backups
+                # The archive must list at least this many tables, and these by name.
+                - name: MIN_TABLES
+                  value: "5"
+                - name: REQUIRED_TABLES
+                  value: alembic_version dw_jobs dw_app_settings dw_approvals
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  set -euo pipefail
+
+                  # `set -e` is load-bearing: every step must abort the run rather than fall
+                  # through to the prune. A prune after a failed dump deletes real history to make
+                  # room for nothing.
+
+                  stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+                  mkdir -p "$BACKUP_DIR"
+                  target="$BACKUP_DIR/midataworks-$stamp.dump"
+                  partial="$target.partial"
+                  log="$BACKUP_DIR/backups.log"
+
+                  say() { echo "[$(date -u +%H:%M:%SZ)] $*"; }
+
+                  # ── Has anything succeeded lately? ──────────────────────────
+                  # A CronJob that quietly fails every night looks exactly like one that never
+                  # ran. The newest dump's age is the only evidence that does not depend on
+                  # somebody having watched.
+                  newest="$(ls -1t "$BACKUP_DIR"/midataworks-*.dump 2>/dev/null | head -1 || true)"
+                  if [ -n "$newest" ]; then
+                    age_h=$(( ( $(date -u +%s) - $(stat -c %Y "$newest") ) / 3600 ))
+                    say "newest existing dump is ${age_h}h old: $(basename "$newest")"
+                    if [ "$age_h" -gt 48 ]; then
+                      say "WARNING: more than 48h since the last dump — previous runs failed"
+                    fi
+                  else
+                    say "no existing dump: this is the first run"
+                  fi
+
+                  # ── Room to write? ─────────────────────────────────────────
+                  avail_mb=$(df -Pm "$BACKUP_DIR" | awk 'NR==2 {print $4}')
+                  say "free space: ${avail_mb} MB"
+                  if [ "$avail_mb" -lt 1024 ]; then
+                    say "REFUSING: under 1 GB free. A truncated dump that looks like a backup is"
+                    say "worse than a missing one, so this run stops before writing anything."
+                    exit 1
+                  fi
+
+                  # ── Dump ───────────────────────────────────────────────────
+                  started=$(date -u +%s)
+                  say "dumping to $(basename "$partial")"
+                  pg_dump -Fc -Z6 --file="$partial"
+                  elapsed=$(( $(date -u +%s) - started ))
+                  bytes=$(stat -c %s "$partial")
+                  say "wrote ${bytes} bytes in ${elapsed}s"
+
+                  # ── Verify BEFORE it counts as a backup ────────────────────
+                  # `pg_restore -l` parses the archive's table of contents, so a truncated or
+                  # corrupt file fails HERE rather than on the night it is needed.
+                  toc="$(pg_restore -l "$partial")"
+                  data_entries="$(printf '%s\n' "$toc" | grep -c 'TABLE DATA' || true)"
+                  say "archive lists ${data_entries} TABLE DATA entries"
+                  if [ "$data_entries" -lt "$MIN_TABLES" ]; then
+                    say "REFUSING: only ${data_entries} tables in the archive (at least ${MIN_TABLES})"
+                    rm -f "$partial"; exit 1
+                  fi
+                  # Payload, not just a count: these must be in there, or the dump is of
+                  # something other than this database.
+                  #
+                  # A here-string, NEVER `printf ... | grep -q`. `grep -q` exits at its first
+                  # match and bash writes the TOC line by line, so the writer meets a closed
+                  # pipe, dies of SIGPIPE (141), and `pipefail` turns a FOUND table into a
+                  # refusal. A real `pg_restore -l` here is ~67 KB with every TABLE DATA entry
+                  # in its first quarter — more than a pipe holds after the match — so that
+                  # refused essentially every night, and every short test TOC passed it.
+                  for required in $REQUIRED_TABLES; do
+                    grep -q "TABLE DATA public $required " <<<"$toc" || {
+                      say "REFUSING: no TABLE DATA entry for '$required'"
+                      rm -f "$partial"; exit 1
+                    }
+                  done
+
+                  # A dump half the size of the last one is a signal, not a saving.
+                  if [ -n "$newest" ]; then
+                    prev=$(stat -c %s "$newest")
+                    if [ "$bytes" -lt $(( prev / 2 )) ]; then
+                      say "WARNING: ${bytes} bytes is under half the previous ${prev} — check what changed"
+                    fi
+                  fi
+
+                  # ── Publish atomically ────────────────────────────────────
+                  # The rename is what makes a dump visible. Until then it is `.partial`, so a
+                  # crashed run can never be mistaken for a good backup and retention never
+                  # counts one.
+                  sha="$(sha256sum "$partial" | cut -d' ' -f1)"
+                  mv "$partial" "$target"
+                  say "published $(basename "$target")"
+                  printf '%s\t%s\t%s bytes\t%ss\t%s tables\tsha256=%s\n' \
+                    "$stamp" "$(basename "$target")" "$bytes" "$elapsed" \
+                    "$data_entries" "$sha" >> "$log"
+
+                  # ── Retention ─────────────────────────────────────────────
+                  # Only ever reached after a VERIFIED, PUBLISHED dump. Matches our own name
+                  # pattern only, so nothing else on the disk is touched, and never removes the
+                  # newest file even if KEEP were misconfigured to 0.
+                  total=$(ls -1 "$BACKUP_DIR"/midataworks-*.dump 2>/dev/null | wc -l)
+                  keep=$(( KEEP > 1 ? KEEP : 1 ))
+                  if [ "$total" -gt "$keep" ]; then
+                    ls -1t "$BACKUP_DIR"/midataworks-*.dump | tail -n +$(( keep + 1 )) | while read -r old; do
+                      say "pruning $(basename "$old")"
+                      rm -f -- "$old"
+                    done
+                  fi
+                  say "retained $(ls -1 "$BACKUP_DIR"/midataworks-*.dump | wc -l) of ${keep}"
+
+                  # ── Restore instructions, beside the backups ──────────────
+                  # Written every run so they cannot drift from the file names, and so they are
+                  # on the disk that survives the node (task 17.2).
+                  cat > "$BACKUP_DIR/RESTORE.md" <<'DOC'
+                  # Restoring a miDataworks dump
+
+                  Written by the nightly backup job (k8s/base/db-backup.yaml) on every run.
+                  `pg_dump -Fc` (custom format) archives: restore with `pg_restore`, never `psql`.
+                  WAL archiving is off, so recovery is to the last nightly dump, not
+                  point-in-time.
+
+                  ## Look inside without restoring
+
+                      pg_restore -l midataworks-<stamp>.dump | head -40
+
+                  ## Full restore into a scratch database (always first)
+
+                  Never restore straight over the live database; restore beside it and compare.
+
+                      kubectl -n midataworks exec deploy/postgres -- createdb -U midataworks midataworks_restore
+                      kubectl -n midataworks exec -i deploy/postgres -- \
+                        pg_restore -U midataworks --no-owner -d midataworks_restore < midataworks-<stamp>.dump
+
+                  Then compare row counts table by table before trusting it:
+
+                      kubectl -n midataworks exec deploy/postgres -- psql -U midataworks -d midataworks -Atc 'select count(*) from dw_jobs'
+                      kubectl -n midataworks exec deploy/postgres -- psql -U midataworks -d midataworks_restore -Atc 'select count(*) from dw_jobs'
+
+                  ## A few tables only
+
+                  TWO TRAPS, both found by miStudio's restore drill failing:
+
+                  1. `--table=` does not carry the ENUM types. Restoring selected tables into
+                     an EMPTY database fails with `type "..." does not exist`. Restore
+                     `--schema-only` FIRST:
+
+                         pg_restore -U midataworks --no-owner --schema-only -d midataworks_restore < midataworks-<stamp>.dump
+                         pg_restore -U midataworks --no-owner --data-only --table=dw_jobs -d midataworks_restore < midataworks-<stamp>.dump
+
+                  2. Partial data violates foreign keys. Restore the referenced tables too, or
+                     add `--disable-triggers` (needs superuser), or restore everything.
+
+                  ## Before anything destructive: a manual dump
+
+                  NOT `kubectl create job --from=cronjob/midataworks-db-backup` alone: that
+                  stamps the CronJob as the Job's owner, the controller (concurrencyPolicy
+                  Forbid) finds a Job it never scheduled and kills it, and a `.dump.partial`
+                  is left behind. Strip the owner first (docs/RUNBOOK.md in the source repo):
+
+                      kubectl -n midataworks create job manual-dump-$(date +%s) \
+                        --from=cronjob/midataworks-db-backup --dry-run=client -o json \
+                        | python3 -c "import json,sys; j=json.load(sys.stdin); j['metadata'].pop('ownerReferences',None); print(json.dumps(j))" \
+                        | kubectl -n midataworks create -f -
+
+                  Then confirm a final `.dump` (not `.partial`) appeared and `backups.log`
+                  gained a line before relying on it.
+                  DOC
+                  sed -i 's/^                  //' "$BACKUP_DIR/RESTORE.md"
+                  say "done"
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits:
+                  cpu: "1"
+                  memory: 512Mi
+              volumeMounts:
+                - name: backups
+                  mountPath: /backups
+          volumes:
+            - name: backups
+              hostPath:
+                path: /mnt/hdd2/pv/midataworks
+                type: DirectoryOrCreate

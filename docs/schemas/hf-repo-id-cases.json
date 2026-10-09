@@ -1,0 +1,25 @@
+{
+  "description": "The one Hugging Face repository-ID rule, tested by both the backend (schemas/sources.py) and the frontend (utils/hfRepoId.ts) against these cases (001 FTASKS 10.3, 11.2). Pattern ^[A-Za-z0-9][A-Za-z0-9_.-]*/[A-Za-z0-9][A-Za-z0-9_.-]*$, at most 96 characters.",
+  "valid": [
+    "CreativeLang/ColBERT_Humor_Detection",
+    "tasksource/humicroedit",
+    "tasksource/offensive-humor",
+    "HuggingFaceH4/ultrachat_200k",
+    "a/b",
+    "user.name/data.set-v2"
+  ],
+  "invalid": [
+    "",
+    "colbert",
+    "/leading-slash",
+    "trailing/",
+    "two/slashes/here",
+    "-dash/start",
+    "org/-dash",
+    "org/name with space",
+    "org/name;rm",
+    "../etc/passwd",
+    "org/"
+  ],
+  "too_long": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+}

@@ -1,0 +1,138 @@
+{
+ "probe": {
+  "id": "pm_935fc9088482",
+  "run_id": "pmr_a2bcffdcd695",
+  "layer": 12,
+  "rule": "rolling_mean_max",
+  "rule_params": {
+   "window": 4
+  },
+  "variant": "dense",
+  "sae_id": null,
+  "sae_feature_indices": null,
+  "val_metrics": {
+   "val_auroc": 0.9731360496498591,
+   "best_epoch": 41,
+   "epochs_run": 81,
+   "val_auroc_note": "maximum over the epochs and layers this same validation split selected; optimistic by an unmeasured amount. For a held-out in-distribution number, add an evaluation view marked in_distribution.",
+   "val_auroc_is_selection_maximised": true
+  },
+  "selected": true,
+  "threshold": 27.613433837890625,
+  "target_fpr": 0.01,
+  "realised_fpr": 0.01,
+  "threshold_source": "calibration_set",
+  "streamable": true,
+  "rung": 2,
+  "rung_reasons": [
+   "CI lower bound above 0.5 in-distribution on: pmd_fb14b0b206a5",
+   "every out-of-distribution set run (1) cleared 0.5"
+  ],
+  "rung_language": "",
+  "rung_next_step": "",
+  "definition_built_at": null,
+  "definition_sha256": null,
+  "definition_build": null,
+  "published": [],
+  "created_at": "2026-10-05T20:05:24.767580Z",
+  "scope": null,
+  "window_thresholds": {},
+  "length_band_count": 0
+ },
+ "rung_language": "detects on unseen tasks",
+ "rung_next_step": "run the judge baseline on the same out-of-distribution sets",
+ "evaluations": [
+  {
+   "id": "pme_417903d0b231",
+   "probe_id": "pm_935fc9088482",
+   "dataset_id": "pmd_fb14b0b206a5",
+   "status": "completed",
+   "n_positive": 545,
+   "n_negative": 545,
+   "metrics": {
+    "ci": {
+     "low": 0.965238616278091,
+     "high": 0.9836579412507365,
+     "alpha": 0.05,
+     "resamples": 2000
+    },
+    "name": "Humor (JEV-9B) held-out test",
+    "auroc": 0.9750930056392559,
+    "scored": true,
+    "n_negative": 545,
+    "n_positive": 545,
+    "out_of_distribution": false
+   },
+   "created_at": "2026-10-05T20:07:15.489947Z"
+  },
+  {
+   "id": "pme_99ac14834f92",
+   "probe_id": "pm_935fc9088482",
+   "dataset_id": "pmd_c99c8595671d",
+   "status": "completed",
+   "n_positive": 2661,
+   "n_negative": 3939,
+   "metrics": {
+    "ci": {
+     "low": 0.7257708903315967,
+     "high": 0.7501896404192496,
+     "alpha": 0.05,
+     "resamples": 2000
+    },
+    "name": "Humicroedit humor (human labels)",
+    "auroc": 0.7375442903756163,
+    "scored": true,
+    "n_negative": 3939,
+    "n_positive": 2661,
+    "out_of_distribution": true
+   },
+   "created_at": "2026-10-05T20:07:58.049102Z"
+  }
+ ],
+ "paired_probe_id": null,
+ "sae_hf_repo": null,
+ "judge_runs": [],
+ "validation_caveat": {
+  "val_auroc": 0.9731360496498591,
+  "selection_maximised": true,
+  "selected_over": [
+   "epoch",
+   "layer"
+  ],
+  "note": "maximum over the epochs and layers this same validation split selected; optimistic by an unmeasured amount. For a held-out in-distribution number, add an evaluation view marked in_distribution.",
+  "held_out_alternative": "an evaluation view marked in_distribution is scored like any other set and is never touched by training"
+ },
+ "threshold_transfer": {
+  "shipped_threshold": 27.613433837890625,
+  "threshold_source": "calibration_set",
+  "per_set": [
+   {
+    "name": "Humor (JEV-9B) held-out test",
+    "auroc": 0.9750930056392559,
+    "own_threshold_at_1pct": 117.54365539550781,
+    "max_score": 212.66537475585938,
+    "recall_at_shipped": 0.9688073394495413,
+    "fpr_at_shipped": 0.09174311926605505,
+    "unreachable": false
+   },
+   {
+    "name": "Humicroedit humor (human labels)",
+    "auroc": 0.7375442903756163,
+    "own_threshold_at_1pct": 56.095550537109375,
+    "max_score": 107.44375610351562,
+    "recall_at_shipped": 0.3626456219466366,
+    "fpr_at_shipped": 0.11271896420411272,
+    "unreachable": false
+   }
+  ],
+  "own_threshold_spread": 61.44810485839844,
+  "unreachable_sets": [],
+  "caution": "the evaluation sets' own 1% thresholds span 61.45, wider than the shipped threshold itself \u2014 this probe's absolute score does not transfer between these distributions, so one threshold behaves very differently on each"
+ },
+ "x-capture": {
+  "from": "GET /api/v1/probe-monitors/probes/pm_935fc9088482",
+  "read_at": "2026-10-07",
+  "mistudio_repo_head": "c829a2cc",
+  "trimmed": "evaluations[].metrics.{roc,length_bands,operating_points} and probe.val_metrics.history removed (size); every field 009 reads is kept verbatim"
+ }
+}
