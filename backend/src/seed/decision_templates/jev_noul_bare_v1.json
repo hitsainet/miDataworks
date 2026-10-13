@@ -1,0 +1,96 @@
+{
+ "_origin": "Generated from records/jev_decision_client.json (template bare-v1, revision b63f651ce8ed64481d3f5e73ecdb05f740042f01); test_templates.py asserts every constant equals the record's.",
+ "body": {
+  "bias": [
+   0.00044773018453270197,
+   -0.0004479771596379578,
+   -0.0025878134183585644,
+   -0.0012615364976227283,
+   -0.00025007399381138384,
+   0.0019558551721274853,
+   0.0013559526996687055,
+   -0.0023348911199718714,
+   -0.0004082925443071872,
+   -0.0002078723773593083,
+   -1.2957353646925185e-05,
+   0.0001676026004133746,
+   0.0005569425993598998,
+   -0.001412136247381568,
+   -0.0028663526754826307,
+   -0.005061559844762087,
+   -0.00593328895047307,
+   -0.004319756291806698,
+   -0.004922541789710522,
+   -0.0049067651852965355,
+   -0.003943523392081261,
+   -0.003319827374070883,
+   -0.005581587553024292,
+   -0.0034480984322726727
+  ],
+  "bound_model_id": "JEV-9B-decision",
+  "bound_model_revision": "b63f651ce8ed64481d3f5e73ecdb05f740042f01",
+  "decision_kind": "noul",
+  "input_fields": [
+   "text"
+  ],
+  "kind": "openai_scoring",
+  "label_set": [
+   "false",
+   "true"
+  ],
+  "positive_class": "true",
+  "render": "jev.noul_bare_v1",
+  "slots": {
+   "choice": [
+    8,
+    24
+   ],
+   "noul": [
+    0,
+    2
+   ],
+   "score": [
+    2,
+    8
+   ]
+  },
+  "temperature": {
+   "choice": 0.9840233476014968,
+   "noul": 1.0022178236691426,
+   "score": 1.012184473350984
+  },
+  "tokenization": {
+   "add_special_tokens": false
+  },
+  "variant": "completions",
+  "verbalizer_ids": [
+   3721,
+   1802,
+   15,
+   16,
+   17,
+   18,
+   19,
+   20,
+   32,
+   33,
+   34,
+   35,
+   36,
+   37,
+   38,
+   39,
+   40,
+   41,
+   42,
+   43,
+   44,
+   45,
+   46,
+   47
+  ]
+ },
+ "format": "midataworks.decision-template/v1",
+ "name": "jev/noul-bare-v1",
+ "version": 1
+}

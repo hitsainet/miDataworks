@@ -1,0 +1,18 @@
+# The Data-Juicer image's own pins (ADR-010). Upgrades are separate, tested changes: feature 003's
+# contract test runs every allowlisted operator on a fixture dataset before a version moves.
+#
+# T-10: NOTHING is installed while the worker runs. py-data-juicer 1.6.0 lazily pip/uv-installs
+# what an operator imports on first use; for the offered operators that was ray and torch (and
+# torch's CUDA libraries). They are pinned here instead, torch as the CPU wheel because the image
+# has no GPU and no offered operator needs one. The runner also replaces Data-Juicer's installer
+# with a refusal (src/operators/datajuicer/runner.py::forbid_runtime_installs), and
+# datajuicer/tests/test_no_runtime_installs.py fails if running an offered operator changes the
+# installed set. constraints.txt pins the whole resolved set (pip install -r ... -c ...).
+--extra-index-url https://download.pytorch.org/whl/cpu
+py-data-juicer==1.6.0
+celery==5.6.3
+redis==8.1.0
+pyarrow==25.0.1
+jsonschema==4.26.0
+ray==2.59.0
+torch==2.14.1+cpu

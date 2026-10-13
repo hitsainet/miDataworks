@@ -1,0 +1,88 @@
+# The Data Designer worker (PADR ADR-010 amendment, 2026-10-07). Its own image,
+# hitsai/midataworks-designer, consuming only the `designer` queue (the image's CMD, concurrency
+# two) — the Data-Juicer pattern exactly, because data-designer 0.9.4 needs huggingface-hub<2 and
+# the backend pins 2.1.1. It holds NO database credentials: rows arrive and leave as Parquet paths
+# on the shared data volume, the endpoint URL arrives in the task, and the model key arrives sealed
+# in Redis, opened with DESIGNER_HANDOFF_KEY. Image tag/digest is managed by ArgoCD Image Updater.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: midataworks-designer
+  namespace: midataworks
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: midataworks-designer
+  template:
+    metadata:
+      labels:
+        app: midataworks-designer
+    spec:
+      # PINNED to the node holding the data volume, for the reason in backend.yaml: an unpinned
+      # hostPath pod reads an EMPTY directory on another node and reports nothing wrong.
+      nodeSelector:
+        kubernetes.io/hostname: mcs-lnxhost02
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+      # Same idempotent ownership step as the backend pod, so either may start first.
+      initContainers:
+        - name: data-volume-owner
+          image: busybox:1.37
+          securityContext:
+            runAsNonRoot: false
+            runAsUser: 0
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              cd /data/dataworks
+              for d in . sources versions runs exports publish staging cache cache/hf tmp; do
+                mkdir -p "$d"
+                chown 10001:10001 "$d"
+              done
+          volumeMounts:
+            - name: dataworks-data
+              mountPath: /data/dataworks
+      containers:
+        # The command is the image's own CMD (datajuicer/Dockerfile), not repeated here.
+        - name: designer
+          image: hitsai/midataworks-designer:latest
+          env:
+            - name: REDIS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: midataworks-config
+                  key: REDIS_URL
+            - name: DATA_DIR
+              valueFrom:
+                configMapKeyRef:
+                  name: midataworks-config
+                  key: DATA_DIR
+            # The ONE secret this pod holds: it opens a model key the backend sealed into Redis for
+            # one step (operators/data_designer/handoff.py). Not the settings encryption key, not a
+            # database password.
+            - name: DESIGNER_HANDOFF_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: midataworks-secrets
+                  key: DESIGNER_HANDOFF_KEY
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+          volumeMounts:
+            - name: dataworks-data
+              mountPath: /data/dataworks
+      volumes:
+        - name: dataworks-data
+          hostPath:
+            path: /data/midataworks/data
+            type: DirectoryOrCreate
