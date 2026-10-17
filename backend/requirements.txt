@@ -16,7 +16,7 @@ mcp==2.3.0
 numpy==2.4.6
 psutil==7.2.2
 psycopg2-binary==2.9.13
-pyarrow==25.0.1
+pyarrow==26.0.0
 pydantic==2.13.5
 pydantic-settings==2.15.0
 # Multipart bodies: recipe import (002) and source uploads (001). Was transitive only.
