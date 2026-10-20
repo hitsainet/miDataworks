@@ -1,0 +1,54 @@
+{
+ "data": [
+  {
+   "index": 0,
+   "data": {
+    "id": "hum-e-14530",
+    "pair_id": "d2ba782b48da",
+    "source_split": "train",
+    "text": "France is ‘hunting down its citizens who joined twins’ without trial in Iraq",
+    "label": "not_humorous",
+    "meanGrade": 0.2,
+    "grades": "10000",
+    "p_true": 0.15680126913773304,
+    "source": "tasksource/humicroedit:subtask-1"
+   }
+  },
+  {
+   "index": 1,
+   "data": {
+    "id": "hum-e-13034",
+    "pair_id": "13b6d943028c",
+    "source_split": "train",
+    "text": "Pentagon claims 2,000% increase in Russian trolls after bowling strikes. What does that mean?",
+    "label": "humorous",
+    "meanGrade": 1.6,
+    "grades": "33110",
+    "p_true": 0.3403942332076298,
+    "source": "tasksource/humicroedit:subtask-1"
+   }
+  },
+  {
+   "index": 2,
+   "data": {
+    "id": "hum-e-76",
+    "pair_id": "699b75674b4d",
+    "source_split": "train",
+    "text": "In an apparent first, Iran and Israel slap each other militarily",
+    "label": "not_humorous",
+    "meanGrade": 0.4,
+    "grades": "20000",
+    "p_true": 0.13088215536641948,
+    "source": "tasksource/humicroedit:subtask-1"
+   }
+  }
+ ],
+ "pagination": {
+  "page": 1,
+  "limit": 100,
+  "total": 6600,
+  "total_pages": 66,
+  "has_next": true,
+  "has_prev": false
+ }
+}

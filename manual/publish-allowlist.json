@@ -1,0 +1,30 @@
+{
+  "$comment": "The ONLY docs/ pages the public manual and the public mirror receive. sync-to-clean.yml's DOCS_KEPT must equal 'schemas' plus every 'source' file name below (backend/tests/unit/test_manual_publish.py). Everything else under docs/ (RUNBOOK.md, REUSE.md, any new page) stays private until it is added here. 'forbidden' is scanned over every published page by scripts/sync-docs.mjs (the build fails), by the backend test, and by the mirror's verify step.",
+  "pages": [
+    { "source": "import.md", "section": "guide", "id": "import", "label": "Importing data" },
+    { "source": "versions.md", "section": "guide", "id": "versions", "label": "Versions and recipes" },
+    { "source": "curation.md", "section": "guide", "id": "curation", "label": "Curation and the shortcut audit" },
+    { "source": "labeling.md", "section": "guide", "id": "labeling", "label": "Label runs" },
+    { "source": "calibration.md", "section": "guide", "id": "calibration", "label": "Calibration and review" },
+    { "source": "generation.md", "section": "guide", "id": "generation", "label": "Generation and steered pairs" },
+    { "source": "publishing.md", "section": "guide", "id": "publishing", "label": "Publishing and export" },
+    { "source": "detector-sets.md", "section": "guide", "id": "detector-sets", "label": "Detector sets" },
+    { "source": "operators.md", "section": "reference", "id": "operators", "label": "Writing operators" },
+    { "source": "data-model-keying.md", "section": "reference", "id": "data-model-keying", "label": "Row keying rules" },
+    { "source": "mcp-contract.md", "section": "reference", "id": "mcp-contract", "label": "MCP tools and REST contract" }
+  ],
+  "forbidden": [
+    { "name": "internal hostname", "pattern": "hitsai\\.local" },
+    { "name": "private IPv4 address", "pattern": "\\b(10\\.\\d{1,3}|192\\.168|172\\.(1[6-9]|2\\d|3[01]))\\.\\d{1,3}\\.\\d{1,3}\\b" },
+    { "name": "internal host name", "pattern": "mcs-lnx" },
+    { "name": "private planning tree", "pattern": "0xcc/" },
+    { "name": "internal task or design document", "pattern": "\\b(FTASKS|FTID)\\b" },
+    { "name": "private repository", "pattern": "Onegaishimas" },
+    { "name": "local home or scratch path", "pattern": "(/home/[a-z]|/tmp/claude)" },
+    { "name": "ssh login", "pattern": "\\bssh\\s+\\S+@" },
+    { "name": "Hugging Face token", "pattern": "\\bhf_[A-Za-z0-9]{30,}" },
+    { "name": "GitHub token", "pattern": "\\b(ghp_|gho_|ghs_|github_pat_)[A-Za-z0-9_]{20,}" },
+    { "name": "private key", "pattern": "-----BEGIN [A-Z ]*PRIVATE KEY-----" },
+    { "name": "private runbook", "pattern": "RUNBOOK\\.md" }
+  ]
+}

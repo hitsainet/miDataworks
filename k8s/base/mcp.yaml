@@ -1,0 +1,144 @@
+# miDataworks MCP server (feature 010; ADR-016). Adapted from miStudio's k8s/base/mcp.yaml @ c829a2cc
+# (docs/REUSE.md): Deployment, Service, probes and Ingress hosts kept; miStudio's /data mount
+# dropped.
+#
+# ⚠ THIS POD HAS NO DATABASE URL, NO REDIS URL AND NO DATA VOLUME, AND MUST NEVER GET ONE.
+# Its tools reach the backend over HTTP only (DATAWORKS_API_URL), so every safety rule (the
+# approval gate, the labelling window, "who") runs in the backend's REST layer whoever calls it.
+# miStudio registered a tool in a pod with no database and it raised on its first real call; here
+# that shape is the design. backend/tests/unit/test_mcp_manifest_isolation.py fails if any of
+# DATABASE_URL, REDIS_URL, CELERY_BROKER_URL, a volume or a volume mount appears below.
+#
+# Cut agent access: microk8s kubectl -n midataworks scale deploy/midataworks-mcp --replicas=0
+# Requires the key MCP_BEARER_TOKEN in the Secret midataworks-secrets (docs/RUNBOOK.md, "MCP").
+# Image tag/digest managed by ArgoCD Image Updater through the one kustomization images entry.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: midataworks-mcp
+  namespace: midataworks
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: midataworks-mcp
+  template:
+    metadata:
+      labels:
+        app: midataworks-mcp
+    spec:
+      # Stateless: no volume, so no node pin.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+      containers:
+        - name: mcp-server
+          image: hitsai/midataworks-backend:latest
+          env:
+            - name: SERVICE_TYPE
+              value: mcp
+            - name: DATAWORKS_API_URL
+              value: http://midataworks-backend:8000
+            - name: MCP_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: midataworks-secrets
+                  key: MCP_BEARER_TOKEN
+            - name: MCP_AGENT_IDENTITY
+              value: agent:dataworks-mcp
+            - name: MCP_TOOL_CATEGORIES
+              # All eleven (FR-010.11). An explicit list overrides DEFAULT_CATEGORIES in the code,
+              # so a category missing here is OFF in production; test_reachability.py's
+              # TestMcpDeployment fails if any default is missing or any name is invalid.
+              value: "calibration,core,curation,datasets,detector_sets,exports,generation,labeling,operators,review,settings"
+          ports:
+            - containerPort: 8765
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8765
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8765
+            initialDelaySeconds: 20
+            periodSeconds: 30
+            timeoutSeconds: 5
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: midataworks-mcp
+  namespace: midataworks
+spec:
+  type: ClusterIP
+  selector:
+    app: midataworks-mcp
+  ports:
+    - port: 8765
+      targetPort: 8765
+---
+# Streamable HTTP: long-lived responses, so long timeouts and no buffering. The body limit is the
+# MCP upload cap (dataworks_upload_file takes at most 10 MiB decoded). Bearer auth on every
+# request except /health.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: midataworks-mcp-ingress
+  namespace: midataworks
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    nginx.ingress.kubernetes.io/proxy-body-size: "16m"
+spec:
+  ingressClassName: public
+  rules:
+    - host: k8s-midataworks.hitsai.local
+      http:
+        paths:
+          - path: /mcp
+            pathType: Prefix
+            backend:
+              service:
+                name: midataworks-mcp
+                port:
+                  number: 8765
+    - host: mcp-dataworks.hitsai.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: midataworks-mcp
+                port:
+                  number: 8765
+    # Off-LAN access (operator decision 2026-10-07): the public name the Cloudflare tunnel forwards,
+    # as miStudio publishes mcp-mistudio.hitsai.net. Bearer auth on every request; agent calls still
+    # pass the backend's approval gates. Same paths as the LAN name.
+    - host: mcp-dataworks.hitsai.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: midataworks-mcp
+                port:
+                  number: 8765

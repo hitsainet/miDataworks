@@ -1,0 +1,72 @@
+{
+ "body": {
+  "choices": [
+   {
+    "finish_reason": "length",
+    "index": 0,
+    "logprobs": {
+     "text_offset": [
+      155
+     ],
+     "token_logprobs": [
+      -0.6892486214637756
+     ],
+     "tokens": [
+      "token_id:3721"
+     ],
+     "top_logprobs": [
+      {
+       "token_id:1802": -0.6970611214637756,
+       "token_id:3721": -0.6892486214637756
+      }
+     ]
+    },
+    "text": "false"
+   }
+  ],
+  "created": 1792325702,
+  "id": "cmpl-f07e5f9ffcec422198731d34",
+  "model": "JEV-9B-decision",
+  "object": "text_completion",
+  "system_fingerprint": "millm:JEV-9B-decision@unrecorded:bfloat16/FP16:transformers",
+  "usage": {
+   "completion_tokens": 1,
+   "prompt_tokens": 44,
+   "total_tokens": 45
+  }
+ },
+ "capture": {
+  "captured_at": "2026-10-18T12:15:03.275049Z",
+  "millm_commit": "30ef83f",
+  "millm_image": "hitsai/millm-backend@sha256:b021339cbfc5137abcf987fc6863999101e3abd00bc435d3e4913d6587b0c12f",
+  "note": "005 FTASKS 1.5 spike: live captures; queue_full (503) not captured (needs a saturated queue)."
+ },
+ "headers": {
+  "Content-Type": "application/json",
+  "x-millm-backend": "serial",
+  "x-millm-model": "\"JEV-9B-decision\";origin=model;commits=0",
+  "x-millm-steering": "none"
+ },
+ "request": {
+  "body": {
+   "add_special_tokens": false,
+   "allowed_token_ids": [
+    3721,
+    1802
+   ],
+   "logprobs": 2,
+   "max_tokens": 1,
+   "model": "JEV-9B-decision",
+   "prompt": "[kind] noul\n[state] What do you call a turtle without its shell? dead.\n[question] Would most readers find this text funny?\n[options]\nfalse\ntrue\n[decision]:",
+   "return_tokens_as_token_ids": true,
+   "temperature": 1.0
+  },
+  "headers": {
+   "X-miLLM-Load-Policy": "refuse",
+   "X-miLLM-Strict": "true"
+  },
+  "method": "POST",
+  "path": "/v1/completions"
+ },
+ "status": 200
+}

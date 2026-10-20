@@ -1,0 +1,106 @@
+{
+ "id": "rpl_9eca8cd72c38c6131a69fb84",
+ "mistudio_base_url": "http://mistudio.test",
+ "mistudio_probe_id": "pm_c99519a98e08",
+ "mistudio_run_id": "pmr_a1993af56691",
+ "probe_dataset_id": "pmd_fb14b0b206a5",
+ "evaluation_id": "pme_9030a1bec841",
+ "view_name": "Humor (JEV-9B) held-out test",
+ "role": "id_test",
+ "version_id": "9dacec66-035c-4ebc-ae53-71870859ada5",
+ "split": "test",
+ "input_column": "text",
+ "label_column": "label",
+ "label_mapping": {
+  "humorous": "positive",
+  "not_humorous": "negative"
+ },
+ "mistudio_auroc": 0.9750930056392559,
+ "mistudio_ci": [
+  0.965238616278091,
+  0.9836579412507365
+ ],
+ "n_positive": 30,
+ "n_negative": 30,
+ "check_level": "content",
+ "checks": {
+  "row_count": {
+   "ran": true,
+   "ours": 60,
+   "mistudio": 60,
+   "passed": true
+  },
+  "class_balance": {
+   "ran": true,
+   "ours": {
+    "positive": 30,
+    "negative": 30
+   },
+   "mistudio": {
+    "positive": 30,
+    "negative": 30
+   },
+   "passed": true
+  },
+  "content": {
+   "ran": true,
+   "order": "file order",
+   "served": {
+    "served_rows": 60,
+    "view_rows": 60,
+    "served_positive": 30,
+    "served_negative": 30
+   },
+   "reason": null,
+   "ours_sha256": {
+    "ordered": "15878b10956b92f401f2e8c0eafb2a3f97500b64b1d0a61a6ef315f317f87793",
+    "unordered": "256dfc41e4ca3245a6c09c3863f7920f6e816cb18b28123d08c97303ae9b6537"
+   },
+   "mistudio_sha256": {
+    "ordered": "15878b10956b92f401f2e8c0eafb2a3f97500b64b1d0a61a6ef315f317f87793",
+    "unordered": "256dfc41e4ca3245a6c09c3863f7920f6e816cb18b28123d08c97303ae9b6537"
+   },
+   "ordered_match": true,
+   "unordered_match": true,
+   "passed": true
+  },
+  "level": "content"
+ },
+ "scoring_form": {
+  "mistudio": {
+   "input_kinds": {
+    "plain": 60
+   },
+   "scope": "all",
+   "template_hash": "e10ca381b1ccc5cf9db52e371f3b6651576caee0a630b452e2816b2d404d4b65",
+   "max_length": 4096,
+   "render_form": null,
+   "render_form_recorded": false,
+   "render_form_source": null,
+   "render_served": false,
+   "mistudio_render_served": null,
+   "described_as": "each plain-text row parsed as one user turn, rendered with the model's chat template; render form not recorded - rendered without the generation prompt (miStudio records no render_form for probes trained before 2026-10-08)"
+  },
+  "millm": {
+   "input_form": "text",
+   "described_as": "each value sent to miLLM's POST /api/probes/score as one user turn, rendered as a user-ended input with the generation prompt, an assistant-ended chat without it, one BOS from the chat template (miLLM probe_scoring.served_render, ecb88ac)",
+   "last_roles": {
+    "user": 60,
+    "assistant": 0,
+    "other": 0
+   }
+  },
+  "agreement": "differs",
+  "token_ids_compared": false,
+  "reason": "miStudio's render form is not recorded - rendered without the generation prompt; miLLM renders a user-ended input WITH it, and 60 of the 60 rows end on a user turn, so miLLM scores a longer sequence than miStudio did. Scored over scope 'all'. No token ids of these rows are available from miStudio, so the two are not compared token by token: this is not verified by token ids."
+ },
+ "evidence": {
+  "report_sha256": "5256f5fe45e3bf0ec111e8f8a8eb7e4e4d41fb7f84e5864523bcf10007ec48dd"
+ },
+ "created_by": "Test Operator",
+ "created_by_origin": "operator",
+ "approval_id": null,
+ "approved_by": null,
+ "created_at": "2026-10-07T23:21:50.751151+00:00",
+ "used_by_label_runs": []
+}
