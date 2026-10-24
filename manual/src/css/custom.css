@@ -1,0 +1,79 @@
+/**
+ * miDataworks Manual theme. Indigo accent, matching the application (frontend/src/config/brand.ts:
+ * accent indigo-600 light / indigo-400 dark, slate surfaces). Adapted from miStudio's manual theme.
+ */
+
+:root {
+  --ifm-color-primary: #4f46e5;
+  --ifm-color-primary-dark: #4338ca;
+  --ifm-color-primary-darker: #3f37c9;
+  --ifm-color-primary-darkest: #3730a3;
+  --ifm-color-primary-light: #6366f1;
+  --ifm-color-primary-lighter: #818cf8;
+  --ifm-color-primary-lightest: #a5b4fc;
+  --ifm-code-font-size: 95%;
+  --ifm-font-family-base: 'Inter', system-ui, -apple-system, sans-serif;
+  --ifm-heading-font-weight: 700;
+  --docusaurus-highlighted-code-line-bg: rgba(79, 70, 229, 0.1);
+  --ifm-menu-color-active: #4f46e5;
+  --ifm-menu-color-background-active: rgba(79, 70, 229, 0.08);
+  --ifm-table-stripe-background: rgba(79, 70, 229, 0.04);
+  --ifm-table-border-color: #e2e8f0;
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #818cf8;
+  --ifm-color-primary-dark: #6366f1;
+  --ifm-color-primary-darker: #4f46e5;
+  --ifm-color-primary-darkest: #4338ca;
+  --ifm-color-primary-light: #a5b4fc;
+  --ifm-color-primary-lighter: #c7d2fe;
+  --ifm-color-primary-lightest: #e0e7ff;
+  --ifm-background-color: #0f172a;
+  --ifm-background-surface-color: #1e293b;
+  --ifm-navbar-background-color: #0f172a;
+  --ifm-footer-background-color: #020617;
+  --docusaurus-highlighted-code-line-bg: rgba(129, 140, 248, 0.15);
+  --ifm-menu-color-active: #818cf8;
+  --ifm-menu-color-background-active: rgba(129, 140, 248, 0.1);
+  --ifm-table-stripe-background: rgba(129, 140, 248, 0.05);
+  --ifm-table-border-color: #334155;
+}
+
+.navbar {
+  border-bottom: 2px solid var(--ifm-color-primary);
+}
+
+.navbar__title {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  display: table;
+}
+
+table thead th {
+  font-weight: 600;
+}
+
+table tbody tr:nth-child(even) {
+  background-color: var(--ifm-table-stripe-background);
+}
+
+/* Wide reference tables scroll inside themselves, never the page. */
+.markdown table {
+  display: block;
+  overflow-x: auto;
+}
+
+.menu__link--active:not(.menu__link--sublist) {
+  border-right: 3px solid var(--ifm-color-primary);
+  font-weight: 600;
+}
+
+.footer {
+  border-top: 2px solid var(--ifm-color-primary);
+}

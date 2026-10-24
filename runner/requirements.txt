@@ -1,0 +1,10 @@
+# The isolated runner image's own pins (feature 018; ADR-010/ADR-024 pattern, like designer and
+# datajuicer). A separate image `hitsai/midataworks-runner` on python:3.13-slim, uid 10001, that
+# runs operator code rules inside a WebAssembly guest. It carries ONLY wasmtime and a small HTTP
+# server stack; it never imports the backend's services, models, config or database. Latest pins
+# (checked 2026-10-24). constraints.txt pins the whole resolved set, as the image installs it.
+wasmtime==50.0.1
+starlette==1.9.0
+uvicorn==0.54.0
+anyio==4.15.1
+httpx==0.28.1

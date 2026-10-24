@@ -1,0 +1,75 @@
+name: Deploy Manual to GitHub Pages
+
+# Builds manual/ (Docusaurus) and publishes it to GitHub Pages:
+# https://hitsainet.github.io/miDataworks/ (manual/docusaurus.config.ts url + baseUrl).
+# Modelled on miStudio's deploy-manual.yml, with the same action pins.
+#
+# Runs ONLY on the public mirror. The private repository checks that the manual
+# builds (manual-ci.yml) but never publishes it: Pages there would serve the
+# private tree's build, and the mirror's copy is the one the sync has filtered.
+#
+# The mirror receives a force-pushed single-commit orphan, so the `paths` filter
+# below has no diff base and never fires on a sync. sync-to-clean.yml dispatches
+# this workflow explicitly after every push (workflow_dispatch); the filter stays
+# for a manual push to the mirror.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'manual/**'
+      - 'docs/**'
+      - '.github/workflows/deploy-manual.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    # Both casings: a gate that fails to match is silently skipped, not an error.
+    if: github.repository == 'hitsainet/miDataworks' || github.repository == 'hitsainet/midataworks'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: manual/package-lock.json
+
+      - name: Install dependencies
+        working-directory: manual
+        run: npm ci
+
+      - name: Check the published content
+        run: python3 manual/scripts/check_published.py .
+
+      - name: Build Docusaurus site
+        working-directory: manual
+        run: npm run build
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: manual/build
+
+  deploy:
+    if: github.repository == 'hitsainet/miDataworks' || github.repository == 'hitsainet/midataworks'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

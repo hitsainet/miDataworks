@@ -1,0 +1,110 @@
+{
+ "error": {
+  "code": "REPRODUCTION_UNAVAILABLE",
+  "message": "No recorded miStudio evaluation of probe pm_c99519a98e08 can be the reproduction target: no results snapshot records one with an AUROC and an interval on an in-distribution test or out-of-distribution role, and no reproduction link names the probe. Two ways through: (a) send the detector set the probe was trained from, run the probe in miStudio, then press Refresh results on the Detector sets screen. (b) for a probe miDataworks never sent (an imported probe), link a version split holding the rows miStudio evaluated it on to that recorded evaluation: Link a miStudio evaluation on the Labeling screen, POST /api/v1/reproduction-links, or the MCP tool dataworks_create_reproduction_link.",
+  "details": {
+   "mistudio_probe_id": "pm_c99519a98e08",
+   "probe": {
+    "probe_id": "pr_humor",
+    "name": "pr_humor probe",
+    "hf_id": "meta-llama/Llama-3.1-8B-Instruct",
+    "layer": 16,
+    "scope": "all",
+    "window": "all",
+    "window_bar": {
+     "threshold": 2.5,
+     "provisional": false
+    },
+    "threshold_revision": 1,
+    "rung": 2,
+    "rung_language": "detects on unseen tasks",
+    "armed": false,
+    "mistudio_probe_id": "pm_c99519a98e08",
+    "mistudio_run_id": "pmr_1",
+    "load_dtype": "bfloat16",
+    "preflight": {
+     "checked": true,
+     "row_key": "bd9406aac044f700cf2d038d18f73b934c2d05c507eb77203b4d9c4d9e8785be",
+     "error": null,
+     "score": 3.0,
+     "threshold": 2.5,
+     "verdict": true,
+     "provisional": false,
+     "model": {
+      "hf_id": "meta-llama/Llama-3.1-8B-Instruct",
+      "revision": "0e9e39f249a16976918f6564b8830bc894c89659",
+      "dtype": "bfloat16",
+      "quantization": "FP16"
+     }
+    }
+   },
+   "reproduction": {
+    "state": "unavailable",
+    "reason": "No recorded miStudio evaluation of probe pm_c99519a98e08 can be the reproduction target: no results snapshot records one with an AUROC and an interval on an in-distribution test or out-of-distribution role, and no reproduction link names the probe. Two ways through: (a) send the detector set the probe was trained from, run the probe in miStudio, then press Refresh results on the Detector sets screen. (b) for a probe miDataworks never sent (an imported probe), link a version split holding the rows miStudio evaluated it on to that recorded evaluation: Link a miStudio evaluation on the Labeling screen, POST /api/v1/reproduction-links, or the MCP tool dataworks_create_reproduction_link.",
+    "ways": [
+     {
+      "way": "send_and_train",
+      "what": "Send the detector set the probe was trained from, run the probe in miStudio, then press Refresh results on the Detector sets screen."
+     },
+     {
+      "way": "link_existing_evaluation",
+      "what": "For a probe miDataworks never sent (an imported probe), link a version split holding the rows miStudio evaluated it on to that recorded evaluation: Link a miStudio evaluation on the Labeling screen, POST /api/v1/reproduction-links, or the MCP tool dataworks_create_reproduction_link."
+     }
+    ]
+   },
+   "link_candidates": {
+    "items": [
+     {
+      "probe_dataset_id": "pmd_fb14b0b206a5",
+      "view_name": "Humor (JEV-9B) held-out test",
+      "distribution": "in_distribution",
+      "auroc": 0.9750930056392559,
+      "ci": [
+       0.965238616278091,
+       0.9836579412507365
+      ],
+      "n_positive": 30,
+      "n_negative": 30,
+      "mistudio_dataset_id": "2c5399ed-6f4f-4af9-ba27-333d56ea5806",
+      "split": "test",
+      "config": null,
+      "input_column": "text",
+      "label_column": "label",
+      "label_mapping": {
+       "humorous": "positive",
+       "not_humorous": "negative"
+      },
+      "input_kinds": {
+       "plain": 60
+      }
+     },
+     {
+      "probe_dataset_id": "pmd_c99c8595671d",
+      "view_name": "Humicroedit humor (human labels)",
+      "distribution": "out_of_distribution",
+      "auroc": 0.7375442903756163,
+      "ci": [
+       0.7257708903315967,
+       0.7501896404192496
+      ],
+      "n_positive": 2661,
+      "n_negative": 3939,
+      "mistudio_dataset_id": "a3e48725-677d-48e1-ad1a-785de2632d15",
+      "split": "test",
+      "config": null,
+      "input_column": "text",
+      "label_column": "label",
+      "label_mapping": {
+       "humorous": "positive",
+       "not_humorous": "negative"
+      },
+      "input_kinds": {
+       "plain": 6600
+      }
+     }
+    ],
+    "reason": null
+   }
+  }
+ }
+}

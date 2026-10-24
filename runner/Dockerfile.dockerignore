@@ -1,0 +1,24 @@
+# Build context for hitsai/midataworks-runner is the repository root (it copies backend/src/runner,
+# backend/src/runner_contract, the contract package's deps and the packaged contract, plus
+# runner/). Everything else is excluded so the image stays small and carries no secret or test.
+**/__pycache__/
+*.pyc
+*.wasm
+*.cwasm
+.git/
+.github/
+0xcc/
+docs/
+frontend/
+manual/
+k8s/
+designer/
+datajuicer/
+records/
+scripts/
+PLAN-*.md
+backend/tests/
+backend/alembic/
+backend/.venv/
+backend/venv/
+runner/tests/

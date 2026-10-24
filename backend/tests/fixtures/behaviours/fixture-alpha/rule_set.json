@@ -1,0 +1,191 @@
+{
+  "behaviour_key": "fixture-alpha",
+  "cases": [
+    {
+      "expect": {
+        "outputs": {
+          "fa_cued": true,
+          "fa_hit": true,
+          "fa_reason": "ok"
+        },
+        "vetoed": false
+      },
+      "id": "cued_element",
+      "input": {
+        "after": ".",
+        "before": "Vexilloquant: ",
+        "value": "4111 1111 1111 1111"
+      },
+      "note": "a test card number, cued",
+      "source": {
+        "citation": "Card networks' published test card numbers (Visa 4111 1111 1111 1111), as listed in schemes.py; retrieval pending (OI-1)",
+        "kind": "published_test_value"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "fa_cued": false,
+          "fa_hit": true,
+          "fa_reason": "irregular_layout"
+        },
+        "vetoed": false
+      },
+      "id": "uncued_element",
+      "input": {
+        "after": " today",
+        "before": "paid with ",
+        "value": "4111-1111 1111-1111"
+      },
+      "note": "valid, no cue word near",
+      "source": {
+        "citation": "Card networks' published test card numbers (Visa 4111 1111 1111 1111), as listed in schemes.py; retrieval pending (OI-1)",
+        "kind": "published_test_value"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "fa_cued": false,
+          "fa_hit": false,
+          "fa_reason": "bad_check_digit"
+        },
+        "vetoed": false
+      },
+      "id": "bad_check_digit",
+      "input": {
+        "text": "brindlewort 4111 1111 1111 1112"
+      },
+      "note": "Luhn fails: no hit",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "fa_cued": false,
+          "fa_hit": false,
+          "fa_reason": null
+        },
+        "vetoed": true
+      },
+      "id": "masked_vetoed",
+      "input": {
+        "text": "brindlewort XXXX XXXX XXXX 1111"
+      },
+      "note": "the masked candidate is vetoed",
+      "source": {
+        "kind": "constructed"
+      }
+    }
+  ],
+  "description": "Fixture: a card-number element that checks out, cued by a nearby vocabulary word; masked values vetoed per candidate.",
+  "expressions": {
+    "cued": {
+      "all": [
+        {
+          "signal": "card"
+        },
+        {
+          "signal": "cue"
+        }
+      ]
+    },
+    "is_masked": {
+      "signal": "masked"
+    },
+    "valid_card": {
+      "signal": "card"
+    }
+  },
+  "format": "midataworks.rule-set/v1",
+  "name": "fixture-alpha-elements",
+  "outputs": [
+    {
+      "column": "fa_hit",
+      "type": "bool",
+      "value": {
+        "fired": "valid_card"
+      }
+    },
+    {
+      "column": "fa_cued",
+      "type": "bool",
+      "value": {
+        "fired": "cued"
+      }
+    },
+    {
+      "column": "fa_reason",
+      "type": "string",
+      "value": {
+        "field": [
+          "card",
+          "reason"
+        ]
+      }
+    }
+  ],
+  "signals": [
+    {
+      "fold_fullwidth_ascii": false,
+      "id": "num",
+      "ignore_case": false,
+      "kind": "pattern",
+      "pattern": "[0-9X]{4}(?:[ -][0-9X]{4}){3}",
+      "reads": "text"
+    },
+    {
+      "candidates": {
+        "span_of": "num"
+      },
+      "id": "card",
+      "kind": "validator",
+      "params": {},
+      "validator": {
+        "id": "card_pan",
+        "version": 1
+      }
+    },
+    {
+      "candidates": {
+        "span_of": "num"
+      },
+      "id": "masked",
+      "kind": "validator",
+      "params": {
+        "format": "card_pan"
+      },
+      "validator": {
+        "id": "masked",
+        "version": 1
+      }
+    },
+    {
+      "anchor": "num",
+      "fold_fullwidth_ascii": false,
+      "id": "cue",
+      "ignore_case": true,
+      "kind": "proximity",
+      "max_distance": 20,
+      "phrases": [
+        "vexilloquant",
+        "brindlewort"
+      ],
+      "side": "either",
+      "unit": "code_points",
+      "word_boundary": true
+    }
+  ],
+  "vetoes": [
+    {
+      "id": "masked_value",
+      "removes": [
+        "num",
+        "card"
+      ],
+      "when": "is_masked"
+    }
+  ]
+}

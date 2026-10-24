@@ -1,0 +1,54 @@
+# The Data-Juicer operators miDataworks OFFERS (FR-003.14; FTASKS 7.1). Hand-reviewed: an entry
+# here is a code-review decision, and build_catalogue.py fails if a listed op is not schema-able
+# or names no statistic. Chosen with feature 004 under C1's priorities: filters that clean
+# labeling and detector sets first.
+#
+# stats_key        the key in __dj__stats__ that decides a drop (every drop names it)
+# threshold_params parameter -> comparator the filter applies (for the event's threshold)
+# thresholds       the threshold control's spec (FR-003.20), drawn on the statistic's scale
+#
+# Excluded on purpose (spike 1.2, 2026-10-07): document_minhash_deduplicator reports only SAMPLED
+# duplicate pairs, so the row kept in place of a dropped one cannot be recovered (FTDD 6.4).
+operators:
+  text_length_filter:
+    description: Drops rows whose text length in characters falls outside a range.
+    stats_key: text_len
+    unit: characters
+    threshold_params: {min_len: ">=", max_len: "<="}
+    thresholds:
+      - {param: min_len, drop_when: below, pair_param: max_len}
+      - {param: max_len, drop_when: above, pair_param: min_len}
+  words_num_filter:
+    description: Drops rows whose word count falls outside a range.
+    stats_key: num_words
+    unit: words
+    threshold_params: {min_num: ">=", max_num: "<="}
+    thresholds:
+      - {param: min_num, drop_when: below, pair_param: max_num}
+      - {param: max_num, drop_when: above, pair_param: min_num}
+  alphanumeric_filter:
+    description: Drops rows whose share of letters and digits falls outside a range.
+    stats_key: alnum_ratio
+    unit: ratio
+    threshold_params: {min_ratio: ">=", max_ratio: "<="}
+    thresholds:
+      - {param: min_ratio, drop_when: below, pair_param: max_ratio}
+      - {param: max_ratio, drop_when: above, pair_param: min_ratio}
+  special_characters_filter:
+    description: Drops rows whose share of special characters falls outside a range.
+    stats_key: special_char_ratio
+    unit: ratio
+    threshold_params: {min_ratio: ">=", max_ratio: "<="}
+    thresholds:
+      - {param: min_ratio, drop_when: below, pair_param: max_ratio}
+      - {param: max_ratio, drop_when: above, pair_param: min_ratio}
+  character_repetition_filter:
+    description: Drops rows whose character n-gram repetition ratio falls outside a range.
+    stats_key: char_rep_ratio
+    unit: ratio
+    threshold_params: {min_ratio: ">=", max_ratio: "<="}
+    thresholds:
+      - {param: min_ratio, drop_when: below, pair_param: max_ratio}
+      - {param: max_ratio, drop_when: above, pair_param: min_ratio}
+  document_deduplicator:
+    description: Drops rows whose text exactly repeats an earlier row's (after optional normalisation).

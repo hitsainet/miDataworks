@@ -1,0 +1,40 @@
+{
+  "behaviours": [
+    {
+      "behaviour_key": "dlp-ssn-us",
+      "source": "behaviours/dlp-ssn-us/behaviour.json",
+      "vocabulary": [
+        "taxpayer"
+      ]
+    },
+    {
+      "behaviour_key": "fixture-alpha",
+      "source": "backend/tests/fixtures/behaviours/fixture-alpha/behaviour.json",
+      "vocabulary": [
+        "brindlewort",
+        "vexilloquant"
+      ]
+    },
+    {
+      "behaviour_key": "fixture-beta",
+      "source": "backend/tests/fixtures/behaviours/fixture-beta/behaviour.json",
+      "vocabulary": [
+        "plovish",
+        "quorbish",
+        "zantimere"
+      ]
+    }
+  ],
+  "name_count": 9,
+  "names": [
+    "brindlewort",
+    "dlp-ssn-us",
+    "fixture-alpha",
+    "fixture-beta",
+    "plovish",
+    "quorbish",
+    "taxpayer",
+    "vexilloquant",
+    "zantimere"
+  ]
+}

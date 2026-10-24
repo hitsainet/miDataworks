@@ -1,0 +1,11 @@
+# Dockerfile-specific ignore file (BuildKit reads <Dockerfile>.dockerignore beside the Dockerfile).
+# Built from the REPOSITORY ROOT because it copies the runner and relay from backend/src.
+*
+!designer/requirements.txt
+!designer/constraints.txt
+!backend/src/__init__.py
+!backend/src/operators/__init__.py
+!backend/src/operators/data_designer/__init__.py
+!backend/src/operators/data_designer/runner.py
+!backend/src/operators/data_designer/relay.py
+**/__pycache__
