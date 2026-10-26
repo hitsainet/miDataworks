@@ -1,0 +1,219 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/hitsainet/miStudio/main/docs/schemas/spot-check-disagreement-v1.json",
+  "$defs": {
+    "ChatMessage": {
+      "additionalProperties": false,
+      "properties": {
+        "role": {
+          "enum": [
+            "system",
+            "user",
+            "assistant"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "content": {
+          "title": "Content",
+          "type": "string"
+        }
+      },
+      "required": [
+        "role",
+        "content"
+      ],
+      "title": "ChatMessage",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "`mistudio.spot-check-disagreement/v1` \u2014 one turn on which a probe and the judge disagreed.\n\n`messages` is the excerpt the judge was shown, in role/content chat form, so miDataworks reads it as a\nchat upload. Every other field is provenance: where the turn was (miLLM session and request), what the\nprobe said (score, threshold, fired) and what the judge said, under which library prompt (key and\ncontent hash). `source` is always `millm-session`: miDataworks turns it into its session-data caveat.\n\n\u26a0 The judge is a second opinion, not ground truth: a disagreement says one of the two is wrong, not which.",
+  "properties": {
+    "format": {
+      "const": "mistudio.spot-check-disagreement/v1",
+      "default": "mistudio.spot-check-disagreement/v1",
+      "title": "Format",
+      "type": "string"
+    },
+    "messages": {
+      "items": {
+        "$ref": "#/$defs/ChatMessage"
+      },
+      "minItems": 1,
+      "title": "Messages",
+      "type": "array"
+    },
+    "behaviour": {
+      "title": "Behaviour",
+      "type": "string"
+    },
+    "spot_check_id": {
+      "title": "Spot Check Id",
+      "type": "string"
+    },
+    "session_id": {
+      "title": "Session Id",
+      "type": "string"
+    },
+    "request_id": {
+      "title": "Request Id",
+      "type": "string"
+    },
+    "turn_index": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Turn Index"
+    },
+    "event_id": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Event Id"
+    },
+    "stratum": {
+      "enum": [
+        "fired",
+        "near_threshold",
+        "not_fired"
+      ],
+      "title": "Stratum",
+      "type": "string"
+    },
+    "probe_id": {
+      "title": "Probe Id",
+      "type": "string"
+    },
+    "millm_probe_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Millm Probe Id"
+    },
+    "probe_score": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Probe Score"
+    },
+    "threshold": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Threshold"
+    },
+    "probe_fired": {
+      "title": "Probe Fired",
+      "type": "boolean"
+    },
+    "judge_positive": {
+      "title": "Judge Positive",
+      "type": "boolean"
+    },
+    "judge_value": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Judge Value"
+    },
+    "judge_score": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Judge Score"
+    },
+    "prompt_key": {
+      "title": "Prompt Key",
+      "type": "string"
+    },
+    "prompt_hash": {
+      "title": "Prompt Hash",
+      "type": "string"
+    },
+    "window": {
+      "enum": [
+        "all",
+        "prompt",
+        "response",
+        "last_user"
+      ],
+      "title": "Window",
+      "type": "string"
+    },
+    "judge_saw": {
+      "enum": [
+        "same_window",
+        "user_and_reply",
+        "newest_turn"
+      ],
+      "title": "Judge Saw",
+      "type": "string"
+    },
+    "source": {
+      "const": "millm-session",
+      "default": "millm-session",
+      "title": "Source",
+      "type": "string"
+    }
+  },
+  "required": [
+    "messages",
+    "behaviour",
+    "spot_check_id",
+    "session_id",
+    "request_id",
+    "stratum",
+    "probe_id",
+    "probe_fired",
+    "judge_positive",
+    "prompt_key",
+    "prompt_hash",
+    "window",
+    "judge_saw"
+  ],
+  "title": "miStudio Spot-Check Disagreement Row v1",
+  "type": "object"
+}

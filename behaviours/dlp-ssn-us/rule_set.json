@@ -1,0 +1,898 @@
+{
+  "behaviour_key": "dlp-ssn-us",
+  "cases": [
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": true,
+          "ssn_hit": true,
+          "ssn_reason": "ok",
+          "ssn_spans": "[[17,28]]"
+        },
+        "vetoed": false
+      },
+      "id": "cued_valid",
+      "input": {
+        "text": "Social security: 078-05-1120."
+      },
+      "note": "the voided wallet-card number, cued",
+      "source": {
+        "citation": "Social Security Administration history page 'Social Security Numbers: Misused SSNs' (ssa.gov/history/ssn/misused.html): 078-05-1120, the voided wallet-card number; retrieval refused HTTP 403 on 2026-10-23, pending (OI-1)",
+        "kind": "published_test_value"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": true,
+          "ssn_reason": "ok",
+          "ssn_spans": "[[10,21]]"
+        },
+        "vetoed": false
+      },
+      "id": "uncued_valid",
+      "input": {
+        "text": "Reference 078-05-1120 was printed on the sample card."
+      },
+      "note": "valid, no cue word before it",
+      "source": {
+        "citation": "Social Security Administration history page 'Social Security Numbers: Misused SSNs' (ssa.gov/history/ssn/misused.html): 078-05-1120, the voided wallet-card number; retrieval refused HTTP 403 on 2026-10-23, pending (OI-1)",
+        "kind": "published_test_value"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": "bad_range",
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "bad_range",
+      "input": {
+        "text": "Taxpayer 923-45-6789 listed."
+      },
+      "note": "area 9xx is never issued: no hit",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": true
+      },
+      "id": "masked_vetoed",
+      "input": {
+        "text": "SSN XXX-XX-1120 on record."
+      },
+      "note": "the masked candidate is vetoed",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": true,
+          "ssn_hit": true,
+          "ssn_reason": "ok",
+          "ssn_spans": "[[26,37]]"
+        },
+        "vetoed": true
+      },
+      "id": "masked_plus_real",
+      "input": {
+        "text": "SSN XXX-XX-1120, then SSN 078-05-1120."
+      },
+      "note": "masked one vetoed, the real one still fires",
+      "source": {
+        "citation": "Social Security Administration history page 'Social Security Numbers: Misused SSNs' (ssa.gov/history/ssn/misused.html): 078-05-1120, the voided wallet-card number; retrieval refused HTTP 403 on 2026-10-23, pending (OI-1)",
+        "kind": "published_test_value"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "no_number",
+      "input": {
+        "text": "No number in this sentence."
+      },
+      "note": "nothing to read",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": "bad_range",
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "area_000",
+      "input": {
+        "text": "SSN 000-12-3456 on the intake form."
+      },
+      "note": "area 000 is never issued",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": "bad_range",
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "area_666",
+      "input": {
+        "text": "Social security: 666-12-3456."
+      },
+      "note": "area 666 is never issued",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": "bad_range",
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "area_9xx",
+      "input": {
+        "text": "ssn 950-12-3456 per the letter"
+      },
+      "note": "areas 900-999 are never issued",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": "bad_range",
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "advertising_range",
+      "input": {
+        "text": "Taxpayer 987-65-4321 shown in the brochure."
+      },
+      "note": "area 987 (the advertising range 987-65-4320 to 4329 lies in 900-999)",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": "bad_range",
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "group_00",
+      "input": {
+        "text": "SSN 123-00-4567 entered."
+      },
+      "note": "group 00 is never issued",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": "bad_range",
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "serial_0000",
+      "input": {
+        "text": "SSN 123-45-0000 entered."
+      },
+      "note": "serial 0000 is never issued",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": "bad_range",
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "dot_delimited_bad",
+      "input": {
+        "text": "id 950.12.3456 noted"
+      },
+      "note": "dot delimiters are read; area 9xx",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": "bad_range",
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "nine_in_a_row_bad",
+      "input": {
+        "text": "acct 950123456 closed"
+      },
+      "note": "nine digits in a row are read; area 9xx",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "wrong_length",
+      "input": {
+        "text": "SSN 950-12-345 typed short."
+      },
+      "note": "eight digits: the pattern does not read it",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "glued_letters",
+      "input": {
+        "text": "code A950-12-3456 printed"
+      },
+      "note": "a letter glued before the digits: no word boundary, not read",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": true
+      },
+      "id": "masked_star",
+      "input": {
+        "text": "SSN ***-**-1120 on record."
+      },
+      "note": "star mask is read and vetoed",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": true
+      },
+      "id": "masked_bullet",
+      "input": {
+        "text": "SSN •••-••-1120 on record."
+      },
+      "note": "bullet mask is read and vetoed",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": true
+      },
+      "id": "masked_hash",
+      "input": {
+        "text": "SSN ###-##-1120 on record."
+      },
+      "note": "hash mask is read and vetoed",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": true
+      },
+      "id": "masked_lower_x",
+      "input": {
+        "text": "SSN xxx-xx-1120 on record."
+      },
+      "note": "lower-case x mask is read and vetoed",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": true
+      },
+      "id": "masked_run",
+      "input": {
+        "text": "SSN XXXXX1120 on record."
+      },
+      "note": "a run of five mask characters then four digits",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "phone",
+      "input": {
+        "text": "Call (212) 555-0142 or 415-555-0187."
+      },
+      "note": "phone numbers, fictional 555-01xx block",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "date",
+      "input": {
+        "text": "Born 1987-06-15, renewed 06/15/1987."
+      },
+      "note": "dates",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "zip4",
+      "input": {
+        "text": "Ship to 99501-1234 and 96813-2201."
+      },
+      "note": "ZIP+4 codes",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "order_id",
+      "input": {
+        "text": "Order 112-4839201-7745123, ref ORD-2024-118734."
+      },
+      "note": "order identifiers",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "naming_no_value",
+      "input": {
+        "text": "Social security number: [redacted]."
+      },
+      "note": "named, no value",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": true,
+          "ssn_hit": true,
+          "ssn_reason": "ok",
+          "ssn_spans": "[[17,28]]"
+        },
+        "vetoed": false
+      },
+      "id": "valid_dot",
+      "input": {
+        "text": "Social security: 078.05.1120."
+      },
+      "note": "dot delimiters, the voided wallet-card number",
+      "source": {
+        "citation": "Social Security Administration history page 'Social Security Numbers: Misused SSNs' (ssa.gov/history/ssn/misused.html): 078-05-1120, the voided wallet-card number; retrieval refused HTTP 403 on 2026-10-23, pending (OI-1)",
+        "kind": "published_test_value"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": true,
+          "ssn_hit": true,
+          "ssn_reason": "ok",
+          "ssn_spans": "[[4,15]]"
+        },
+        "vetoed": false
+      },
+      "id": "valid_space",
+      "input": {
+        "text": "SSN 078 05 1120 on the card."
+      },
+      "note": "space delimiters",
+      "source": {
+        "citation": "Social Security Administration history page 'Social Security Numbers: Misused SSNs' (ssa.gov/history/ssn/misused.html): 078-05-1120, the voided wallet-card number; retrieval refused HTTP 403 on 2026-10-23, pending (OI-1)",
+        "kind": "published_test_value"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": true,
+          "ssn_hit": true,
+          "ssn_reason": "ok",
+          "ssn_spans": "[[4,13]]"
+        },
+        "vetoed": false
+      },
+      "id": "valid_nine_in_a_row",
+      "input": {
+        "text": "SSN 078051120 on the card."
+      },
+      "note": "nine digits in a row",
+      "source": {
+        "citation": "Social Security Administration history page 'Social Security Numbers: Misused SSNs' (ssa.gov/history/ssn/misused.html): 078-05-1120, the voided wallet-card number; retrieval refused HTTP 403 on 2026-10-23, pending (OI-1)",
+        "kind": "published_test_value"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "rendered_spaced",
+      "input": {
+        "text": "SSN 0 7 8 0 5 1 1 2 0 on the card."
+      },
+      "note": "the spaced rendering of the voided wallet-card number: invisible to the pattern",
+      "source": {
+        "citation": "Social Security Administration history page 'Social Security Numbers: Misused SSNs' (ssa.gov/history/ssn/misused.html): 078-05-1120, the voided wallet-card number; retrieval refused HTTP 403 on 2026-10-23, pending (OI-1)",
+        "kind": "published_test_value"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "rendered_split_lines",
+      "input": {
+        "text": "SSN 0\n7\n8\n0\n5\n1\n1\n2\n0 on the card."
+      },
+      "note": "the split_lines rendering of the voided wallet-card number: invisible to the pattern",
+      "source": {
+        "citation": "Social Security Administration history page 'Social Security Numbers: Misused SSNs' (ssa.gov/history/ssn/misused.html): 078-05-1120, the voided wallet-card number; retrieval refused HTTP 403 on 2026-10-23, pending (OI-1)",
+        "kind": "published_test_value"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "rendered_spelled",
+      "input": {
+        "text": "SSN zero seven eight zero five one one two zero on the card."
+      },
+      "note": "the spelled rendering of the voided wallet-card number: invisible to the pattern",
+      "source": {
+        "citation": "Social Security Administration history page 'Social Security Numbers: Misused SSNs' (ssa.gov/history/ssn/misused.html): 078-05-1120, the voided wallet-card number; retrieval refused HTTP 403 on 2026-10-23, pending (OI-1)",
+        "kind": "published_test_value"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "rendered_mixed_words",
+      "input": {
+        "text": "SSN 0seven80fiveoneone20 on the card."
+      },
+      "note": "the mixed_words rendering of the voided wallet-card number: invisible to the pattern",
+      "source": {
+        "citation": "Social Security Administration history page 'Social Security Numbers: Misused SSNs' (ssa.gov/history/ssn/misused.html): 078-05-1120, the voided wallet-card number; retrieval refused HTTP 403 on 2026-10-23, pending (OI-1)",
+        "kind": "published_test_value"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "rendered_prose",
+      "input": {
+        "text": "SSN 078, then 05, then 1120 on the card."
+      },
+      "note": "the prose rendering of the voided wallet-card number: invisible to the pattern",
+      "source": {
+        "citation": "Social Security Administration history page 'Social Security Numbers: Misused SSNs' (ssa.gov/history/ssn/misused.html): 078-05-1120, the voided wallet-card number; retrieval refused HTTP 403 on 2026-10-23, pending (OI-1)",
+        "kind": "published_test_value"
+      }
+    }
+  ],
+  "decoys": [
+    {
+      "description": "Numbers shaped like the element and not it: phone numbers from the fictional 555-01xx block, dates, ZIP+4 codes and order identifiers. None may fire ssn_hit.",
+      "generator": {
+        "list": [
+          "(212) 555-0142",
+          "415-555-0187",
+          "+1 312 555 0113",
+          "555-0164",
+          "(617) 555-0199",
+          "1987-06-15",
+          "06/15/1987",
+          "15.06.1987",
+          "1991-11-03",
+          "03/22/2004",
+          "99501-1234",
+          "96813-2201",
+          "97201-5005",
+          "98101-4410",
+          "94105-1804",
+          "112-4839201-7745123",
+          "ORD-2024-118734",
+          "#A7Q-58213",
+          "INV-0042-7781",
+          "PO 7781-22-A"
+        ]
+      },
+      "id": "lookalike",
+      "must_not_fire": [
+        "ssn_hit"
+      ]
+    },
+    {
+      "description": "The field is named but no value is given (a placeholder stands where the number would be). None may fire ssn_hit.",
+      "generator": {
+        "list": [
+          "[redacted]",
+          "on file",
+          "(withheld)",
+          "provided separately",
+          "available on request",
+          "see the attached form",
+          "not provided",
+          "[REMOVED]"
+        ]
+      },
+      "id": "naming_no_value",
+      "must_not_fire": [
+        "ssn_hit"
+      ]
+    }
+  ],
+  "description": "Pilot: a US Social Security number that checks out under the issuance rules (area not 000, 666 or 900-999; group not 00; serial not 0000), cued by a nearby word; masked values vetoed per candidate. Number shapes read: three-two-four with dash, space or dot delimiters, and nine in a row; mask characters X, x, *, the bullet and #. Renderings a pattern cannot see are declared with their normalisers; decoys are look-alike numbers and named-but-absent values.",
+  "expressions": {
+    "cued": {
+      "signal": "cue"
+    },
+    "is_masked": {
+      "signal": "masked"
+    },
+    "valid_ssn": {
+      "signal": "ssn"
+    }
+  },
+  "format": "midataworks.rule-set/v1",
+  "name": "dlp-ssn-us-elements",
+  "outputs": [
+    {
+      "column": "ssn_hit",
+      "type": "bool",
+      "value": {
+        "fired": "valid_ssn"
+      }
+    },
+    {
+      "column": "ssn_cued",
+      "type": "bool",
+      "value": {
+        "fired": "cued"
+      }
+    },
+    {
+      "column": "ssn_reason",
+      "type": "string",
+      "value": {
+        "field": [
+          "ssn",
+          "reason"
+        ]
+      }
+    },
+    {
+      "column": "ssn_spans",
+      "type": "string",
+      "value": {
+        "spans": "valid_ssn"
+      }
+    }
+  ],
+  "renderings": [
+    {
+      "invisible_to": [
+        "num",
+        "ssn"
+      ],
+      "normaliser": {
+        "builtin": "strip_delimiters"
+      },
+      "render": {
+        "builtin": "spaced"
+      },
+      "rendering": "spaced"
+    },
+    {
+      "invisible_to": [
+        "num",
+        "ssn"
+      ],
+      "normaliser": {
+        "builtin": "strip_delimiters"
+      },
+      "render": {
+        "builtin": "split_lines"
+      },
+      "rendering": "split_lines"
+    },
+    {
+      "invisible_to": [
+        "num",
+        "ssn"
+      ],
+      "normaliser": {
+        "builtin": "words_to_digits"
+      },
+      "render": {
+        "builtin": "spelled_out_digits"
+      },
+      "rendering": "spelled"
+    },
+    {
+      "invisible_to": [
+        "num",
+        "ssn"
+      ],
+      "normaliser": {
+        "mapping_inverse": true
+      },
+      "render": {
+        "mapping": {
+          "1": "one",
+          "3": "three",
+          "5": "five",
+          "7": "seven",
+          "9": "nine"
+        }
+      },
+      "rendering": "mixed_words"
+    },
+    {
+      "invisible_to": [
+        "num",
+        "ssn"
+      ],
+      "normaliser": {
+        "mapping_inverse": true
+      },
+      "render": {
+        "mapping": {
+          "-": ", then "
+        }
+      },
+      "rendering": "prose"
+    }
+  ],
+  "signals": [
+    {
+      "fold_fullwidth_ascii": false,
+      "id": "num",
+      "ignore_case": false,
+      "kind": "pattern",
+      "pattern": "(?:\\b[0-9Xx]{3}|[*•#]{3})[- .][0-9Xx*•#]{2}[- .][0-9]{4}\\b|(?:\\b[0-9Xx]{5}|[*•#]{5})[0-9]{4}\\b",
+      "reads": "text"
+    },
+    {
+      "candidates": {
+        "span_of": "num"
+      },
+      "id": "masked",
+      "kind": "validator",
+      "params": {
+        "format": "ssn_us"
+      },
+      "validator": {
+        "id": "masked",
+        "version": 1
+      }
+    },
+    {
+      "candidates": {
+        "span_of": "num"
+      },
+      "id": "ssn",
+      "kind": "validator",
+      "params": {},
+      "validator": {
+        "id": "ssn_us",
+        "version": 1
+      }
+    },
+    {
+      "anchor": "ssn",
+      "fold_fullwidth_ascii": false,
+      "id": "cue",
+      "ignore_case": true,
+      "kind": "proximity",
+      "max_distance": 24,
+      "phrases": [
+        "social security",
+        "ssn",
+        "taxpayer"
+      ],
+      "side": "before",
+      "unit": "code_points",
+      "word_boundary": true
+    }
+  ],
+  "vetoes": [
+    {
+      "id": "masked_value",
+      "removes": [
+        "num",
+        "ssn"
+      ],
+      "when": "is_masked"
+    }
+  ]
+}

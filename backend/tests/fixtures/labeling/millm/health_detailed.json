@@ -1,0 +1,94 @@
+{
+ "body": {
+  "active_profile": null,
+  "circuit_breakers": [
+   {
+    "failure_count": 0,
+    "is_open": false,
+    "name": "huggingface",
+    "state": "closed"
+   }
+  ],
+  "components": [
+   {
+    "latency_ms": null,
+    "message": "Layer claims reconciled at startup",
+    "name": "circuit_claims",
+    "status": "healthy"
+   },
+   {
+    "latency_ms": null,
+    "message": "Model: JEV-9B-decision",
+    "name": "model_loader",
+    "status": "healthy"
+   }
+  ],
+  "inference": {
+   "backend": "queue",
+   "batch_backlog_rows": 0,
+   "cbm_enabled": false,
+   "cbm_running": false,
+   "error": null,
+   "estimated_wait_seconds": 0.0,
+   "in_flight": 0,
+   "queue_max_concurrent": 1,
+   "queue_max_pending": 10,
+   "queue_pending": 0,
+   "queue_waiting": 0
+  },
+  "lease": null,
+  "model_loaded": true,
+  "model_name": "JEV-9B-decision",
+  "model_placement": {
+   "budget_mb_by_device": {},
+   "capacity_mb": 24034,
+   "devices": [
+    "cuda:0"
+   ],
+   "gpu_indices": [
+    0
+   ],
+   "memory_by_device_mb": {
+    "cuda:0": 17084
+   },
+   "mode": "single",
+   "planned_mb_by_device": {},
+   "reason": "requested_card",
+   "requested": "GPU-247aa582-0d1b-e161-8156-983ed1fefc57",
+   "required_mb": 19159,
+   "working_mb_by_device": {
+    "cuda:0": 1452
+   }
+  },
+  "sae_attached": false,
+  "sae_count": 0,
+  "sae_id": null,
+  "sae_ids": [],
+  "status": "healthy",
+  "timestamp": "2026-10-18T12:15:02.374040Z",
+  "version": "0.5.0",
+  "weights": {
+   "attached": false,
+   "attachment_state": null,
+   "barrier": "serving",
+   "error": null,
+   "weights_state": "clean"
+  }
+ },
+ "capture": {
+  "captured_at": "2026-10-18T12:15:03.275049Z",
+  "millm_commit": "30ef83f",
+  "millm_image": "hitsai/millm-backend@sha256:b021339cbfc5137abcf987fc6863999101e3abd00bc435d3e4913d6587b0c12f",
+  "note": "005 FTASKS 1.5 spike: live captures; queue_full (503) not captured (needs a saturated queue)."
+ },
+ "headers": {
+  "Content-Type": "application/json"
+ },
+ "request": {
+  "body": null,
+  "headers": {},
+  "method": "GET",
+  "path": "/api/health/detailed"
+ },
+ "status": 200
+}

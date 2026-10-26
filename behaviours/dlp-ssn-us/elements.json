@@ -1,0 +1,59 @@
+{
+  "description": "How the element column is made for each planned kind and form (D67, Q1). carrier_plan@1 draws kind and form per row, while synth_identifier draws its own perturbation and delimiter style, so one synth_identifier step cannot follow the plan. The route, with no code change, is recipe.json's steps: one synth_identifier step per (perturbation, delimiter style) with its own output_prefix and seed (by_kind x the four styles style_by_form needs: 20 steps; wrong_length uses synth_identifier@1.1.0 with wrong_length_layout 'style', since @1 lays a wrong-length value out undelimited whatever the style), then one rule_label step that copies, per row, the column matching the row's kind and form into 'element' (decoy kinds get null and take the rule set's decoy lists in insert_element@1). Proved through a real local build (backend/tests/integration/behaviour/test_ssn_pilot_elements.py, 1,500 plan rows, every one of the 45 non-decoy cells built): every element is its kind and its form, except the known_gaps below. All values are synthetic: valid ones are drawn by synth_identifier from a seeded generator over the issuable ranges (area 001-899 except 666, group 01-99, serial 0001-9999), not taken from any person; since 2011 any such number may be issued, so a synthetic valid value can coincide with a real one by chance, which is why the pilot is private_only and no valid value except the published voided wallet-card number appears in a public file.",
+  "scheme": "ssn_us",
+  "by_kind": {
+    "pos": {
+      "valid_share": 1.0,
+      "perturbations": []
+    },
+    "masked": {
+      "valid_share": 0.0,
+      "perturbations": [
+        "masked"
+      ]
+    },
+    "wrong_length": {
+      "valid_share": 0.0,
+      "perturbations": [
+        "wrong_length"
+      ],
+      "note": "synth_identifier@1.1.0, wrong_length_layout 'style': the value is laid out in the form's delimiter style, the last group taking the difference (123-45-67890, 123.45.678), so it never holds a well-formed value"
+    },
+    "bad_check": {
+      "valid_share": 0.0,
+      "perturbations": [
+        "bad_range"
+      ],
+      "note": "ssn_us has no check digit: bad_check is the never-issued ranges (area 000, 666, 900-999, the advertising range, group 00, serial 0000)"
+    },
+    "glued_letters": {
+      "valid_share": 0.0,
+      "perturbations": [
+        "adjacent_letters"
+      ]
+    },
+    "lookalike": {
+      "decoy": "lookalike"
+    },
+    "naming_no_value": {
+      "decoy": "naming_no_value"
+    }
+  },
+  "style_by_form": {
+    "digits": "none",
+    "digits_dash": "dash",
+    "digits_space": "space",
+    "digits_dot": "dot",
+    "spaced": "none",
+    "spelled": "none",
+    "split_lines": "none",
+    "mixed_words": "none",
+    "prose": "dash"
+  },
+  "style_note": "Renderings normalise back to the element exactly (element_recovered): spaced, split_lines, spelled and mixed_words recover only a value with no delimiters, prose only a dash-delimited one.",
+  "known_gaps": {
+    "renders_unchanged": {
+      "mixed_words": "a value with no odd digit: the rendering maps only 1, 3, 5, 7 and 9 to words, so such a value is inserted as plain digits and the rules read it (a valid one fires ssn_hit; its label is unchanged). Rare for pos (about 0.2 %), common for masked (about 6 %: four digits kept) and for bad_check values with zeros. A rule-set change (data), not a route change; record section 4, Q8."
+    }
+  }
+}

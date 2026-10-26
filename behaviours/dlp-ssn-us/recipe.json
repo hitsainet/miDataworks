@@ -1,0 +1,401 @@
+{
+  "description": "The element and label steps of the SSN pilot (D67, D72): the steps a label recipe runs after its carrier rows (dw_generated_rows per carrier run, 017 17.4). They make each carrier's element follow the plan's kind AND form: one synth_identifier step per (perturbation, delimiter style) with its own output_prefix (20 steps: 5 kinds x 4 styles; the wrong_length steps use synth_identifier@1.1.0 with wrong_length_layout 'style', the others @1), then one rule_label step that copies, per row, the column matching the row's kind and form into 'element' (decoy kinds get null: insert_element@1 takes their value from the rule set's decoy lists). Forms that are renderings take an undelimited value (spaced, spelled, split_lines, mixed_words recover only that) and prose a dashed one (elements.json style_by_form). Then insert_element@1, drop_columns (the e_* working columns), rule_set@1 and derive_labels@1 (labels.json). Proved through a real local build by backend/tests/integration/behaviour/test_ssn_pilot_elements.py. One declared gap: the rule set's mixed_words rendering leaves a value with no odd digit unchanged (elements.json known_gaps, Q8).",
+  "rule_set_pin": {
+    "rule_set_name": "dlp-ssn-us-elements",
+    "rule_set_version": null,
+    "rule_set_sha256": "6421324ebadb3c92fe9833c274ecc96714dddb06843eeb60951fa984aaa9ed8a"
+  },
+  "pin_note": "D72: rule_set.json is saved as a NEW version of dlp-ssn-us-elements at 17.3 (dataworks_save_rule_set). rule_set_sha256 is the digest of this pack's rule_set.json (rules.rule_set.digest, RFC 8785 canonical bytes) and must equal the sha256 the save returns; rule_set_version is null until then and is filled in every pinned step here and in templates.json's check_rule_sets with the version the save returns. A null version fails recipe validation, so an unfilled pin cannot build. The 016 document stored before it has sha256 0d975ea4c12102092307a30d311597c50503adff528a116007eebd493f558183.",
+  "steps": [
+    {
+      "operator": "synth_identifier",
+      "version": "1",
+      "params": {
+        "scheme": "ssn_us",
+        "seed": 1701,
+        "valid_share": 1.0,
+        "delimiters": [
+          "none"
+        ],
+        "output_prefix": "e_pos_none_"
+      }
+    },
+    {
+      "operator": "synth_identifier",
+      "version": "1",
+      "params": {
+        "scheme": "ssn_us",
+        "seed": 1701,
+        "valid_share": 1.0,
+        "delimiters": [
+          "dash"
+        ],
+        "output_prefix": "e_pos_dash_"
+      }
+    },
+    {
+      "operator": "synth_identifier",
+      "version": "1",
+      "params": {
+        "scheme": "ssn_us",
+        "seed": 1701,
+        "valid_share": 1.0,
+        "delimiters": [
+          "space"
+        ],
+        "output_prefix": "e_pos_space_"
+      }
+    },
+    {
+      "operator": "synth_identifier",
+      "version": "1",
+      "params": {
+        "scheme": "ssn_us",
+        "seed": 1701,
+        "valid_share": 1.0,
+        "delimiters": [
+          "dot"
+        ],
+        "output_prefix": "e_pos_dot_"
+      }
+    },
+    {
+      "operator": "synth_identifier",
+      "version": "1",
+      "params": {
+        "scheme": "ssn_us",
+        "seed": 1702,
+        "valid_share": 0.0,
+        "delimiters": [
+          "none"
+        ],
+        "output_prefix": "e_masked_none_",
+        "perturbations": [
+          "masked"
+        ]
+      }
+    },
+    {
+      "operator": "synth_identifier",
+      "version": "1",
+      "params": {
+        "scheme": "ssn_us",
+        "seed": 1702,
+        "valid_share": 0.0,
+        "delimiters": [
+          "dash"
+        ],
+        "output_prefix": "e_masked_dash_",
+        "perturbations": [
+          "masked"
+        ]
+      }
+    },
+    {
+      "operator": "synth_identifier",
+      "version": "1",
+      "params": {
+        "scheme": "ssn_us",
+        "seed": 1702,
+        "valid_share": 0.0,
+        "delimiters": [
+          "space"
+        ],
+        "output_prefix": "e_masked_space_",
+        "perturbations": [
+          "masked"
+        ]
+      }
+    },
+    {
+      "operator": "synth_identifier",
+      "version": "1",
+      "params": {
+        "scheme": "ssn_us",
+        "seed": 1702,
+        "valid_share": 0.0,
+        "delimiters": [
+          "dot"
+        ],
+        "output_prefix": "e_masked_dot_",
+        "perturbations": [
+          "masked"
+        ]
+      }
+    },
+    {
+      "operator": "synth_identifier",
+      "version": "1.1.0",
+      "params": {
+        "scheme": "ssn_us",
+        "seed": 1703,
+        "valid_share": 0.0,
+        "delimiters": [
+          "none"
+        ],
+        "output_prefix": "e_wrong_length_none_",
+        "perturbations": [
+          "wrong_length"
+        ],
+        "wrong_length_layout": "style"
+      }
+    },
+    {
+      "operator": "synth_identifier",
+      "version": "1.1.0",
+      "params": {
+        "scheme": "ssn_us",
+        "seed": 1703,
+        "valid_share": 0.0,
+        "delimiters": [
+          "dash"
+        ],
+        "output_prefix": "e_wrong_length_dash_",
+        "perturbations": [
+          "wrong_length"
+        ],
+        "wrong_length_layout": "style"
+      }
+    },
+    {
+      "operator": "synth_identifier",
+      "version": "1.1.0",
+      "params": {
+        "scheme": "ssn_us",
+        "seed": 1703,
+        "valid_share": 0.0,
+        "delimiters": [
+          "space"
+        ],
+        "output_prefix": "e_wrong_length_space_",
+        "perturbations": [
+          "wrong_length"
+        ],
+        "wrong_length_layout": "style"
+      }
+    },
+    {
+      "operator": "synth_identifier",
+      "version": "1.1.0",
+      "params": {
+        "scheme": "ssn_us",
+        "seed": 1703,
+        "valid_share": 0.0,
+        "delimiters": [
+          "dot"
+        ],
+        "output_prefix": "e_wrong_length_dot_",
+        "perturbations": [
+          "wrong_length"
+        ],
+        "wrong_length_layout": "style"
+      }
+    },
+    {
+      "operator": "synth_identifier",
+      "version": "1",
+      "params": {
+        "scheme": "ssn_us",
+        "seed": 1704,
+        "valid_share": 0.0,
+        "delimiters": [
+          "none"
+        ],
+        "output_prefix": "e_bad_check_none_",
+        "perturbations": [
+          "bad_range"
+        ]
+      }
+    },
+    {
+      "operator": "synth_identifier",
+      "version": "1",
+      "params": {
+        "scheme": "ssn_us",
+        "seed": 1704,
+        "valid_share": 0.0,
+        "delimiters": [
+          "dash"
+        ],
+        "output_prefix": "e_bad_check_dash_",
+        "perturbations": [
+          "bad_range"
+        ]
+      }
+    },
+    {
+      "operator": "synth_identifier",
+      "version": "1",
+      "params": {
+        "scheme": "ssn_us",
+        "seed": 1704,
+        "valid_share": 0.0,
+        "delimiters": [
+          "space"
+        ],
+        "output_prefix": "e_bad_check_space_",
+        "perturbations": [
+          "bad_range"
+        ]
+      }
+    },
+    {
+      "operator": "synth_identifier",
+      "version": "1",
+      "params": {
+        "scheme": "ssn_us",
+        "seed": 1704,
+        "valid_share": 0.0,
+        "delimiters": [
+          "dot"
+        ],
+        "output_prefix": "e_bad_check_dot_",
+        "perturbations": [
+          "bad_range"
+        ]
+      }
+    },
+    {
+      "operator": "synth_identifier",
+      "version": "1",
+      "params": {
+        "scheme": "ssn_us",
+        "seed": 1705,
+        "valid_share": 0.0,
+        "delimiters": [
+          "none"
+        ],
+        "output_prefix": "e_glued_letters_none_",
+        "perturbations": [
+          "adjacent_letters"
+        ]
+      }
+    },
+    {
+      "operator": "synth_identifier",
+      "version": "1",
+      "params": {
+        "scheme": "ssn_us",
+        "seed": 1705,
+        "valid_share": 0.0,
+        "delimiters": [
+          "dash"
+        ],
+        "output_prefix": "e_glued_letters_dash_",
+        "perturbations": [
+          "adjacent_letters"
+        ]
+      }
+    },
+    {
+      "operator": "synth_identifier",
+      "version": "1",
+      "params": {
+        "scheme": "ssn_us",
+        "seed": 1705,
+        "valid_share": 0.0,
+        "delimiters": [
+          "space"
+        ],
+        "output_prefix": "e_glued_letters_space_",
+        "perturbations": [
+          "adjacent_letters"
+        ]
+      }
+    },
+    {
+      "operator": "synth_identifier",
+      "version": "1",
+      "params": {
+        "scheme": "ssn_us",
+        "seed": 1705,
+        "valid_share": 0.0,
+        "delimiters": [
+          "dot"
+        ],
+        "output_prefix": "e_glued_letters_dot_",
+        "perturbations": [
+          "adjacent_letters"
+        ]
+      }
+    },
+    {
+      "operator": "rule_label",
+      "version": "1",
+      "params": {
+        "output_column": "element",
+        "rules": [
+          "@e_pos_none_value if kind == pos and form in [digits, spaced, spelled, split_lines, mixed_words]",
+          "@e_pos_dash_value if kind == pos and form in [digits_dash, prose]",
+          "@e_pos_space_value if kind == pos and form in [digits_space]",
+          "@e_pos_dot_value if kind == pos and form in [digits_dot]",
+          "@e_masked_none_value if kind == masked and form in [digits, spaced, spelled, split_lines, mixed_words]",
+          "@e_masked_dash_value if kind == masked and form in [digits_dash, prose]",
+          "@e_masked_space_value if kind == masked and form in [digits_space]",
+          "@e_masked_dot_value if kind == masked and form in [digits_dot]",
+          "@e_wrong_length_none_value if kind == wrong_length and form in [digits, spaced, spelled, split_lines, mixed_words]",
+          "@e_wrong_length_dash_value if kind == wrong_length and form in [digits_dash, prose]",
+          "@e_wrong_length_space_value if kind == wrong_length and form in [digits_space]",
+          "@e_wrong_length_dot_value if kind == wrong_length and form in [digits_dot]",
+          "@e_bad_check_none_value if kind == bad_check and form in [digits, spaced, spelled, split_lines, mixed_words]",
+          "@e_bad_check_dash_value if kind == bad_check and form in [digits_dash, prose]",
+          "@e_bad_check_space_value if kind == bad_check and form in [digits_space]",
+          "@e_bad_check_dot_value if kind == bad_check and form in [digits_dot]",
+          "@e_glued_letters_none_value if kind == glued_letters and form in [digits, spaced, spelled, split_lines, mixed_words]",
+          "@e_glued_letters_dash_value if kind == glued_letters and form in [digits_dash, prose]",
+          "@e_glued_letters_space_value if kind == glued_letters and form in [digits_space]",
+          "@e_glued_letters_dot_value if kind == glued_letters and form in [digits_dot]"
+        ]
+      }
+    },
+    {
+      "operator": "insert_element",
+      "version": "1.0.0",
+      "params": {
+        "element_column": "element",
+        "vocabulary": "@input",
+        "framing_phrase_share": 0.0,
+        "rule_set_name": "dlp-ssn-us-elements",
+        "rule_set_version": null,
+        "rule_set_sha256": "6421324ebadb3c92fe9833c274ecc96714dddb06843eeb60951fa984aaa9ed8a"
+      }
+    },
+    {
+      "operator": "drop_columns",
+      "version": "1",
+      "params": {
+        "patterns": [
+          "e_*"
+        ]
+      }
+    },
+    {
+      "operator": "rule_set",
+      "version": "1",
+      "params": {
+        "rule_set_name": "dlp-ssn-us-elements",
+        "rule_set_version": null,
+        "rule_set_sha256": "6421324ebadb3c92fe9833c274ecc96714dddb06843eeb60951fa984aaa9ed8a",
+        "use": "label",
+        "text_column": "text",
+        "output_prefix": "r_"
+      }
+    },
+    {
+      "operator": "derive_labels",
+      "version": "1.0.0",
+      "params": {
+        "label_column": "disclosure",
+        "vocabulary": "@input",
+        "truth_tables": "{\"label\": {\"inputs\": [\"kind\", \"framing\", \"element_recovered\"], \"rows\": [{\"when\": {\"element_recovered\": false}, \"value\": false}, {\"when\": {\"kind\": \"lookalike\"}, \"value\": false}, {\"when\": {\"kind\": \"naming_no_value\"}, \"value\": false}, {\"when\": {\"framing\": \"own_identifier\"}, \"value\": true}, {\"when\": {\"framing\": \"someones_identifier\"}, \"value\": true}, {\"when\": {}, \"value\": false}]}, \"sub_questions\": {\"id_shape\": {\"inputs\": [\"kind\", \"element_recovered\"], \"rows\": [{\"when\": {\"element_recovered\": false}, \"value\": \"no\"}, {\"when\": {\"kind\": \"pos\"}, \"value\": \"yes\"}, {\"when\": {\"kind\": \"bad_check\"}, \"value\": \"yes\"}, {\"when\": {\"kind\": \"glued_letters\"}, \"value\": \"yes\"}, {\"when\": {\"kind\": \"masked\"}, \"value\": \"yes\"}, {\"when\": {}, \"value\": \"no\"}]}, \"presented\": {\"inputs\": [\"kind\", \"framing\", \"element_recovered\"], \"rows\": [{\"when\": {\"kind\": \"naming_no_value\"}, \"value\": \"no\"}, {\"when\": {\"kind\": \"lookalike\", \"framing\": \"own_identifier\"}, \"value\": \"yes\"}, {\"when\": {\"kind\": \"lookalike\", \"framing\": \"someones_identifier\"}, \"value\": \"yes\"}, {\"when\": {\"element_recovered\": false}, \"value\": \"no\"}, {\"when\": {\"framing\": \"own_identifier\"}, \"value\": \"yes\"}, {\"when\": {\"framing\": \"someones_identifier\"}, \"value\": \"yes\"}, {\"when\": {}, \"value\": \"no\"}]}, \"masked\": {\"inputs\": [\"kind\", \"element_recovered\"], \"rows\": [{\"when\": {\"kind\": \"masked\", \"element_recovered\": true}, \"value\": \"yes\"}, {\"when\": {}, \"value\": \"no\"}]}}}",
+        "target_checks": "[]",
+        "output_prefix": "r_",
+        "vetoed_column": "r_vetoed",
+        "scan_column": "r_ssn_spans",
+        "rule_set_name": "dlp-ssn-us-elements",
+        "rule_set_version": null,
+        "rule_set_sha256": "6421324ebadb3c92fe9833c274ecc96714dddb06843eeb60951fa984aaa9ed8a"
+      }
+    }
+  ]
+}

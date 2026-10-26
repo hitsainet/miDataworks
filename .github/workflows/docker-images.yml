@@ -1,0 +1,373 @@
+name: Build and Push Docker Images
+
+# Runs on the PUBLIC MIRROR only (hitsainet/miDataworks): the private primary is
+# pushed to, sync-to-clean publishes a filtered orphan snapshot there, and this
+# builds and pushes the three images to Docker Hub (ADR-024; Foundation task
+# 15.2). Adapted from miStudio's copy (orphan mirror, revision-label change
+# detection, the `created` tag guard), plus miForge's empty-list guard; since
+# 2026-10-20 it trusts the private repo's CI (job `private-ci`) instead of
+# re-running it. `backend/tests/unit/test_build_gate.py` RUNS the tag guard;
+# `test_private_ci_trust.py` pins and runs the trust check.
+#
+#   hitsai/midataworks-backend     API, Celery workers, Beat and MCP (one image)
+#   hitsai/midataworks-frontend    nginx-unprivileged serving the built app on 8080
+#   hitsai/midataworks-datajuicer  the Data-Juicer worker only (ADR-010)
+#   hitsai/midataworks-designer    the Data Designer worker only (ADR-010 amendment, 2026-10-07)
+#   hitsai/midataworks-runner      the isolated code-rule runner only (feature 018): no secret, no
+#                                  database, no egress; its own Deployment (k8s/base/runner.yaml)
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  # Manual full rebuild (detect treats a dispatch as "no diff base" → all).
+  workflow_dispatch: {}
+
+# Least privilege (CodeQL actions/missing-workflow-permissions, alert 1 on the mirror): every job
+# reads the repository only, unless it declares more itself (build: OIDC and attestations). Pinned by backend/tests/unit/test_workflow_permissions.py.
+permissions:
+  contents: read
+
+jobs:
+  # ── Change detection ─────────────────────────────────────────────────────
+  # Build ONLY the images whose code changed since the image that is actually
+  # PUBLISHED. Conservative at every failure: no label, an unreachable registry,
+  # or a commit git cannot resolve all mean "build it".
+  detect:
+    # HARD STOP: only run in the public mirror. Both casings, because a gate that
+    # fails to match skips the job silently.
+    if: github.repository == 'hitsainet/miDataworks' || github.repository == 'hitsainet/midataworks'
+    runs-on: ubuntu-latest
+    outputs:
+      images: ${{ steps.detect.outputs.images }}
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # need history to diff the push range
+
+      - name: Detect changed images
+        id: detect
+        env:
+          REF: ${{ github.ref }}
+          CREATED: ${{ github.event.created }}
+        run: |
+          set -euo pipefail
+          ALL=(backend frontend datajuicer designer runner)
+          emit_all() {
+            # An empty list must emit [], never [""] (miForge's fix: `printf '%s\n'`
+            # with no arguments still prints one empty line).
+            if [ ${#ALL[@]} -eq 0 ]; then echo '[]'; return; fi
+            printf '%s\n' "${ALL[@]}" | jq -R . | jq -cs .
+          }
+
+          # ── THE DOUBLE-BUILD GUARD (miStudio commit 7f27b520) ─────────────
+          # Tag push: a NEW tag (a release) → full rebuild. An EXISTING tag moved
+          # onto a new snapshot → nothing.
+          #
+          # sync-to-clean retargets every existing mirror tag onto each snapshot,
+          # because the mirror holds one commit and a stale tag would pin old
+          # history. That force-push is a tag push, and in miStudio it fired this
+          # workflow a SECOND time on every sync and rebuilt every image: a second
+          # backend digest that Image Updater rolled out minutes after the first.
+          # The first rollout looked like the deploy and was verified as such; the
+          # second killed an activation extraction started in between.
+          # A missing `created` also builds nothing: fail toward not redeploying,
+          # since a release can always be rebuilt with workflow_dispatch.
+          if [[ "$REF" == refs/tags/* ]]; then
+            echo "tag push: created=${CREATED}"
+            if [ "$CREATED" != "true" ]; then
+              echo "images=[]" >> "$GITHUB_OUTPUT"; echo "existing tag retargeted by sync → nothing to build"; exit 0
+            fi
+            echo "images=$(emit_all)" >> "$GITHUB_OUTPUT"; echo "new tag → all"; exit 0
+          fi
+
+          # ── The diff base is PER IMAGE: the commit that image was built from.
+          # Diffing `github.event.before` strands an image that failed to publish
+          # (a red gate, a runner OOM): the next push sees no change under its
+          # paths and skips it, forever. miLLM's admin-ui sat stale that way on
+          # 2026-09-27. Each image's `org.opencontainers.image.revision` label
+          # makes this self-correcting: an unpublished image keeps its old label.
+          published_revision() {
+            # Echo the commit `<repo>:latest` was built from, or nothing.
+            # Load-bearing (both failed SILENTLY in miLLM when first written):
+            #   1. `-L` on the BLOB fetch — Docker Hub 307-redirects blob reads.
+            #   2. Following the INDEX — `:latest` is multi-arch with no `.config`.
+            local repo="$1" token accept doc mt cfg child
+            accept='application/vnd.docker.distribution.manifest.v2+json,application/vnd.oci.image.manifest.v1+json,application/vnd.docker.distribution.manifest.list.v2+json,application/vnd.oci.image.index.v1+json'
+
+            token="$(curl -fsSL --max-time 30 \
+              "https://auth.docker.io/token?service=registry.docker.io&scope=repository:${repo}:pull" \
+              | jq -r .token 2>/dev/null)" || return 0
+            [ -n "$token" ] && [ "$token" != "null" ] || return 0
+
+            doc="$(curl -fsSL --max-time 30 -H "Authorization: Bearer ${token}" -H "Accept: ${accept}" \
+              "https://registry-1.docker.io/v2/${repo}/manifests/latest" 2>/dev/null)" || return 0
+
+            mt="$(echo "$doc" | jq -r '.mediaType // empty' 2>/dev/null)"
+            case "$mt" in
+              *manifest.list*|*image.index*)
+                child="$(echo "$doc" | jq -r '
+                  [.manifests[] | select((.platform.os=="linux") and (.platform.architecture=="amd64")
+                    and ((.platform.variant // "")|test("unknown")|not))] | .[0].digest // empty' 2>/dev/null)"
+                [ -n "$child" ] || return 0
+                doc="$(curl -fsSL --max-time 30 -H "Authorization: Bearer ${token}" -H "Accept: ${accept}" \
+                  "https://registry-1.docker.io/v2/${repo}/manifests/${child}" 2>/dev/null)" || return 0
+                ;;
+            esac
+
+            cfg="$(echo "$doc" | jq -r '.config.digest // empty' 2>/dev/null)"
+            [ -n "$cfg" ] || return 0
+
+            curl -fsSL --max-time 30 -H "Authorization: Bearer ${token}" \
+              "https://registry-1.docker.io/v2/${repo}/blobs/${cfg}" 2>/dev/null \
+              | jq -r '.config.Labels["org.opencontainers.image.revision"] // empty' 2>/dev/null \
+              || true
+          }
+
+          repo_for() {
+            case "$1" in
+              backend)    echo "hitsai/midataworks-backend" ;;
+              frontend)   echo "hitsai/midataworks-frontend" ;;
+              datajuicer) echo "hitsai/midataworks-datajuicer" ;;
+              designer)   echo "hitsai/midataworks-designer" ;;
+              runner)     echo "hitsai/midataworks-runner" ;;
+              *) echo "" ;;
+            esac
+          }
+
+          # Which paths make up each image. The Data-Juicer image is built from the
+          # repo root and copies only the runner package (datajuicer/Dockerfile).
+          paths_for() {
+            case "$1" in
+              backend)    echo '^backend/(src/|alembic/|alembic\.ini|requirements(-operators)?\.txt|constraints\.txt|pyproject\.toml|Dockerfile|docker-entrypoint\.sh|\.dockerignore)' ;;
+              frontend)   echo '^frontend/' ;;
+              datajuicer) echo '^(datajuicer/|backend/src/__init__\.py|backend/src/operators/__init__\.py|backend/src/operators/datajuicer/|backend/tests/fixtures/operators/contract_fixture\.parquet)' ;;
+              designer)   echo '^(designer/|backend/src/__init__\.py|backend/src/operators/__init__\.py|backend/src/operators/data_designer/(__init__|runner|relay)\.py)' ;;
+              # Feature 018: exactly what runner/Dockerfile copies (its ignore file admits only these).
+              runner)     echo '^(runner/(Dockerfile|Dockerfile\.dockerignore|requirements\.txt|constraints\.txt|scripts/)|backend/src/__init__\.py|backend/src/core/(__init__|canonical_json)\.py|backend/src/runner/|backend/src/runner_contract/|backend/src/schemas/__init__\.py|backend/src/schemas/data/midataworks-runner-v1\.json)' ;;
+              *) echo '^$' ;;
+            esac
+          }
+
+          # Paths that never rebuild an image even though paths_for matches them. The backend image
+          # does not carry the runner host (backend/.dockerignore excludes src/runner/), so a
+          # runner-only change rolls only the runner and never the Recreate backend pod with its
+          # in-flight jobs (018 Discrepancy X3, FTID I4).
+          excludes_for() {
+            case "$1" in
+              backend) echo '^backend/src/runner/' ;;
+              *) echo '^$' ;;
+            esac
+          }
+
+          # Whether a changed-file list (one path per line) rebuilds an image. One function, used by
+          # the loop below and RUN by backend/tests/unit/test_build_gate.py. Here-strings, never a
+          # pipe into `grep -q`: under pipefail the writer's SIGPIPE would turn a match into "no"
+          # (suite memory pipefail-grep-q-refuses-found).
+          selects() {
+            local kept
+            kept="$(grep -vE "$(excludes_for "$1")" <<< "$2" || true)"
+            grep -qE "$(paths_for "$1")" <<< "$kept"
+          }
+
+          OUT=()
+          for img in "${ALL[@]}"; do
+            repo="$(repo_for "$img")"
+            base="$(published_revision "$repo" || true)"
+
+            if [ -z "$base" ]; then
+              echo "$img: no published revision recorded → build"
+              OUT+=("$img"); continue
+            fi
+
+            # The mirror's main is force-pushed as an orphan, so a previous revision
+            # is an unadvertised object. GitHub serves those by explicit SHA.
+            git cat-file -e "${base}^{commit}" 2>/dev/null \
+              || git fetch --no-tags --depth=1 origin "$base" 2>/dev/null \
+              || true
+            if ! git cat-file -e "${base}^{commit}" 2>/dev/null; then
+              echo "$img: published revision ${base} is not resolvable here → build"
+              OUT+=("$img"); continue
+            fi
+
+            if [ "$base" = "$GITHUB_SHA" ]; then
+              echo "$img: already published from this exact commit → skip"; continue
+            fi
+
+            CHANGED="$(git diff --name-only "$base" "$GITHUB_SHA" || true)"
+            if [ -z "$CHANGED" ]; then
+              echo "$img: no file changes since ${base:0:8} → skip"; continue
+            fi
+            if selects "$img" "$CHANGED"; then
+              echo "$img: changed since published ${base:0:8} → build"
+              OUT+=("$img")
+            else
+              echo "$img: unchanged since published ${base:0:8} → skip"
+            fi
+          done
+
+          if [ ${#OUT[@]} -eq 0 ]; then
+            echo "images=[]" >> "$GITHUB_OUTPUT"; echo "no image-affecting changes → nothing to build"
+          else
+            JSON="$(printf '%s\n' "${OUT[@]}" | jq -R . | jq -cs .)"
+            echo "images=$JSON" >> "$GITHUB_OUTPUT"; echo "building: $JSON"
+          fi
+
+  # ── The private repository's CI verdict (operator directive, 2026-10-20) ─────────────
+  # REPLACES the `gate` job that waited here for THIS mirror's Backend Tests run on the same
+  # commit. That ran the suite a second time, and on 2026-10-18 it let red code deploy: the
+  # private repo's Backend Tests was red for 5bbb92b while this mirror's run was green. The
+  # private repo's sync-to-clean now publishes a snapshot only after its `gate` job saw every
+  # CI workflow pass for that exact commit (Backend Tests with all its shards, designer-tests
+  # and datajuicer-tests; Frontend CI; Manual CI), and stamps it with `Source-Commit:` and
+  # `Private-CI: passed` trailers. This job requires them, so a commit that did not come
+  # through that gate - a hand push to the mirror - builds nothing. `build` needs it with no
+  # `always()`, so a refusal skips every image (the frontend image is now gated by Frontend
+  # CI too, which it never was). Pinned, and this script RUN against real commits, by
+  # backend/tests/unit/test_private_ci_trust.py in the private repo.
+  private-ci:
+    name: Require the private repo's CI verdict
+    if: github.repository == 'hitsainet/miDataworks' || github.repository == 'hitsainet/midataworks'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Require the private repo's CI verdict
+        run: |
+          set -euo pipefail
+          TRAILERS="$(git log -1 --format='%(trailers:only,unfold)' "$GITHUB_SHA")"
+          SRC="$(sed -n '/^Source-Commit: /{s///p;q;}' <<< "$TRAILERS")"
+          VERDICT="$(sed -n '/^Private-CI: /{s///p;q;}' <<< "$TRAILERS")"
+          if [ "$VERDICT" != "passed" ] || ! [[ "$SRC" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::${GITHUB_SHA} carries no 'Private-CI: passed' / 'Source-Commit: <sha>' trailers."
+            echo "::error::Only snapshots published by the private repo's gated sync are built. Refusing."
+            exit 1
+          fi
+          echo "Snapshot of private commit ${SRC}, whose CI passed before it was published - building."
+
+  build:
+    needs: [detect, private-ci]
+    if: >-
+      (github.repository == 'hitsainet/miDataworks' || github.repository == 'hitsainet/midataworks')
+      && needs.detect.outputs.images != '[]' && needs.detect.outputs.images != ''
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        name: ${{ fromJson(needs.detect.outputs.images) }}
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Resolve image build parameters
+        id: img
+        run: |
+          case "${{ matrix.name }}" in
+            backend)
+              echo "repo=hitsai/midataworks-backend"      >> "$GITHUB_OUTPUT"
+              echo "context=./backend"                     >> "$GITHUB_OUTPUT"
+              echo "dockerfile=./backend/Dockerfile"       >> "$GITHUB_OUTPUT"
+              ;;
+            frontend)
+              echo "repo=hitsai/midataworks-frontend"     >> "$GITHUB_OUTPUT"
+              echo "context=./frontend"                    >> "$GITHUB_OUTPUT"
+              echo "dockerfile=./frontend/Dockerfile"      >> "$GITHUB_OUTPUT"
+              ;;
+            datajuicer)
+              # Built from the repo root: it copies the runner from backend/src.
+              # datajuicer/Dockerfile.dockerignore keeps everything else out.
+              echo "repo=hitsai/midataworks-datajuicer"   >> "$GITHUB_OUTPUT"
+              echo "context=."                             >> "$GITHUB_OUTPUT"
+              echo "dockerfile=./datajuicer/Dockerfile"    >> "$GITHUB_OUTPUT"
+              ;;
+            designer)
+              # Built from the repo root: it copies the runner and relay from backend/src.
+              # designer/Dockerfile.dockerignore keeps everything else out.
+              echo "repo=hitsai/midataworks-designer"     >> "$GITHUB_OUTPUT"
+              echo "context=."                             >> "$GITHUB_OUTPUT"
+              echo "dockerfile=./designer/Dockerfile"      >> "$GITHUB_OUTPUT"
+              ;;
+            runner)
+              # Feature 018. Built from the repo root: it copies the runner host and the contract
+              # package from backend/src; runner/Dockerfile.dockerignore keeps everything else out.
+              echo "repo=hitsai/midataworks-runner"       >> "$GITHUB_OUTPUT"
+              echo "context=."                             >> "$GITHUB_OUTPUT"
+              echo "dockerfile=./runner/Dockerfile"        >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "ERROR: unknown image '${{ matrix.name }}'"; exit 1
+              ;;
+          esac
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract version tag
+        id: version
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF#refs/tags/}"
+            echo "tags=${{ steps.img.outputs.repo }}:latest,${{ steps.img.outputs.repo }}:${VERSION}" >> "$GITHUB_OUTPUT"
+          else
+            SHA="${GITHUB_SHA::8}"
+            echo "tags=${{ steps.img.outputs.repo }}:latest,${{ steps.img.outputs.repo }}:${SHA}" >> "$GITHUB_OUTPUT"
+          fi
+
+      # The build every publish manifest records as producer.build (backend/Dockerfile ARG
+      # APP_BUILD → Settings.app_build): the release tag for a tag push, else the commit. Without
+      # it every manifest said "dev". Run by backend/tests/unit/test_backend_image.py.
+      - name: Name the build recorded in manifests
+        id: app_build
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            echo "value=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build and push ${{ matrix.name }} image
+        id: build
+        uses: docker/build-push-action@v7
+        with:
+          context: ${{ steps.img.outputs.context }}
+          file: ${{ steps.img.outputs.dockerfile }}
+          push: true
+          tags: ${{ steps.version.outputs.tags }}
+          # Only the backend image declares this argument; the others ignore it.
+          build-args: |
+            APP_BUILD=${{ steps.app_build.outputs.value }}
+          # ⚠ THIS LABEL IS WHAT `detect` DIFFS FROM — the commit this image was
+          # actually built from. Removing it does not break the build; it makes
+          # `detect` fall back to building everything, forever.
+          labels: |
+            org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
+          # mode=max attaches full build-step provenance, which Docker Scout's
+          # supply-chain policy checks for.
+          provenance: mode=max
+          sbom: true
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: index.docker.io/${{ steps.img.outputs.repo }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true

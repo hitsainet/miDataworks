@@ -1,0 +1,69 @@
+{
+  "description": "Sizes, budgets and caps for the SSN pilot (D6, D5, K1, K2, K7; D32 starting values). Measurement corrects them before release; any change returns to the operator.",
+  "plans": [
+    {
+      "name": "llama",
+      "generator_model_id": "Llama-3.1-8B-Instruct",
+      "rows": 30000,
+      "templated_share": 0.1,
+      "genre_shares": "plan.json shares.genre (ten training genres at 0.09, the two held-out genres at 0.05)",
+      "expected": {
+        "train_genres": 27000,
+        "test_unseen_genre": 3000,
+        "templated": 3000
+      },
+      "confirm": "D71: the served name is confirmed against miLLM's model list (millm_list_models) at the start of the run, before the carrier run starts; if it differs, this value, splits.json (held_out_values, generators) and the run's generator_model_id change together"
+    },
+    {
+      "name": "qwen",
+      "generator_model_id": "Qwen2.5-7B-Instruct",
+      "rows": 6000,
+      "templated_share": 0.0,
+      "genre_shares": {
+        "email": 0.05,
+        "chat": 0.05,
+        "support_ticket": 0.05,
+        "form_dump": 0.05,
+        "csv_line": 0.05,
+        "json_line": 0.05,
+        "log_line": 0.05,
+        "code": 0.05,
+        "config_file": 0.05,
+        "non_english": 0.05,
+        "ocr_scan": 0.25,
+        "voice_transcript": 0.25
+      },
+      "expected": {
+        "test_unseen_generator": 3000,
+        "test_unseen_both": 3000
+      },
+      "confirm": "D71: the served name is confirmed against miLLM's model list (millm_list_models) at the start of the run, before the carrier run starts; if it differs, this value, splits.json (held_out_values, generators) and the run's generator_model_id change together"
+    }
+  ],
+  "targets": {
+    "training_rows": 30000,
+    "per_held_out_group": 3000,
+    "calibration_negatives": 5000
+  },
+  "calibration_negatives": {
+    "basis": "assumed_negative",
+    "rule": "the identifier screen (every identifier rule set)",
+    "rows": 5000,
+    "from": "screened real text (benchmarks.json real_text)"
+  },
+  "second_opinion": {
+    "stratified_rows": 2000,
+    "plus": "every conflict",
+    "per_run_cap_rows": 2500,
+    "price_per_call_usd": 1.5e-05,
+    "spend_ceiling_usd": 5.0,
+    "note": "D66 (operator, 2026-10-25): spend ceiling $5 in total; TypeSafe price measured by the operator: 20,780 tokens over 55 requests cost $0.0008, about $0.0000145 per call. The price field takes six decimals (price_per_call_usd), so the role's price is entered rounded UP to 0.000015 (the conservative side: spend is never under-counted). Both are entered by the operator at 17.1: the classifier role's price in Settings > Endpoints, and CLASSIFIER_SPEND_CEILING_USD (agent-forbidden runtime setting, 'Money: only the operator sets it'); while either is unset every paid run is refused. These values here are the record, not the settings.",
+    "estimate": "Four label runs (one per compared column), each at most the per-run cap of 2,500 rows: at most 10,000 calls x $0.000015 = $0.15 per full second-opinion pass; the $5 ceiling covers about 33 such passes"
+  },
+  "gpu": {
+    "measurement_run": "500 carriers per generator over every genre, GENERATION_REQUESTS_IN_FLIGHT 1 vs 8 (16.8)",
+    "ceiling_gpu_hours": 48,
+    "window": "no miStudio training scheduled; miDataworks deploy hold from 17.3 to 18.3"
+  },
+  "visibility": "private_only"
+}

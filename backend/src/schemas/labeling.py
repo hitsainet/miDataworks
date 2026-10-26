@@ -1,0 +1,819 @@
+"""Feature 005 bodies: templates, rubrics, label-run requests and the label-run contract.
+
+Every model refuses unknown keys (``extra="forbid"``) so a misspelled field fails rather than being
+ignored, and none uses a validation ``alias`` (an alias renames on serialisation too; miStudio
+memory "Pydantic alias renames on serialisation").
+"""
+
+from __future__ import annotations
+
+import json
+from datetime import datetime
+from pathlib import Path
+from typing import Annotated, Any, Literal
+
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+from .archive import ArchiveFields
+from .behaviour import BEHAVIOUR_KEY_PATTERN
+
+_FORBID = ConfigDict(extra="forbid")
+
+TEMPLATE_EXPORT_FORMAT = "midataworks.decision-template/v1"
+RUBRIC_EXPORT_FORMAT = "midataworks.rubric/v1"
+
+
+# --- decision template bodies (FR-005.11 – FR-005.15) -----------------------------------------
+
+
+class OpenAIScoringTemplate(BaseModel):
+    """Next-token log-probabilities restricted to verbalizer token IDs (``openai_scoring``)."""
+
+    model_config = _FORBID
+
+    kind: Literal["openai_scoring"]
+    variant: Literal["completions", "chat"]
+    #: A registered renderer (``jev.noul_bare_v1``) or a format string over ``input_fields`` and
+    #: ``{question}``.
+    render: str = Field(min_length=1)
+    input_fields: list[str] = Field(min_length=1)
+    #: In verbalizer order within the decision slot, e.g. ``["false", "true"]``.
+    label_set: list[str] = Field(min_length=2)
+    #: The label whose probability is P for the two-threshold rule (binary sets).
+    positive_class: str | None = None
+    #: Which slot of ``slots`` answers this template's question (JEV: ``noul``).
+    decision_kind: str = Field(min_length=1)
+    verbalizer_ids: list[int] = Field(min_length=2)
+    slots: dict[str, tuple[int, int]]
+    bias: list[float]
+    temperature: dict[str, float]
+    tokenization: dict[str, bool] = Field(default_factory=dict)
+    bound_model_id: str = Field(min_length=1)
+    bound_model_revision: str | None = None
+
+    @model_validator(mode="after")
+    def _consistent(self) -> OpenAIScoringTemplate:
+        if self.decision_kind not in self.slots:
+            raise ValueError(f"decision_kind {self.decision_kind!r} is not one of the slots")
+        start, end = self.slots[self.decision_kind]
+        if not (0 <= start < end <= len(self.verbalizer_ids)):
+            raise ValueError("the decision slot lies outside verbalizer_ids")
+        if end - start != len(self.label_set):
+            raise ValueError("the decision slot must hold one verbalizer per label")
+        if len(self.bias) != len(self.verbalizer_ids):
+            raise ValueError("bias must hold one value per verbalizer id")
+        temperature = self.temperature.get(self.decision_kind)
+        if temperature is None or not temperature > 0:
+            raise ValueError("temperature for the decision kind must be positive")
+        if self.positive_class is not None and self.positive_class not in self.label_set:
+            raise ValueError("positive_class must be one of label_set")
+        if len(self.label_set) == 2 and self.positive_class is None:
+            raise ValueError("a binary template must name its positive_class")
+        return self
+
+
+class TEIClassificationTemplate(BaseModel):
+    """Hugging Face text classification on a TEI server's ``/predict`` (FR-005.15)."""
+
+    model_config = _FORBID
+
+    kind: Literal["tei_classification"]
+    render: str = Field(min_length=1)
+    input_fields: list[str] = Field(min_length=1)
+    label_set: list[str] = Field(min_length=2)
+    positive_class: str | None = None
+    #: The model's own label name -> the run's label.
+    label_map: dict[str, str] = Field(min_length=1)
+    bound_model_id: str | None = None
+    bound_model_revision: str | None = None
+
+    @model_validator(mode="after")
+    def _consistent(self) -> TEIClassificationTemplate:
+        unknown = sorted(set(self.label_map.values()) - set(self.label_set))
+        if unknown:
+            raise ValueError(f"label_map maps to labels outside label_set: {unknown}")
+        if self.positive_class is not None and self.positive_class not in self.label_set:
+            raise ValueError("positive_class must be one of label_set")
+        if len(self.label_set) == 2 and self.positive_class is None:
+            raise ValueError("a binary template must name its positive_class")
+        return self
+
+
+class PluginTemplate(BaseModel):
+    """A classifier supplied by an allowlisted ``midataworks.classifiers`` entry point (FR-005.8)."""
+
+    model_config = _FORBID
+
+    kind: Literal["plugin"]
+    entry_point: str = Field(min_length=1)
+    render: str = Field(min_length=1)
+    input_fields: list[str] = Field(min_length=1)
+    label_set: list[str] = Field(min_length=2)
+    positive_class: str | None = None
+    options: dict[str, Any] = Field(default_factory=dict)
+    bound_model_id: str | None = None
+    bound_model_revision: str | None = None
+
+    @model_validator(mode="after")
+    def _consistent(self) -> PluginTemplate:
+        if self.positive_class is not None and self.positive_class not in self.label_set:
+            raise ValueError("positive_class must be one of label_set")
+        if len(self.label_set) == 2 and self.positive_class is None:
+            raise ValueError("a binary template must name its positive_class")
+        return self
+
+
+class TypeSafeSystemOneTemplate(BaseModel):
+    """TypeSafe's hosted JEV API, one ``choice`` question per row (FR-005.56; D58, 2026-10-18).
+
+    ``render`` builds the request's ``state`` from ``input_fields`` (and ``{question}``);
+    ``instructions`` is the choice question's instructions, a format string over ``{question}``;
+    ``criteria`` maps each label to its description (``None`` when the label is self-explanatory,
+    as TypeSafe allows). The label set is the criteria's labels, in order."""
+
+    model_config = _FORBID
+
+    kind: Literal["typesafe_systemone"]
+    render: str = Field(min_length=1)
+    input_fields: list[str] = Field(min_length=1)
+    instructions: str = Field(min_length=1, max_length=20_000)
+    criteria: dict[str, str | None] = Field(min_length=2, max_length=255)
+    label_set: list[str] = Field(min_length=2)
+    positive_class: str | None = None
+    #: The key the question is sent and answered under.
+    question_id: str = Field(
+        default="label", min_length=1, max_length=64, pattern=r"^[A-Za-z0-9_]+$"
+    )
+    bound_model_id: str | None = None
+    bound_model_revision: str | None = None
+
+    @model_validator(mode="after")
+    def _consistent(self) -> TypeSafeSystemOneTemplate:
+        # The SET is compared, and label_set's order is the one that counts: a stored body comes
+        # back from JSONB with its object keys reordered (shorter first), so a template whose
+        # labels were not in that order (["yes", "no"]) was accepted at create and then refused
+        # by every later parse, a 500 at every plan (found by 017 slice 6; pre-existing).
+        if len(set(self.label_set)) != len(self.label_set) or set(self.criteria) != set(
+            self.label_set
+        ):
+            raise ValueError("label_set must list the criteria's labels, each once")
+        if self.positive_class is not None and self.positive_class not in self.label_set:
+            raise ValueError("positive_class must be one of label_set")
+        if len(self.label_set) == 2 and self.positive_class is None:
+            raise ValueError("a binary template must name its positive_class")
+        return self
+
+
+TemplateBody = Annotated[
+    OpenAIScoringTemplate | TEIClassificationTemplate | PluginTemplate | TypeSafeSystemOneTemplate,
+    Field(discriminator="kind"),
+]
+
+
+class DecisionTemplateCreate(BaseModel):
+    model_config = _FORBID
+
+    name: str = Field(min_length=1, max_length=128, pattern=r"^[a-z0-9][a-z0-9_./-]*$")
+    body: TemplateBody
+
+
+class DecisionTemplateClone(BaseModel):
+    """A new version of a template; ``body`` omitted keeps the body (a copy to edit later)."""
+
+    model_config = _FORBID
+
+    body: TemplateBody | None = None
+
+
+class DecisionTemplateExport(BaseModel):
+    model_config = _FORBID
+
+    format: Literal["midataworks.decision-template/v1"]
+    name: str = Field(min_length=1, max_length=128, pattern=r"^[a-z0-9][a-z0-9_./-]*$")
+    version: int = Field(ge=1)
+    body: TemplateBody
+
+
+class DecisionTemplateOut(BaseModel):
+    id: str
+    name: str
+    version: int
+    ref: str
+    content_hash: str
+    protocol: str
+    variant: str | None
+    bound_model_id: str | None
+    bound_model_revision: str | None
+    body: dict[str, Any]
+    used: bool
+    created_by: str
+    created_by_origin: str
+    created_at: datetime
+
+
+# --- rubrics (FR-005.16) ----------------------------------------------------------------------
+
+
+class RubricMessage(BaseModel):
+    model_config = _FORBID
+
+    role: Literal["system", "user", "assistant"]
+    #: A format string over the rubric's input fields (pairwise: also ``{a}`` and ``{b}``).
+    content: str = Field(min_length=1)
+
+
+class RubricBody(BaseModel):
+    model_config = _FORBID
+
+    style: Literal["pointwise", "pairwise", "binary", "stepwise"]
+    messages: list[RubricMessage] = Field(min_length=1)
+    input_fields: list[str] = Field(min_length=1)
+    axes: list[str] = Field(default_factory=list)
+    parser: Literal["verdict_line_v1", "json_v1"]
+    allowed_verdicts: list[str] = Field(min_length=1)
+    #: ``json_v1``: the answer's JSON Schema; sent as ``response_format`` when honoured.
+    json_schema: dict[str, Any] | None = None
+    #: Pairwise: the two candidate fields, rendered as ``{a}`` and ``{b}``.
+    pair_fields: tuple[str, str] | None = None
+    #: Pairwise: how a verdict read in the swapped order maps back (``{"A": "B", "B": "A"}``).
+    swap_map: dict[str, str] | None = None
+
+    @model_validator(mode="after")
+    def _consistent(self) -> RubricBody:
+        if self.parser == "json_v1" and self.json_schema is None:
+            raise ValueError("a json_v1 rubric needs json_schema")
+        if self.style == "pairwise":
+            if self.pair_fields is None or self.swap_map is None:
+                raise ValueError("a pairwise rubric needs pair_fields and swap_map")
+            if set(self.swap_map) - set(self.allowed_verdicts):
+                raise ValueError("swap_map keys must be allowed verdicts")
+        return self
+
+
+BehaviourKey = Annotated[str, Field(pattern=BEHAVIOUR_KEY_PATTERN)]
+
+
+class RubricCreate(BaseModel):
+    model_config = _FORBID
+
+    name: str = Field(min_length=1, max_length=128, pattern=r"^[a-z0-9][a-z0-9_./-]*$")
+    body: RubricBody
+    #: 015 FR-015.8: the behaviour this rubric judges; not part of ``content_hash``.
+    behaviour_key: BehaviourKey | None = None
+
+
+class RubricClone(BaseModel):
+    """A clone keeps the source's ``behaviour_key`` unless the request names one (``null``
+    clears it)."""
+
+    model_config = _FORBID
+
+    body: RubricBody | None = None
+    behaviour_key: BehaviourKey | None = None
+
+
+class RubricBehaviourPatch(BaseModel):
+    """015 C4: the ONLY change an unused rubric accepts in place (``null`` clears the key). The
+    body never changes in place: an edit is a clone (FR-005.12)."""
+
+    model_config = _FORBID
+
+    behaviour_key: BehaviourKey | None
+
+
+class RubricExport(BaseModel):
+    """The rubric export document ``midataworks.rubric/v1`` (FR-005.17; published as
+    ``docs/schemas/midataworks-rubric-v1.json`` by FR-015.18).
+
+    ``behaviour`` (FR-015.9, D37) is the behaviour key the rubric judges, on the wire under the name
+    miStudio uses (``ProbeRunCreate.behaviour``); miDataworks stores it as ``behaviour_key``. It is
+    ABSENT from a document when not recorded (``export_rubric_document``), never ``null`` on export,
+    and it is not part of ``content_hash`` (FTDD 015 section 4.2).
+    """
+
+    model_config = _FORBID
+
+    format: Literal["midataworks.rubric/v1"]
+    name: str = Field(min_length=1, max_length=128, pattern=r"^[a-z0-9][a-z0-9_./-]*$")
+    version: int = Field(ge=1)
+    body: RubricBody
+    behaviour: str | None = Field(
+        None,
+        pattern=BEHAVIOUR_KEY_PATTERN,
+        description=(
+            "The behaviour key this rubric judges (a slug shared with miStudio's behaviour "
+            "catalogue). Absent when not recorded."
+        ),
+    )
+
+
+class RubricOut(BaseModel):
+    id: str
+    name: str
+    version: int
+    ref: str
+    content_hash: str
+    style: str
+    body: dict[str, Any]
+    behaviour_key: str | None = None
+    used: bool
+    created_by: str
+    created_by_origin: str
+    created_at: datetime
+
+
+# --- label-run requests -----------------------------------------------------------------------
+
+
+class Sampling(BaseModel):
+    model_config = _FORBID
+
+    temperature: float | None = Field(default=None, ge=0, le=2)
+    seed: int | None = Field(default=None, ge=0, le=2**32 - 1)
+    max_tokens: int | None = Field(default=None, ge=1, le=8192)
+
+
+class RowFilter(BaseModel):
+    """FR-005.53. ``source`` is the code's name for imported rows (002 ``Origin.SOURCE``);
+    ``imported`` (the FPRD's word) is accepted and recorded as ``source``.
+
+    ``max_rows`` caps the run at that many distinct inputs (novice walk 2026-10-19, finding 4):
+    the inputs with the LOWEST row keys after the origin filter, i.e. a fixed, content-hash-ordered
+    subset. It is applied before reuse and before already-recorded rows are removed, so the plan,
+    the approval count, the run and every resume of it cover the same inputs.
+    """
+
+    model_config = _FORBID
+
+    origin: Literal["generated", "source", "imported"] | None = None
+    max_rows: int | None = Field(default=None, ge=1)
+
+    @model_validator(mode="after")
+    def _says_something(self) -> RowFilter:
+        if self.origin is None and self.max_rows is None:
+            raise ValueError("A row filter names an origin, a max_rows cap, or both.")
+        return self
+
+    def normalised(self) -> dict[str, Any]:
+        out: dict[str, Any] = {}
+        if self.origin is not None:
+            out["origin"] = "source" if self.origin == "imported" else self.origin
+        if self.max_rows is not None:
+            out["max_rows"] = int(self.max_rows)
+        return out
+
+
+class ProbeSpec(BaseModel):
+    """A probe-verdict run's probe (009 FR-009.45, FR-009.47): one miLLM probe, one window."""
+
+    model_config = _FORBID
+
+    #: The probe's ID in miLLM (``pr_...``), as miLLM lists it.
+    probe_id: str = Field(min_length=1, max_length=64, pattern=r"^[A-Za-z0-9_.:-]+$")
+    #: miLLM's window (``all`` reproduces miStudio's own scope; FR-009.77).
+    window: Literal["all", "prompt", "response", "last_user"] = "all"
+
+
+class FeatureTagSpec(BaseModel):
+    """A feature-tag run's read (009 FR-009.65 - FR-009.68): one SAE attached in miLLM."""
+
+    model_config = _FORBID
+
+    #: The attached SAE (miLLM's ID); omitted = the one SAE attached (refused when several are).
+    sae_id: str | None = Field(default=None, min_length=1, max_length=128)
+    top_k: int = Field(ge=1, le=1024)
+    #: Prompt positions to read (scoring mode generates nothing, so ``completion`` is not offered).
+    positions: Literal["last", "prompt", "all"] = "last"
+    #: Restrict the candidates to these SAE feature indices.
+    features: list[int] | None = Field(default=None, min_length=1, max_length=1024)
+
+
+class LabelRunStart(BaseModel):
+    """``POST /label-runs`` and ``GET /label-runs/plan`` (FTDD 005 section 5.2).
+
+    ``role: "probe"`` starts a probe-verdict run (009, operator decision 2026-10-07): the endpoint
+    is miLLM, ``probe`` names the probe and window, ``field_map`` maps ``text`` or ``messages`` to
+    one column, and no template, rubric, question or thresholds apply (the bar is the probe's).
+    """
+
+    model_config = _FORBID
+
+    input_version_id: str = Field(min_length=1, max_length=64)
+    role: Literal["classifier", "judge", "probe", "features"]
+    probe: ProbeSpec | None = None
+    #: ``role: "features"``: a feature-tag run (009; same decision as probe verdicts).
+    features: FeatureTagSpec | None = None
+    template_id: str | None = Field(default=None, max_length=40)
+    rubric_id: str | None = Field(default=None, max_length=40)
+    question: str | None = Field(default=None, max_length=4000)
+    #: Template input field -> version column.
+    field_map: dict[str, str] = Field(default_factory=dict)
+    threshold_positive: float | None = None
+    threshold_negative: float | None = None
+    min_top_probability: float | None = Field(default=None, ge=0, le=1)
+    positive_label: str | None = Field(default=None, max_length=128)
+    negative_label: str | None = Field(default=None, max_length=128)
+    sampling: Sampling | None = None
+    chunk_size: int | None = Field(default=None, ge=1, le=10_000)
+    row_filter: RowFilter | None = None
+    #: A completed keep-share preview to record as this run's estimate (FR-005.19).
+    keep_share_job_id: str | None = Field(default=None, max_length=40)
+    #: ``batch`` sends the rows through miLLM's Batch API (FR-005.35), unpacked, under the lease.
+    transport: Literal["single", "batch"] = "single"
+    #: Probe-verdict runs only: run the reproduction check again although the same check already
+    #: failed against the same target, saying why (recorded on the run; 2026-10-08 finding 3).
+    reproduction_retry_reason: str | None = Field(default=None, min_length=1, max_length=2000)
+    #: 017 FR-017.9: the behaviour the run labels for (a plain slug).
+    behaviour_key: BehaviourKey | None = None
+    #: 017 TD-017.25: the version column the run is compared with (the label or one ``sq_*``);
+    #: never ``deployed_truth`` (the veto is code's, not the question's).
+    target_column: str | None = Field(
+        default=None, min_length=1, max_length=64, pattern=r"^[A-Za-z_][A-Za-z0-9_]{0,63}$"
+    )
+    #: 017 TD-017.23: one run per question over one selection, grouped by this id (any id the
+    #: agent picks; the agreement and the review hand-off read the runs that share it).
+    handoff_id: str | None = Field(
+        default=None, min_length=1, max_length=40, pattern=r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,39}$"
+    )
+
+
+class HandoffReview(BaseModel):
+    """``POST /label-runs/handoffs/{handoff_id}/review`` (017 FR-017.44): which column each run is
+    compared with (default: the run's ``target_column``), its positive value (default: decided
+    from the values when unambiguous) and the strata the first queue covers."""
+
+    model_config = _FORBID
+
+    column: str | None = Field(default=None, min_length=1, max_length=64)
+    positive_value: str | None = Field(default=None, min_length=1, max_length=256)
+    by: list[str] | None = Field(default=None, min_length=1, max_length=8)
+
+
+class SampleRequest(BaseModel):
+    """``POST /labeling/sample``: at most ``LABEL_SAMPLE_MAX_ROWS`` rows, nothing written."""
+
+    model_config = _FORBID
+
+    input_version_id: str = Field(min_length=1, max_length=64)
+    role: Literal["classifier", "judge"]
+    template_id: str | None = Field(default=None, max_length=40)
+    rubric_id: str | None = Field(default=None, max_length=40)
+    question: str | None = Field(default=None, max_length=4000)
+    field_map: dict[str, str] = Field(default_factory=dict)
+    threshold_positive: float | None = None
+    threshold_negative: float | None = None
+    min_top_probability: float | None = Field(default=None, ge=0, le=1)
+    rows: int = Field(default=5, ge=1)
+    seed: int = Field(default=0, ge=0, le=2**31 - 1)
+    row_filter: RowFilter | None = None
+
+
+class KeepShareRequest(BaseModel):
+    """``POST /labeling/keep-share``: a ``label_preview`` job (FR-005.19)."""
+
+    model_config = _FORBID
+
+    input_version_id: str = Field(min_length=1, max_length=64)
+    role: Literal["classifier"] = "classifier"
+    template_id: str = Field(min_length=1, max_length=40)
+    question: str | None = Field(default=None, max_length=4000)
+    field_map: dict[str, str] = Field(default_factory=dict)
+    threshold_positive: float | None = None
+    threshold_negative: float | None = None
+    min_top_probability: float | None = Field(default=None, ge=0, le=1)
+    sample_rows: int | None = Field(default=None, ge=1)
+    seed: int = Field(default=0, ge=0, le=2**31 - 1)
+    row_filter: RowFilter | None = None
+
+
+class RederiveRequest(BaseModel):
+    model_config = _FORBID
+
+    threshold_positive: float | None = None
+    threshold_negative: float | None = None
+    min_top_probability: float | None = Field(default=None, ge=0, le=1)
+
+
+class AggregateRequest(BaseModel):
+    model_config = _FORBID
+
+    run_ids: list[str] = Field(min_length=2, max_length=16)
+
+
+# --- responses: the label-run contract (FPRD 005 section 7.4) ---------------------------------
+
+
+class Plan(BaseModel):
+    rows_total: int
+    rows_reused: int
+    rows_to_score: int
+    #: Agent rows already counted on this version within the window (P-07).
+    agent_window_rows: int
+    approval_needed: bool
+    threshold: int
+    labeler_identity: dict[str, Any]
+    labeler_identity_hash: str
+    labeler_fingerprint: str
+    server_kind: str
+    resident_model: str | None
+    model_revision: str | None
+    #: Probe-verdict runs only: the probe as miLLM states it, and a one-input preflight score.
+    probe: dict[str, Any] | None = None
+    #: Probe-verdict runs only: the reproduction gate this run will pass through (FR-009.77).
+    reproduction: dict[str, Any] | None = None
+    #: Feature-tag runs only: the SAE read and a one-row preflight.
+    features: dict[str, Any] | None = None
+    #: The rows the run covers and the distinct row keys it scores (each key once; its label
+    #: applies to every copy, T-07): ``rows``, ``row_keys``, ``keys_with_copies``,
+    #: ``rows_in_copied_keys``, and the version's warning when copies' metadata disagree.
+    row_coverage: dict[str, Any] | None = None
+    #: 017 FR-017.39 (``services/labeling/cost.py``): ``paid``, ``price_per_call_usd`` (None:
+    #: not priced), ``questions``, ``rows_planned``, ``estimated_usd``, the per-run cap, the
+    #: ceiling, what paid runs have spent and what remains. None for probe and feature runs.
+    cost: dict[str, Any] | None = None
+
+
+class LabelRunOut(ArchiveFields):
+    id: str
+    kind: str
+    state: str
+    input_version_id: str
+    field_map: dict[str, Any]
+    endpoint_snapshot: dict[str, Any]
+    template_id: str | None
+    rubric_id: str | None
+    template_ref: str | None
+    question: str | None
+    positive_label: str | None
+    negative_label: str | None
+    threshold_positive: float | None
+    threshold_negative: float | None
+    min_top_probability: float | None
+    label_set: list[str] | None
+    sampling: dict[str, Any]
+    structured_output: str
+    packing: str
+    batch_id: str | None
+    chunk_size: int
+    row_filter: dict[str, Any] | None
+    parent_run_ids: list[str]
+    labeler_identity: dict[str, Any]
+    labeler_identity_hash: str
+    labeler_fingerprint: str
+    pinned: bool | None
+    revision_reported: bool | None
+    system_fingerprint: str | None
+    counts: dict[str, int]
+    keep_share_estimate: dict[str, Any] | None
+    keep_share_actual: float | None
+    length_correlation: dict[str, Any] | None
+    rows_total: int
+    rows_reused: int
+    rows_done: int
+    agent_counted_rows: int
+    approval_id: str | None
+    error: dict[str, Any] | None
+    started_by: str
+    started_by_origin: str
+    created_at: datetime
+    completed_at: datetime | None
+    behaviour_key: str | None = None
+    #: 017 slice 6 (0041): the compared column, the hand-off, the cost basis as planned (or
+    #: approved) and why the run stopped part way (``cap_reached``, ``endpoint_failed``,
+    #: ``cancelled``; None while running, when completed, or when it failed for another reason).
+    target_column: str | None = None
+    handoff_id: str | None = None
+    cost_basis: dict[str, Any] | None = None
+    stop_reason: str | None = None
+    job_ids: list[str]
+    current_job_id: str | None
+    room: str
+    #: Whether "Resume run" applies: a cancelled or failed run with no live job, unless the
+    #: reproduction gate stopped it (``not_resumable_reason`` says what to do instead).
+    resumable: bool = False
+    not_resumable_reason: str | None = None
+    #: The plan's ``row_coverage`` as recorded at start; None on a run started before 0021.
+    row_coverage: dict[str, Any] | None = None
+    #: How long the run's jobs worked and how fast (novice walk 2026-10-19, finding 13):
+    #: ``active_seconds`` sums each finished job's started-to-completed time (queue waits and
+    #: gaps between a cancel and its resume excluded); ``rows_scored`` is the rows the labeler
+    #: was asked for (``rows_done - rows_reused``); ``rows_per_second`` is their ratio, None when
+    #: no job has both times or nothing was scored.
+    timing: dict[str, Any] | None = None
+    #: The input version as a person names it (re-walk finding 9: cards showed a hash).
+    input_dataset_name: str | None = None
+    input_version_number: int | None = None
+
+
+class AgreementColumn(BaseModel):
+    """A column of the input version holding exactly two values (sampled), so it can be compared."""
+
+    name: str
+    values: list[str]
+
+
+class LabelAgreementOut(BaseModel):
+    """A run against a two-valued label column of its input version (novice re-walk 2026-10-19,
+    finding 6). ``counts`` and the shares are over the compared rows: the run's positive and
+    negative labels whose row has a value in the column. ``auroc`` uses the run's own score
+    (probability or probe score) and is None unless every compared row has one."""
+
+    label_run_id: str
+    run_state: str
+    applicable: bool
+    reason: str | None
+    columns: list[AgreementColumn]
+    column: str | None
+    values: list[str]
+    positive_value: str | None
+    needs_positive_value: bool
+    rows_compared: int
+    rows_not_compared: int
+    counts: dict[str, int] | None
+    accuracy: float | None
+    run_positive_share: float | None
+    column_positive_share: float | None
+    auroc: float | None
+    auroc_from: str | None
+    note: str | None
+    #: 017 FR-017.41: the run stopped part way; every figure is over the rows scored so far.
+    partial: bool = False
+    stop_reason: str | None = None
+    #: 017 FR-017.43: the strata (``by``, default genre, generator, kind and form where the version
+    #: has them) and, per stratum, rows, scored, coverage, confusion counts, agreement, Cohen's
+    #: kappa and AUROC ("not measured" for an empty one), worst first, paged:
+    #: ``{by, cells_total, cells_not_measured, cells, next_page_token, coverage}``.
+    by: list[str] | None = None
+    strata: dict[str, Any] | None = None
+    #: The runs of the hand-off asked for (``handoff_id``): one per question.
+    handoff: dict[str, Any] | None = None
+
+
+class LabelRunList(BaseModel):
+    items: list[LabelRunOut]
+    total: int
+    page: int
+    limit: int
+
+
+class LabelOut(BaseModel):
+    """One label with its run's provenance reachable: ``started_by`` is on every label read."""
+
+    label_run_id: str
+    row_key: str
+    labeler_fingerprint: str
+    outcome: str
+    parsed_value: Any
+    probability: float | None
+    distribution: dict[str, float] | None
+    raw_output: Any
+    rationale: str | None
+    steering_state: str
+    latency_ms: int | None
+    skip_reason: str | None
+    provisional: bool
+    reused_from_run_id: str | None
+    chunk_index: int | None
+    scored_at: datetime
+    started_by: str
+    started_by_origin: str
+
+
+class LabelPage(BaseModel):
+    items: list[LabelOut]
+    total: int
+    page: int
+    limit: int
+
+
+class SampleRow(BaseModel):
+    row_key: str
+    text: str
+    probability: float | None
+    distribution: dict[str, float] | None
+    outcome: str | None
+    verdict: str | None
+    rationale: str | None
+    latency_ms: int | None
+    error: str | None
+
+
+class SampleResult(BaseModel):
+    rows: list[SampleRow]
+    model: str
+    server_kind: str
+    steering_state: str
+
+
+class KeepShareAccepted(BaseModel):
+    job_id: str
+    room: str
+
+
+class KeepShareResult(BaseModel):
+    job_id: str
+    status: str
+    share: float | None = None
+    lo: float | None = None
+    hi: float | None = None
+    n: int | None = None
+    seed: int | None = None
+    probabilities: list[float] | None = None
+    error: str | None = None
+
+
+class ProbeListItem(BaseModel):
+    """One probe imported in miLLM, as ``GET /api/probes`` states it (009)."""
+
+    probe_id: str
+    name: str
+    #: The model the probe was fitted on.
+    hf_id: str
+    layer: int
+    scope: str
+    threshold: float | None
+    threshold_revision: int
+    window_thresholds: dict[str, float]
+    rung: int | None
+    rung_language: str | None
+    armed: bool
+    #: Whether miLLM's resident model is the one the probe was fitted on; None = nothing loaded.
+    fits_resident_model: bool | None
+    #: What it detects, as miLLM serves it (novice walk 2026-10-19, finding 6): the training view's
+    #: raw ``{label: positive|negative|excluded}`` mapping (``{}`` when the definition states none,
+    #: or when the miLLM predates the field), and miStudio's own ``concept`` sentence.
+    label_mapping: dict[str, str] = Field(default_factory=dict)
+    concept: str | None = None
+    #: What tells two probes that detect the same thing apart (re-walk finding 2: two humor probes
+    #: on one model and layer differed only by id). From miLLM's list (``created_at``: imported
+    #: into miLLM; ``target_fpr``) and the probe's definition (``provenance``: when miStudio
+    #: trained it, on which dataset, in which run; ``evidence.evaluations``: the in-distribution
+    #: AUROC, else the first one). None = miLLM or the definition does not state it.
+    created_at: str | None = None
+    trained_at: str | None = None
+    train_dataset: str | None = None
+    mistudio_run_id: str | None = None
+    auroc: float | None = None
+    auroc_dataset: str | None = None
+    target_fpr: float | None = None
+
+
+class ProbeList(BaseModel):
+    items: list[ProbeListItem]
+    resident_model: str | None
+    millm_base_url: str
+
+
+class EndpointTestResult(BaseModel):
+    """FR-005.9 and the endpoint-role contract item 5. Never carries a key or a lease ID."""
+
+    role: str
+    reachable: bool
+    model_listed: bool | None
+    protocol_ok: bool | None
+    server_kind: str | None
+    resident_model: str | None
+    lease_supported: bool | None
+    lease_state: str | None
+    queue: dict[str, Any] | None
+    error_code: str | None
+    message: str
+
+
+# --- the published rubric schema (FR-015.18; FTDD 015 section 4.5) ----------------------------
+
+RUBRIC_SCHEMA_FILE_NAME = "midataworks-rubric-v1.json"
+RUBRIC_SCHEMA_ID = (
+    "https://raw.githubusercontent.com/hitsainet/miDataworks/main/docs/schemas/"
+    + RUBRIC_SCHEMA_FILE_NAME
+)
+RUBRIC_SCHEMA_TITLE = "miDataworks Rubric v1"
+RUBRIC_SCHEMA_DESCRIPTION = (
+    "A judge rubric exported by miDataworks (GET /api/v1/rubrics/{id}/export). "
+    "GENERATED from backend/src/schemas/labeling.py (RubricExport) by "
+    "backend/scripts/write_rubric_schema.py; do not edit by hand. Consumers vendor this file "
+    "byte-identical. Changes within v1 are additive only; a breaking change is v2 in a new file."
+)
+#: The copy the image ships (the image is built from ``backend/`` and has no ``docs/``).
+RUBRIC_PACKAGED_SCHEMA_PATH = Path(__file__).resolve().parent / "data" / RUBRIC_SCHEMA_FILE_NAME
+RUBRIC_REGENERATE_COMMAND = "cd backend && python -m scripts.write_rubric_schema"
+
+
+def rubric_schema_document() -> dict[str, Any]:
+    """The JSON Schema of ``midataworks.rubric/v1`` as a dict, with the header keys first."""
+    generated = RubricExport.model_json_schema()
+    generated.pop("title", None)
+    return {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": RUBRIC_SCHEMA_ID,
+        "title": RUBRIC_SCHEMA_TITLE,
+        "description": RUBRIC_SCHEMA_DESCRIPTION,
+        **{k: v for k, v in generated.items() if k != "description"},
+    }
+
+
+def render_rubric_schema_file() -> bytes:
+    """The exact bytes of ``docs/schemas/midataworks-rubric-v1.json`` (compared byte for byte)."""
+    return (json.dumps(rubric_schema_document(), indent=2, ensure_ascii=False) + "\n").encode(
+        "utf-8"
+    )

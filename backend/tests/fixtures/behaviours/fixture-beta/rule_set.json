@@ -1,0 +1,121 @@
+{
+  "behaviour_key": "fixture-beta",
+  "cases": [
+    {
+      "expect": {
+        "outputs": {
+          "fb_count": 1,
+          "fb_label": true
+        },
+        "vetoed": false
+      },
+      "id": "one_word",
+      "input": {
+        "text": "a Quorbish thing"
+      },
+      "note": "",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "fb_count": 2,
+          "fb_label": true
+        },
+        "vetoed": false
+      },
+      "id": "both_words",
+      "input": {
+        "text": "zantimere and quorbish"
+      },
+      "note": "",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "fb_count": 0,
+          "fb_label": false
+        },
+        "vetoed": false
+      },
+      "id": "neither",
+      "input": {
+        "text": "quorbishly plain"
+      },
+      "note": "word boundary",
+      "source": {
+        "kind": "constructed"
+      }
+    }
+  ],
+  "decoys": [
+    {
+      "description": "Words that look like the cue words and are not them: the word-bounded patterns must not match.",
+      "generator": {
+        "list": [
+          "quorbishly",
+          "zantimeres",
+          "Quorbishes"
+        ]
+      },
+      "id": "near_miss",
+      "must_not_fire": [
+        "fb_label"
+      ]
+    }
+  ],
+  "description": "Fixture: two invented words in free text, either one fires; no element.",
+  "expressions": {
+    "any_word": {
+      "any": [
+        {
+          "signal": "q"
+        },
+        {
+          "signal": "z"
+        }
+      ]
+    }
+  },
+  "format": "midataworks.rule-set/v1",
+  "name": "fixture-beta-words",
+  "outputs": [
+    {
+      "column": "fb_label",
+      "type": "bool",
+      "value": {
+        "fired": "any_word"
+      }
+    },
+    {
+      "column": "fb_count",
+      "type": "int",
+      "value": {
+        "count": "any_word"
+      }
+    }
+  ],
+  "signals": [
+    {
+      "fold_fullwidth_ascii": false,
+      "id": "q",
+      "ignore_case": true,
+      "kind": "pattern",
+      "pattern": "\\bquorbish\\b",
+      "reads": "text"
+    },
+    {
+      "fold_fullwidth_ascii": false,
+      "id": "z",
+      "ignore_case": true,
+      "kind": "pattern",
+      "pattern": "\\bzantimere\\b",
+      "reads": "text"
+    }
+  ]
+}

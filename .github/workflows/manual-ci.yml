@@ -1,0 +1,48 @@
+name: Manual CI
+
+# Builds the manual (manual/, Docusaurus) on every push and pull request, so a
+# broken page fails the PR before it reaches the mirror: a broken link or anchor
+# (onBrokenLinks/onBrokenAnchors: throw), a table row split by a `|` inside
+# inline code, a docs/ page linked but not allow-listed, a missing allow-listed
+# page (scripts/sync-docs.mjs), or internal-only content in anything published
+# (scripts/check_published.py). No `paths:` filter, like the other CI workflows
+# (ADR-022): the manual is built from docs/, which many changes touch.
+#
+# Publishing is deploy-manual.yml, on the public mirror only.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: manual/package-lock.json
+
+      - name: Check the published content
+        run: python3 manual/scripts/check_published.py .
+
+      - name: Install dependencies
+        working-directory: manual
+        run: npm ci
+
+      - name: Build
+        working-directory: manual
+        run: npm run build

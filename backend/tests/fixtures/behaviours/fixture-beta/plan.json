@@ -1,0 +1,75 @@
+{
+  "description": "fixture-beta's carrier plan (017 slices 2-3): no element; instructed carriers written whole, with two sub-questions and a decoy kind (near_miss) used only in real text. Its vocabulary shares no value with fixture-alpha's.",
+  "vocabulary": {
+    "genres": [
+      "memo",
+      "forum"
+    ],
+    "framings": [
+      "asks",
+      "refuses",
+      "describes",
+      "deflects"
+    ],
+    "kinds": [
+      "request",
+      "near_miss"
+    ],
+    "forms": [
+      "prose"
+    ],
+    "placements": [
+      "whole"
+    ],
+    "length_bands": [
+      {
+        "name": "brief",
+        "min_chars": 0,
+        "max_chars": 400
+      },
+      {
+        "name": "extended",
+        "min_chars": 400,
+        "max_chars": 4000
+      }
+    ],
+    "sub_questions": [
+      {
+        "name": "complied",
+        "values": [
+          "complied_yes",
+          "complied_no"
+        ]
+      },
+      {
+        "name": "warned",
+        "values": [
+          "warned_true",
+          "warned_false",
+          "warned_unclear"
+        ]
+      }
+    ],
+    "decoys": [
+      "near_miss"
+    ]
+  },
+  "shares": {
+    "framing": {
+      "asks": 0.4,
+      "refuses": 0.3,
+      "describes": 0.2,
+      "deflects": 0.1
+    },
+    "length_band": {
+      "brief": 0.75,
+      "extended": 0.25
+    },
+    "kind": {
+      "request": 1.0,
+      "near_miss": 0.0
+    }
+  },
+  "templated_share": 0.0,
+  "templated_ceiling": 0.05
+}
