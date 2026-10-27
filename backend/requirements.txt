@@ -1,19 +1,19 @@
 # miDataworks backend runtime pins (ADR-002, PADR section 5). Exact versions only.
 # A major upgrade is its own change, with the whole suite run (PADR section 5).
 # The Data-Juicer image keeps its own pins in ../datajuicer/requirements.txt (ADR-010).
-alembic==1.20.0
+alembic==1.20.1
 asyncpg==0.32.0
 celery==5.6.3
 cryptography==50.0.2
 datasets==5.1.0
 duckdb==2.0.0
-fastapi==0.159.1
+fastapi==0.162.0
 # Feature 016: the rule-signal pattern dialect runs on RE2 (linear time, ASCII classes, code-point
 # spans). Imported only by src/rules/dialect.py, unconditionally (FTDD 016 section 8.4).
 google-re2==1.1.20251105
 http-sfv==0.9.9
 httpx==0.28.1
-huggingface-hub==2.2.0
+huggingface-hub==2.3.0
 # huggingface-hub's storage backend (hub requires hf-xet>=1.6,<2 on x86_64). Pinned so the image,
 # CI and the dev venv install one version (it was floating; the Data-Juicer and Designer
 # constraints already pin it).
