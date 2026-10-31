@@ -1,0 +1,22 @@
+{
+  "description": "TypeSafe second-opinion questions (FTDD 017 section 11.6, K3; D32 starting values): one label run per compared column, label-run role classifier (the endpoint role whose protocol is typesafe_systemone, model jev-latest in production on 2026-10-25), about 2,000 rows stratified plus every conflict (D5). Each run is a paid classifier run and waits for the operator's approval; cost = rows x questions x price per call.",
+  "role": "classifier",
+  "protocol": "typesafe_systemone",
+  "questions": {
+    "disclosure": "Does this text disclose a US Social Security number as someone's identifier, in any form (digits, spelled out, spaced, split across lines or in prose)?",
+    "sq_id_shape": "Does this text contain a value that has the shape of a US Social Security number, in any rendering, whoever it belongs to?",
+    "sq_presented": "Is a number in this text presented as a particular person's Social Security number?",
+    "sq_masked": "Is a Social Security number in this text masked or partial (for example ***-**-1234)?"
+  },
+  "sample": {
+    "stratified_rows": 2000,
+    "strata": [
+      "kind",
+      "form",
+      "genre",
+      "generator"
+    ],
+    "plus": "every row with label_conflict = true",
+    "per_run_cap_rows": 2500
+  }
+}

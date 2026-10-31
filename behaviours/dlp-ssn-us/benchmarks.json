@@ -1,0 +1,81 @@
+{
+  "description": "Contamination benchmarks (K6) and real-text corpora (K9) for the SSN pilot, each imported at a pinned revision before the build (dataworks_import_hf_dataset / import_slice; revisions are recorded at import, not here). Existence and licence checked on the Hugging Face Hub 2026-10-23; content fit not inspected (FTDD 11.6 'pilot open facts'). Real text is screened by every identifier rule set before use; a valid-format number found in it is dropped and counted (R-DLP.17).",
+  "contamination_benchmarks": [
+    {
+      "repo_id": "ai4privacy/pii-masking-400k",
+      "use": "benchmark_source_ids"
+    },
+    {
+      "repo_id": "nvidia/Nemotron-PII",
+      "use": "benchmark_source_ids"
+    },
+    {
+      "repo_id": "gretelai/synthetic_pii_finance_multilingual",
+      "use": "benchmark_source_ids"
+    },
+    {
+      "repo_id": "gretelai/gretel-pii-masking-en-v1",
+      "use": "benchmark_source_ids"
+    },
+    {
+      "repo_id": "(miStudio's shipped SSN probe evaluation views)",
+      "use": "benchmark_source_ids",
+      "note": "how these are imported is an open fact (FTDD 11.6); resolve in 17.3"
+    }
+  ],
+  "real_text": [
+    {
+      "repo_id": "HuggingFaceFW/fineweb",
+      "language": "en",
+      "rows": 20000
+    },
+    {
+      "repo_id": "allenai/c4",
+      "config": "en",
+      "language": "en",
+      "rows": 20000
+    },
+    {
+      "repo_id": "HuggingFaceFW/fineweb-2",
+      "language": "de",
+      "rows": 20000,
+      "note": "configuration name per the dataset card at import"
+    },
+    {
+      "repo_id": "HuggingFaceFW/fineweb-2",
+      "language": "es",
+      "rows": 20000,
+      "note": "configuration name per the dataset card at import"
+    }
+  ],
+  "real_text_values": {
+    "genre": "non_english for fineweb-2 slices; the English corpora take a genre chosen per slice by the operator (web text is mixed-genre)",
+    "note": "D70: each slice is inserted twice, as real_text_inserts says; kind and form are fixed per insert step"
+  },
+  "real_text_note": "D70 settled the open question: real text carries positives (someones_identifier, with a framing phrase) at 40 % of the inserted real-text rows and negatives (other_number) at 60 %.",
+  "real_text_inserts": {
+    "description": "D70 (operator, 2026-10-25): real text carries positive examples too, not only negatives. Each real-text corpus is imported as TWO slices from disjoint data_files (dataworks_import_hf_dataset with data_files and max_rows = share x the corpus rows), so a positive and a negative insert never share a text. Each slice gets its own insert_element@1 step in real_text mode (definition '@input' or the resolved record, the vocabulary of plan.json, the rule-set pin of recipe.json) after one synth_identifier step (ssn_us, valid_share 1, delimiters [dash]; element_column its value). The positive share follows the generated plan's (about 43 % positive, D69). A positive insert puts a phrase from plan.json phrase_list before the element on every row (framing_phrase_share 1.0): web text does not present the number as anyone's SSN, so the phrase is what makes it one; a negative insert puts none, so 'SSN:' never precedes a number labelled no disclosure. Every inserted row is screened first like all real text (R-DLP.17).",
+    "inserts": [
+      {
+        "name": "positive",
+        "share": 0.4,
+        "real_text_values": {
+          "kind": "pos",
+          "framing": "someones_identifier",
+          "form": "digits_dash"
+        },
+        "framing_phrase_share": 1.0
+      },
+      {
+        "name": "negative",
+        "share": 0.6,
+        "real_text_values": {
+          "kind": "pos",
+          "framing": "other_number",
+          "form": "digits_dash"
+        },
+        "framing_phrase_share": 0.0
+      }
+    ]
+  }
+}

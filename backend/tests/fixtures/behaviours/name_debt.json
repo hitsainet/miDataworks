@@ -1,0 +1,257 @@
+{
+  "entries": [
+    {
+      "owner": "017 (R-DLP.50)",
+      "path": "backend/src/api/v1/endpoints/detector_sets.py",
+      "reason": "1 token(s) cite the term as an example or a past run; 017 widens the name source to the behaviour catalogue and rewords them",
+      "token": "pii"
+    },
+    {
+      "owner": "017 (R-DLP.50)",
+      "path": "backend/src/api/v1/endpoints/downloads.py",
+      "reason": "1 token(s) cite the term as an example or a past run; 017 widens the name source to the behaviour catalogue and rewords them",
+      "token": "pii"
+    },
+    {
+      "owner": "017 (R-DLP.50)",
+      "path": "backend/src/api/v1/endpoints/operators.py",
+      "reason": "1 token(s) cite the term as an example or a past run; 017 widens the name source to the behaviour catalogue and rewords them",
+      "token": "pii"
+    },
+    {
+      "owner": "017 (R-DLP.50)",
+      "path": "backend/src/api/v1/endpoints/recipes.py",
+      "reason": "2 token(s) cite the term as an example or a past run; 017 widens the name source to the behaviour catalogue and rewords them",
+      "token": "pii"
+    },
+    {
+      "owner": "017 (R-DLP.50)",
+      "path": "backend/src/api/v1/endpoints/sources.py",
+      "reason": "2 token(s) cite the term as an example or a past run; 017 widens the name source to the behaviour catalogue and rewords them",
+      "token": "pii"
+    },
+    {
+      "owner": "017 (R-DLP.50)",
+      "path": "backend/src/api/v1/endpoints/versions.py",
+      "reason": "3 token(s) cite the term as an example or a past run; 017 widens the name source to the behaviour catalogue and rewords them",
+      "token": "pii"
+    },
+    {
+      "owner": "017 (R-DLP.50)",
+      "path": "backend/src/clients/hf_hub.py",
+      "reason": "1 token(s) cite the term as an example or a past run; 017 widens the name source to the behaviour catalogue and rewords them",
+      "token": "pii"
+    },
+    {
+      "owner": "017 (R-DLP.50)",
+      "path": "backend/src/core/config.py",
+      "reason": "3 token(s) cite the term as an example or a past run; 017 widens the name source to the behaviour catalogue and rewords them",
+      "token": "pii"
+    },
+    {
+      "owner": "017 (R-DLP.50)",
+      "path": "backend/src/mcp_server/server.py",
+      "reason": "1 token(s) cite the term as an example or a past run; 017 widens the name source to the behaviour catalogue and rewords them",
+      "token": "pii"
+    },
+    {
+      "owner": "017 (R-DLP.50)",
+      "path": "backend/src/mcp_server/tools/detector_sets.py",
+      "reason": "2 token(s) cite the term as an example or a past run; 017 widens the name source to the behaviour catalogue and rewords them",
+      "token": "pii"
+    },
+    {
+      "owner": "017 (R-DLP.50)",
+      "path": "backend/src/mcp_server/tools/generation.py",
+      "reason": "1 token(s) cite the term as an example or a past run; 017 widens the name source to the behaviour catalogue and rewords them",
+      "token": "humor"
+    },
+    {
+      "owner": "017 (R-DLP.50)",
+      "path": "backend/src/operators/data_designer/adapter.py",
+      "reason": "1 token(s) cite the term as an example or a past run; 017 widens the name source to the behaviour catalogue and rewords them",
+      "token": "pii"
+    },
+    {
+      "owner": "017 (R-DLP.50)",
+      "path": "backend/src/operators/data_designer/runner.py",
+      "reason": "3 token(s) cite the term as an example or a past run; 017 widens the name source to the behaviour catalogue and rewords them",
+      "token": "pii"
+    },
+    {
+      "owner": "017 (R-DLP.50)",
+      "path": "backend/src/operators/data_designer/validation.py",
+      "reason": "1 token(s) cite the term as an example or a past run; 017 widens the name source to the behaviour catalogue and rewords them",
+      "token": "pii"
+    },
+    {
+      "owner": "017 (R-DLP.50)",
+      "path": "backend/src/operators/native/curation/drop_listed_rows.py",
+      "reason": "1 token(s) cite the term as an example or a past run; 017 widens the name source to the behaviour catalogue and rewords them",
+      "token": "pii"
+    },
+    {
+      "owner": "016",
+      "path": "backend/src/operators/native/identifiers/common.py",
+      "reason": "PROVIDER_VERSION is part of every identifier operator's manifest hash: renaming it is a new operator version (ADR-009)",
+      "token": "dlp"
+    },
+    {
+      "owner": "017 (R-DLP.50)",
+      "path": "backend/src/operators/source_preview.py",
+      "reason": "1 token(s) cite the term as an example or a past run; 017 widens the name source to the behaviour catalogue and rewords them",
+      "token": "pii"
+    },
+    {
+      "owner": "017 (R-DLP.50)",
+      "path": "backend/src/schemas/behaviour.py",
+      "reason": "1 token(s) cite the term as an example or a past run; 017 widens the name source to the behaviour catalogue and rewords them",
+      "token": "pii"
+    },
+    {
+      "owner": "017 (R-DLP.50)",
+      "path": "backend/src/schemas/behaviour.py",
+      "reason": "1 token(s) cite the term as an example or a past run; 017 widens the name source to the behaviour catalogue and rewords them",
+      "token": "high-stakes"
+    },
+    {
+      "owner": "017 (R-DLP.50)",
+      "path": "backend/src/schemas/operators.py",
+      "reason": "2 token(s) cite the term as an example or a past run; 017 widens the name source to the behaviour catalogue and rewords them",
+      "token": "pii"
+    },
+    {
+      "owner": "017 (R-DLP.50)",
+      "path": "backend/src/schemas/sources.py",
+      "reason": "2 token(s) cite the term as an example or a past run; 017 widens the name source to the behaviour catalogue and rewords them",
+      "token": "pii"
+    },
+    {
+      "owner": "017 (R-DLP.50)",
+      "path": "backend/src/schemas/versions.py",
+      "reason": "1 token(s) cite the term as an example or a past run; 017 widens the name source to the behaviour catalogue and rewords them",
+      "token": "pii"
+    },
+    {
+      "owner": "017 (R-DLP.50)",
+      "path": "backend/src/services/build_plan_service.py",
+      "reason": "1 token(s) cite the term as an example or a past run; 017 widens the name source to the behaviour catalogue and rewords them",
+      "token": "pii"
+    },
+    {
+      "owner": "017 (R-DLP.50)",
+      "path": "backend/src/services/curation/text_baseline.py",
+      "reason": "1 token(s) cite the term as an example or a past run; 017 widens the name source to the behaviour catalogue and rewords them",
+      "token": "pii"
+    },
+    {
+      "owner": "017 (R-DLP.50)",
+      "path": "backend/src/services/detector_sets/key_labels.py",
+      "reason": "1 token(s) cite the term as an example or a past run; 017 widens the name source to the behaviour catalogue and rewords them",
+      "token": "high-stakes"
+    },
+    {
+      "owner": "017 (R-DLP.50)",
+      "path": "backend/src/services/detector_sets/leakage_repair.py",
+      "reason": "1 token(s) cite the term as an example or a past run; 017 widens the name source to the behaviour catalogue and rewords them",
+      "token": "pii"
+    },
+    {
+      "owner": "017 (R-DLP.50)",
+      "path": "backend/src/services/label_agreement.py",
+      "reason": "1 token(s) cite the term as an example or a past run; 017 widens the name source to the behaviour catalogue and rewords them",
+      "token": "humor"
+    },
+    {
+      "owner": "017 (R-DLP.50)",
+      "path": "backend/src/services/lineage_service.py",
+      "reason": "1 token(s) cite the term as an example or a past run; 017 widens the name source to the behaviour catalogue and rewords them",
+      "token": "pii"
+    },
+    {
+      "owner": "017 (R-DLP.50)",
+      "path": "backend/src/services/publishing/session_data.py",
+      "reason": "1 token(s) cite the term as an example or a past run; 017 widens the name source to the behaviour catalogue and rewords them",
+      "token": "pii"
+    },
+    {
+      "owner": "017 (R-DLP.50)",
+      "path": "backend/src/services/sources/profile_service.py",
+      "reason": "1 token(s) cite the term as an example or a past run; 017 widens the name source to the behaviour catalogue and rewords them",
+      "token": "pii"
+    },
+    {
+      "owner": "017 (R-DLP.50)",
+      "path": "backend/src/services/sources/search_service.py",
+      "reason": "1 token(s) cite the term as an example or a past run; 017 widens the name source to the behaviour catalogue and rewords them",
+      "token": "pii"
+    },
+    {
+      "owner": "017 (R-DLP.50)",
+      "path": "backend/src/services/split_download.py",
+      "reason": "1 token(s) cite the term as an example or a past run; 017 widens the name source to the behaviour catalogue and rewords them",
+      "token": "pii"
+    },
+    {
+      "owner": "017 (R-DLP.50)",
+      "path": "backend/src/workers/operator_tasks.py",
+      "reason": "1 token(s) cite the term as an example or a past run; 017 widens the name source to the behaviour catalogue and rewords them",
+      "token": "pii"
+    },
+    {
+      "owner": "017 (R-DLP.50)",
+      "path": "backend/src/workers/source_tasks.py",
+      "reason": "1 token(s) cite the term as an example or a past run; 017 widens the name source to the behaviour catalogue and rewords them",
+      "token": "pii"
+    },
+    {
+      "owner": "prototype",
+      "path": "scripts/build_balanced.py",
+      "reason": "the hand-run prototype (stripped from the mirror); not product code",
+      "token": "humor"
+    },
+    {
+      "owner": "prototype",
+      "path": "scripts/build_calibration.py",
+      "reason": "the hand-run prototype (stripped from the mirror); not product code",
+      "token": "humor"
+    },
+    {
+      "owner": "prototype",
+      "path": "scripts/build_labels.py",
+      "reason": "the hand-run prototype (stripped from the mirror); not product code",
+      "token": "humor"
+    },
+    {
+      "owner": "prototype",
+      "path": "scripts/download.py",
+      "reason": "the hand-run prototype (stripped from the mirror); not product code",
+      "token": "humor"
+    },
+    {
+      "owner": "prototype",
+      "path": "scripts/paired_probe.py",
+      "reason": "the hand-run prototype (stripped from the mirror); not product code",
+      "token": "humor"
+    },
+    {
+      "owner": "prototype",
+      "path": "scripts/prepare.py",
+      "reason": "the hand-run prototype (stripped from the mirror); not product code",
+      "token": "humor"
+    },
+    {
+      "owner": "prototype",
+      "path": "scripts/prepare_calibration.py",
+      "reason": "the hand-run prototype (stripped from the mirror); not product code",
+      "token": "humor"
+    },
+    {
+      "owner": "prototype",
+      "path": "scripts/publish_prep.py",
+      "reason": "the hand-run prototype (stripped from the mirror); not product code",
+      "token": "humor"
+    }
+  ],
+  "note": "Behaviour-name debt read by tests/unit/test_behaviour_names_absent.py as DATA (FR-016.34): a hit listed here is allowed; an entry whose token no longer occurs in its file is stale and red. Terms listed here are not yet declared by any behaviour data in this repository; they become guard names when their behaviour packs land."
+}

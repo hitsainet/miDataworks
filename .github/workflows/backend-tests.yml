@@ -1,0 +1,248 @@
+name: Backend Tests
+
+# The WHOLE backend test tree, on every push and pull request (R-03.66, ADR-022;
+# Foundation task 13.1). Adapted from miLLM's `backend-tests.yml`, with its two
+# defects removed:
+#
+# * miLLM runs `pytest tests/unit/` with eight `--ignore=` flags and
+#   `-m "not slow"`, and miStudio runs `--ignore=tests/integration`. miStudio's CI
+#   was red for a week over a stale test outside the directory it ran, while every
+#   local run that mattered was green. Here the command is `pytest tests` with no
+#   path or marker exclusion, against real PostgreSQL 15 and Redis 7, and
+#   `tests/unit/test_ci_runs_whole_tree.py` reads THIS file and fails if an
+#   `--ignore`, `--deselect`, `-m` or `-k` is ever added to it.
+# * No `paths:` filter. A filtered trigger produces no run at all for a push it
+#   does not match, and `docker-images.yml`'s test gate then has nothing to read.
+#   ADR-022: "workflows run for every push and pull request".
+#
+# It runs on the private repository, where its result gates the mirror: since 2026-10-20
+# sync-to-clean's `gate` job publishes a snapshot only after this workflow - every shard
+# (the `all-shards` job), datajuicer-tests and designer-tests - passed for that exact
+# commit, and the mirror's image build trusts that verdict instead of re-running the
+# suite. It still runs on the public mirror too, informationally: tests that read a file
+# the mirror strips skip loudly there (tests/support/source_tree.py).
+#
+# ⚠ The gate finds this workflow by FILE NAME (sync-to-clean.yml, REQUIRED_WORKFLOWS) and
+# its aggregator by the job id `all-shards`; test_private_ci_trust.py pins both.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  # ── SHARDED (operator directive, 2026-10-20) ─────────────────────────────────────────
+  # The whole tree in one job took ~21 minutes here against 9-12 on the public mirror: this
+  # private repository's hosted runner has 2 vCPUs where the mirror's has 4, so the fixed
+  # `-n 4` was oversubscribed. The tree is now split across SHARDS by file (`CI_SHARD`, read
+  # by tests/conftest.py's `pytest_ignore_collect`; tests/support/ci_shard.py balances the
+  # split on recorded per-file durations), each with its own PostgreSQL and Redis. The
+  # command below is still `pytest tests` with no narrowing option (R-03.66): together the
+  # shards run the whole tree, each file exactly once, and tests/unit/test_ci_shards.py
+  # proves it against pytest's own collection. `all-shards` is green only when every shard
+  # is. test_private_ci_trust.py pins the matrix, CI_SHARD and the aggregator.
+  test:
+    name: Shard ${{ matrix.shard }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5]
+
+    services:
+      postgres:
+        # Production's major version (k8s/base/postgres.yaml). The ORM-versus-
+        # migration test asserts it runs on 15.
+        image: postgres:15
+        env:
+          POSTGRES_USER: midataworks
+          POSTGRES_PASSWORD: midataworks-ci
+          POSTGRES_DB: midataworks_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U midataworks -d midataworks_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+
+    env:
+      CI_SHARD: ${{ matrix.shard }}/5
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      # The database name contains "test": tests/conftest.py refuses any other.
+      # Each xdist worker provisions its own `_gwN` copy from this URL.
+      DATABASE_URL: postgresql+asyncpg://midataworks:midataworks-ci@localhost:5432/midataworks_test
+      REDIS_URL: redis://localhost:6379/15
+      # Test-only values. No real secret is ever needed or present here.
+      SETTINGS_ENCRYPTION_KEY: ci-only-encryption-key-0123456789abcdef
+      INTERNAL_API_SECRET: ci-only-internal-secret-0123456789
+      DATA_DIR: /tmp/midataworks-ci-data
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/requirements-dev.txt
+            backend/constraints.txt
+
+      # constraints.txt pins the whole resolved set, as the image installs it.
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt -c constraints.txt
+
+      # Proves the migrations apply from empty through the same CLI path a
+      # deployment uses (docker-entrypoint.sh runs `python -m src.core.migrate upgrade`,
+      # the bounded runner with lock_timeout and a deadline). The suite then migrates
+      # each worker's own database itself.
+      - name: Alembic upgrade on an empty database
+        run: python -m src.core.migrate upgrade
+
+      # CI_SHARD (job env) picks this shard's files; unset, the same command runs them all.
+      # `-n auto` = one worker per vCPU (2 here; the old fixed 4 oversubscribed the runner).
+      - name: Run the whole backend test tree
+        run: pytest tests -n auto --dist loadfile
+
+  # The single verdict for every shard: green only if each one is. A shard that failed, was
+  # cancelled or never ran makes this red (a matrix job's `result` is `success` only when
+  # every leg succeeded). sync-to-clean's gate requires THIS job by name, so the mirror
+  # never receives a commit on a partial set of shards.
+  all-shards:
+    name: all shards
+    needs: [test]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require every shard to have passed
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          set -euo pipefail
+          echo "$RESULTS" | jq -r 'to_entries[] | "\(.key): \(.value.result)"'
+          jq -e 'length > 0 and all(.[]; .result == "success")' <<< "$RESULTS" > /dev/null
+
+  # Feature 003 (FTASKS 13.4; FTDD 003 section 11.1): the Data-Juicer image's own tests, in an
+  # environment built from ITS pins — catalogue byte-sync, the schema-subset byte copy and every
+  # offered operator on the contract fixture. A required check; never skipped in the backend job
+  # (which cannot import data_juicer). `tests/unit/test_ci_runs_whole_tree.py` reads this job.
+  # It GATES the Data-Juicer image: sync-to-clean's `gate` requires the whole "Backend Tests"
+  # workflow to conclude `success` before anything reaches the mirror, and a failed job here
+  # makes that conclusion `failure`.
+  # It includes test_no_runtime_installs.py (T-10).
+  datajuicer-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+          cache-dependency-path: |
+            datajuicer/requirements.txt
+            datajuicer/constraints.txt
+
+      - name: Install the Data-Juicer image's pins
+        run: pip install -r datajuicer/requirements.txt -c datajuicer/constraints.txt pytest==9.1.1 pyyaml==6.0.3
+
+      - name: Run the Data-Juicer tests
+        run: pytest datajuicer/tests
+
+  # PADR ADR-010 amendment (2026-10-07): the Data Designer image's own tests, in an environment
+  # built from ITS pins (data-designer 0.9.4 needs huggingface-hub<2) — catalogue byte-sync and
+  # every offered column through the REAL library and the loopback relay against a fake
+  # OpenAI-compatible server. It gates the Data Designer image the same way datajuicer-tests
+  # gates the Data-Juicer image (this workflow's conclusion).
+  designer-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+          cache-dependency-path: |
+            designer/requirements.txt
+            designer/constraints.txt
+
+      - name: Install the Data Designer image's pins
+        run: pip install -r designer/requirements.txt -c designer/constraints.txt pytest==9.1.1
+
+      - name: Run the Data Designer tests
+        run: pytest designer/tests
+
+  # Feature 018 (FTASKS 4.10; FR-018.23): the isolated runner's own tests, in an environment built
+  # from the runner image's pins — every conformance, hostile, hash, import and limit vector through
+  # the REAL runner (a subprocess with no database and no secret), the host controls, the marker
+  # protocol and the AST import guard. It gates the runner image the same way datajuicer-tests gates
+  # the Data-Juicer image: sync-to-clean's `gate` requires this whole workflow to conclude success.
+  # `MIDATAWORKS_REQUIRE_RUNNER=1` turns a missing/mismatched bundle from a skip into a failure.
+  #
+  # ⚠ PENDING THE SNAPSHOT UPLOAD (FTASKS 5.0 / 7.2). build_bundle.py fetches the guest snapshot by
+  # the URL and SHA-256 in the packaged contract; until the operator uploads the bytes to that
+  # release asset, this step fails. Push S1 only together with that upload (the push order record).
+  runner-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      MIDATAWORKS_REQUIRE_RUNNER: "1"
+      RUNNER_BUNDLE_DIR: ${{ github.workspace }}/runner-bundle
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+          cache-dependency-path: |
+            runner/requirements.txt
+            runner/constraints.txt
+
+      - name: Install the runner image's pins
+        # jsonschema is a TEST dependency only: the tests load runner-cases-v1.json through
+        # src.runner_contract.cases, which validates it; the runner image imports only the contract's
+        # reasons and hashing modules and stays without it. Same pin as backend/constraints.txt.
+        run: pip install -r runner/requirements.txt -c runner/constraints.txt pytest==9.1.1 jsonschema==4.26.0
+
+      # Fetch the published guest snapshot by digest (from the packaged contract) and precompile it.
+      - name: Build the guest bundle
+        run: python runner/scripts/build_bundle.py --out "$RUNNER_BUNDLE_DIR"
+
+      - name: Run the runner tests
+        run: pytest runner/tests

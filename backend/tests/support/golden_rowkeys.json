@@ -1,0 +1,256 @@
+[
+  {
+    "name": "plain_text",
+    "row": {
+      "text": "Why did the chicken cross the road?"
+    },
+    "content_columns": [
+      "text"
+    ],
+    "key": "fff431cfda29193e64706f44e094e384abc21f6b4c20b431ba2603353e890aa2"
+  },
+  {
+    "name": "plain_text_trailing_space",
+    "row": {
+      "text": "Why did the chicken cross the road?  \n"
+    },
+    "content_columns": [
+      "text"
+    ],
+    "key": "fff431cfda29193e64706f44e094e384abc21f6b4c20b431ba2603353e890aa2"
+  },
+  {
+    "name": "crlf",
+    "row": {
+      "text": "line one\r\nline two"
+    },
+    "content_columns": [
+      "text"
+    ],
+    "key": "415639b891c05a544d0cca818e120f1869f7c178487b57d52d38fe00b5725e85"
+  },
+  {
+    "name": "cr_only",
+    "row": {
+      "text": "line one\rline two"
+    },
+    "content_columns": [
+      "text"
+    ],
+    "key": "415639b891c05a544d0cca818e120f1869f7c178487b57d52d38fe00b5725e85"
+  },
+  {
+    "name": "lf",
+    "row": {
+      "text": "line one\nline two"
+    },
+    "content_columns": [
+      "text"
+    ],
+    "key": "415639b891c05a544d0cca818e120f1869f7c178487b57d52d38fe00b5725e85"
+  },
+  {
+    "name": "nfc_composed",
+    "row": {
+      "text": "café"
+    },
+    "content_columns": [
+      "text"
+    ],
+    "key": "2781cd8b236acad264fe06e6e9e9075715220fd90ad4041eec48d78cd72c4bd2"
+  },
+  {
+    "name": "nfd_decomposed",
+    "row": {
+      "text": "café"
+    },
+    "content_columns": [
+      "text"
+    ],
+    "key": "2781cd8b236acad264fe06e6e9e9075715220fd90ad4041eec48d78cd72c4bd2"
+  },
+  {
+    "name": "inner_spacing_differs",
+    "row": {
+      "text": "Trump 's tax plan"
+    },
+    "content_columns": [
+      "text"
+    ],
+    "key": "50fcd2667318491e03fde83a89f1df85d8c312bbb8ec6c15bcd2a2ba9dc73319"
+  },
+  {
+    "name": "inner_spacing_reference",
+    "row": {
+      "text": "Trump's tax plan"
+    },
+    "content_columns": [
+      "text"
+    ],
+    "key": "44ccaf831be722e9ac0f1968d52f0fa3b7f293a3dfec6ae67097f515157b6df5"
+  },
+  {
+    "name": "case_differs",
+    "row": {
+      "text": "WHY did the chicken cross the road?"
+    },
+    "content_columns": [
+      "text"
+    ],
+    "key": "326f7c015306a57e8a116a4f54e3d1cbecc5c2c7aa7aa59e9456b350ad261d49"
+  },
+  {
+    "name": "double_inner_space",
+    "row": {
+      "text": "two  spaces"
+    },
+    "content_columns": [
+      "text"
+    ],
+    "key": "891b6fbc856540cec8d27bc44f3f5d2889b69cdc7d9f60e75d18e019503638ef"
+  },
+  {
+    "name": "single_inner_space",
+    "row": {
+      "text": "two spaces"
+    },
+    "content_columns": [
+      "text"
+    ],
+    "key": "3fddfc14d0eee1534c2694c2c2210183f1076cd28addbb9f6933930ca072b5d4"
+  },
+  {
+    "name": "non_ascii",
+    "row": {
+      "text": "日本語のテキスト — dash"
+    },
+    "content_columns": [
+      "text"
+    ],
+    "key": "2142b12d515bd9ac9b11dc41d9a6d0bc84f21a9b87cab7cc336557b1e4c2a43b"
+  },
+  {
+    "name": "control_and_quote",
+    "row": {
+      "text": "say \"hi\"\tnow\\"
+    },
+    "content_columns": [
+      "text"
+    ],
+    "key": "b7d8a079e7f0c889c514b3125286904e1cad6e1a28c314b8f366e570be4b139f"
+  },
+  {
+    "name": "chat_messages",
+    "row": {
+      "messages": [
+        {
+          "role": "user",
+          "content": "  Tell me a joke.\r\n"
+        },
+        {
+          "role": "assistant",
+          "content": "Why did the chicken cross the road?"
+        }
+      ]
+    },
+    "content_columns": [
+      "messages"
+    ],
+    "key": "6f66a5e3a523522ce805bdb19d887026f411b9c4eefcb2ff4359752c8dba03e9"
+  },
+  {
+    "name": "chat_messages_normalised_equivalent",
+    "row": {
+      "messages": [
+        {
+          "role": "user",
+          "content": "Tell me a joke."
+        },
+        {
+          "role": "assistant",
+          "content": "Why did the chicken cross the road?"
+        }
+      ]
+    },
+    "content_columns": [
+      "messages"
+    ],
+    "key": "6f66a5e3a523522ce805bdb19d887026f411b9c4eefcb2ff4359752c8dba03e9"
+  },
+  {
+    "name": "preference",
+    "row": {
+      "prompt": "Pick one.",
+      "chosen": "This one.",
+      "rejected": "That one."
+    },
+    "content_columns": [
+      "prompt",
+      "chosen",
+      "rejected"
+    ],
+    "key": "83517449b36709b2b16462a235a88aee39d967d4b00270198f72220599470888"
+  },
+  {
+    "name": "preference_column_order_irrelevant",
+    "row": {
+      "rejected": "That one.",
+      "prompt": "Pick one.",
+      "chosen": "This one."
+    },
+    "content_columns": [
+      "rejected",
+      "chosen",
+      "prompt"
+    ],
+    "key": "83517449b36709b2b16462a235a88aee39d967d4b00270198f72220599470888"
+  },
+  {
+    "name": "metadata_ignored",
+    "row": {
+      "text": "Why did the chicken cross the road?",
+      "source": "reddit",
+      "score": 3
+    },
+    "content_columns": [
+      "text"
+    ],
+    "key": "fff431cfda29193e64706f44e094e384abc21f6b4c20b431ba2603353e890aa2"
+  },
+  {
+    "name": "integers_and_bools",
+    "row": {
+      "text": "x",
+      "label": 1,
+      "flag": true
+    },
+    "content_columns": [
+      "text",
+      "label",
+      "flag"
+    ],
+    "key": "9e472e03fa549988df89ab4de5a7597731a7fa501e8d7442a61bd48cba8811b7"
+  },
+  {
+    "name": "null_value",
+    "row": {
+      "text": null
+    },
+    "content_columns": [
+      "text"
+    ],
+    "key": "2be06ce42e674d2e7b0a0c86318de1dbc56dc3c8a84d385e999041731f179a93"
+  },
+  {
+    "name": "float_value",
+    "row": {
+      "text": "x",
+      "score": 0.5
+    },
+    "content_columns": [
+      "text",
+      "score"
+    ],
+    "key": "9bae3064eef57fa1020af0bf46a9e10d763420d11c67029cd2d531c896a9f34b"
+  }
+]

@@ -1,0 +1,452 @@
+"""Assemble :class:`checks.CheckInputs` and the manifest's source and labeler facts from the
+other features' records (FR-008.15, FR-008.59; FTDD 008 section 2.3).
+
+Reads only. Every value comes from a real column (``test_reads_real_columns.py``); a fact a source
+does not give is ``None`` or ``not_checked``, never a plausible default.
+"""
+
+from __future__ import annotations
+
+import json
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Any
+
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from ...models.dataset import Dataset
+from ...models.publish import ModelTermsNote
+from ...models.source import Source, SourceAnnotation
+from ...models.source_enums import AnnotationKind
+from ...models.version import Version
+from ..duck import connect, files_param, top_level_columns
+from ..version_lineage import lineage_bindings, lineage_versions
+from . import feature_seams
+from .checks import (
+    CarriedCodeRuleFacts,
+    CarriedRuleSetFacts,
+    CheckInputs,
+    LabelerCheck,
+    ModelTerms,
+    SourceLicence,
+    TokenScope,
+    gather_curation_findings,
+)
+from .feature_seams import CHECKED, NOT_CHECKED, LabelerFinding
+from .licence_table import TABLE, AnnotationRef, Classification, LicenceClass, classify
+
+
+@dataclass(frozen=True)
+class SourceFacts:
+    source: Source
+    current: Classification
+    built: Classification
+    terms_recorded: bool
+
+
+def _annotations(session: Session, source_id: str) -> list[SourceAnnotation]:
+    return list(
+        session.execute(
+            select(SourceAnnotation)
+            .where(
+                SourceAnnotation.source_id == source_id,
+                SourceAnnotation.kind.in_((AnnotationKind.TERMS, AnnotationKind.LICENCE)),
+            )
+            .order_by(SourceAnnotation.created_at, SourceAnnotation.id)
+        ).scalars()
+    )
+
+
+def _refs(rows: Sequence[SourceAnnotation], before: datetime | None = None) -> list[AnnotationRef]:
+    out: list[AnnotationRef] = []
+    for a in rows:
+        if before is not None and a.created_at > before:
+            continue
+        assert a.redistribution is not None  # CHECK redistribution_required
+        out.append(AnnotationRef(a.redistribution, a.id))
+    return out
+
+
+def source_ids(version: Version) -> list[str]:
+    """Every source the version reached through its lineage (002's manifest, FR-002.8)."""
+    manifest = json.loads(version.manifest)
+    return [str(s["source_id"]) for s in manifest["sources"]]
+
+
+def source_facts(session: Session, version: Version) -> list[SourceFacts]:
+    facts: list[SourceFacts] = []
+    for sid in source_ids(version):
+        source = session.get(Source, sid)
+        if source is None:
+            raise LookupError(f"version {version.id} names source {sid}, which does not exist")
+        rows = _annotations(session, sid)
+        facts.append(
+            SourceFacts(
+                source=source,
+                current=classify(source.licence_raw, _refs(rows)),
+                built=classify(source.licence_raw, _refs(rows, before=version.created_at)),
+                terms_recorded=any(a.kind == AnnotationKind.TERMS for a in rows),
+            )
+        )
+    return facts
+
+
+def _gated(value: str | None) -> bool | None:
+    if value is None:
+        return None
+    return value not in ("false", "0", "no")
+
+
+def manifest_source(f: SourceFacts) -> dict[str, Any]:
+    """One ``Source`` of the contract (M-5)."""
+    s = f.source
+    if s.kind == "hf":
+        assert s.repo_id is not None and s.resolved_commit is not None
+        origin: dict[str, Any] = {
+            "kind": "hub",
+            "repo_id": s.repo_id,
+            "config": s.config,
+            "split": s.split_selection,
+            "revision": s.resolved_commit,
+        }
+    else:
+        assert s.content_hash is not None
+        origin = {"kind": "upload", "filename": s.display_name, "content_sha256": s.content_hash}
+    raw = s.licence_raw
+    if raw is not None and not isinstance(raw, str | list):
+        raw = str(raw)
+    return {
+        "source_id": s.id,
+        "origin": origin,
+        "licence": {
+            "displayed": s.licence_display,
+            "raw": [str(x) for x in raw] if isinstance(raw, list) else raw,
+            "origin": (
+                "operator" if f.current.decided_by == "annotation" else (s.licence_origin or "none")
+            ),
+            "licence_class": f.current.licence_class.value,
+            "table_version": TABLE.version,
+        },
+        "terms_status": "recorded" if f.terms_recorded else "not_recorded",
+        "gated": _gated(s.gated),
+        # 017 FR-017.31: a Hub source that is a slice says which (open ``extensions``; no change
+        # to the contract's fields).
+        "extensions": {"import_slice": dict(s.import_slice)} if s.import_slice else {},
+    }
+
+
+def bound_runs(session: Session, version: Version) -> tuple[list[str], list[str]]:
+    """(label runs, generation runs) bound ANYWHERE in the version's lineage.
+
+    A re-split or merge binds nothing itself; the runs that generated and labelled its rows are
+    bound on its ancestors. Reading only the version's own bindings described a synthetic,
+    model-judged dataset as having neither (live, 2026-10-09)."""
+    found = lineage_bindings(lineage_versions(session, version))
+    return found.label_runs, found.generation_runs
+
+
+def generated_row_count(version: Version) -> int:
+    """Rows whose ``_dw_origin`` is ``generated`` in the version's own split files: a fact read
+    from the rows, needing no lineage at all."""
+    from ...core.storage import resolve_under_data_dir
+
+    files = [resolve_under_data_dir(str(s["path"])) for s in version.splits]
+    if not files:
+        return 0
+    con = connect()
+    try:
+        if "_dw_origin" not in top_level_columns(con, files):
+            return 0
+        row = con.execute(
+            "SELECT count(*) FROM read_parquet(?) WHERE _dw_origin = 'generated'",
+            [files_param(files)],
+        ).fetchone()
+        return int(row[0]) if row else 0
+    finally:
+        con.close()
+
+
+@dataclass(frozen=True)
+class ModelFindings:
+    labelers: LabelerFinding
+    #: Every model C-4 must read a terms note for (labelers and generators).
+    models: LabelerFinding
+    generators: LabelerFinding
+
+
+def model_findings(session: Session, version: Version) -> ModelFindings:
+    """Labelers, generators and every model they used, across the version's lineage."""
+    label_runs, generation_runs = bound_runs(session, version)
+    labelers = feature_seams.labelers_for(label_runs, session=session)
+    generators = feature_seams.generators_for(generation_runs, session=session)
+    if generators.status != CHECKED or labelers.status != CHECKED:
+        return ModelFindings(labelers, LabelerFinding(NOT_CHECKED), generators)
+    models = sorted(set(labelers.model_ids) | set(generators.model_ids))
+    return ModelFindings(labelers, LabelerFinding(CHECKED, labelers.labelers, models), generators)
+
+
+def lineage_record(
+    session: Session,
+    version: Version,
+    generators: LabelerFinding,
+    generated_rows: int,
+    label_balancing: Sequence[Mapping[str, Any]] = (),
+) -> dict[str, Any]:
+    """The lineage facts the record carries beside the contract's own fields (the manifest's
+    ``extensions["lineage"]``): ancestor versions, the generation runs and their models, and the
+    generated row count. The card's record section is rendered from these."""
+    ancestors = lineage_versions(session, version)[1:]
+    return {
+        "ancestor_versions": [
+            {"version_id": str(v.id), "number": int(v.number)} for v in ancestors
+        ],
+        "generated_rows": int(generated_rows),
+        "generators": [
+            {
+                "generation_run_id": str(g["generation_run_id"]),
+                "model_id": g.get("model_id"),
+                "revision": g.get("revision"),
+                "mode": g.get("mode"),
+            }
+            for g in generators.labelers
+        ],
+        # 004 FR-004.56: rows selected by their label, here or in an ancestor (with the warning)
+        "label_balancing": [dict(s) for s in label_balancing],
+        # 016 FR-016.31: versions whose labels taught a rule set the build ran (rule_source)
+        "rule_sources": rule_source_versions(session, version),
+    }
+
+
+def rule_source_versions(session: Session, version: Version) -> list[dict[str, Any]]:
+    from ...models.enums import InputKind
+    from ...models.version import VersionInput
+
+    rows = session.execute(
+        select(Version.id, Version.number)
+        .join(VersionInput, VersionInput.input_version_id == Version.id)
+        .where(
+            VersionInput.version_id == version.id,
+            VersionInput.kind == InputKind.RULE_SOURCE.value,
+        )
+        .order_by(Version.number)
+    ).all()
+    return [{"version_id": str(v), "number": int(n)} for v, n in rows]
+
+
+def latest_terms(session: Session, model_ids: Sequence[str]) -> list[ModelTerms]:
+    out: list[ModelTerms] = []
+    for model_id in model_ids:
+        note = session.execute(
+            select(ModelTermsNote)
+            .where(ModelTermsNote.model_id == model_id)
+            .order_by(ModelTermsNote.noted_at.desc(), ModelTermsNote.id.desc())
+            .limit(1)
+        ).scalar_one_or_none()
+        out.append(ModelTerms(model_id, note.training_on_outputs if note is not None else None))
+    return out
+
+
+def labeler_checks(
+    session: Session, labelers: LabelerFinding
+) -> tuple[list[LabelerCheck], list[dict[str, Any]]]:
+    checks: list[LabelerCheck] = []
+    refs: list[dict[str, Any]] = []
+    for lab in labelers.labelers:
+        fingerprint = str(lab["fingerprint"])
+        cal = feature_seams.calibration_status(fingerprint, session=session)
+        checks.append(
+            LabelerCheck(
+                fingerprint=fingerprint,
+                name=str(lab["model_id"] or fingerprint[:12]),
+                pinned=bool(lab["pinned"]),
+                revision_reported=bool(lab["revision_reported"]),
+                calibration=cal,
+            )
+        )
+        refs.append(
+            {
+                "labeler_fingerprint": fingerprint,
+                "status": "recorded" if cal.recorded else "none_recorded",
+                "record_id": cal.record_id,
+                "verdict": cal.verdict,
+                "rule": cal.rule,
+                "auroc": cal.auroc,
+                "calibration_set": (
+                    {**cal.calibration_set, "rows_shipped": False} if cal.calibration_set else None
+                ),
+            }
+        )
+    return checks, refs
+
+
+def _row_keys(session: Session, version: Version, held_out_only: bool) -> set[str]:
+    import pyarrow.parquet as pq
+
+    from ...core.storage import resolve_under_data_dir
+
+    keys: set[str] = set()
+    for split in version.splits:
+        if held_out_only and not split["held_out"]:
+            continue
+        table = pq.read_table(resolve_under_data_dir(split["path"]), columns=["_dw_row_key"])
+        keys.update(str(k) for k in table.column(0).to_pylist())
+    return keys
+
+
+def carried_rule_set_facts(session: Session, version: Version) -> list[CarriedRuleSetFacts] | None:
+    """C-8's input (feature 016): each carried rule-set version once, with its public-value
+    violations (``rules/public_values``: per case and every string) and, for a derived one, how
+    many of its source's rows are in this version's held-out splits. None = not recorded."""
+    from ...rules import public_values, rule_set
+    from ..rules import carry
+
+    items = carry.carried(session, version)
+    if items is None:
+        return None
+    facts: list[CarriedRuleSetFacts] = []
+    held_out: set[str] | None = None
+    for item in {(i.name, i.version): i for i in items}.values():
+        raw = json.loads(item.body_canonical)
+        document = rule_set.parse(raw)
+        violations = (
+            *public_values.document_violations(document),
+            *public_values.string_violations(raw),
+        )
+        derived_from = document.provenance.source_version_id if document.provenance else None
+        overlap = 0
+        if derived_from is not None:
+            source = session.get(Version, derived_from)
+            if source is not None:
+                if held_out is None:
+                    held_out = _row_keys(session, version, held_out_only=True)
+                overlap = len(held_out & _row_keys(session, source, held_out_only=False))
+        facts.append(
+            CarriedRuleSetFacts(
+                item.name,
+                item.version,
+                item.behaviour_key,
+                tuple(violations),
+                derived_from,
+                overlap,
+            )
+        )
+    return facts
+
+
+def carried_code_rule_facts(
+    session: Session, version: Version
+) -> list[CarriedCodeRuleFacts] | None:
+    """C-8's and C-9's input (feature 018): each carried code rule with its visibility floor and
+    the public-value violations of its cases and its document. None = not recorded."""
+    from ...rules import public_values
+    from ..code_rules import carry as code_rule_carry
+
+    items = code_rule_carry.carried(session, version)
+    if items is None:
+        return None
+    facts: list[CarriedCodeRuleFacts] = []
+    for item in items:
+        # A code-rule case's text is its input; shaped as a rule-set case so a cited
+        # published_test_value documents its values (rules/public_values._cases).
+        shaped = [
+            {
+                "id": c.get("id"),
+                "input": {"text": c.get("text", "")},
+                "source": c.get("source") or {},
+                "params": c.get("params"),
+                "expect": c.get("expect"),
+            }
+            for c in item.cases
+        ]
+        violations = (
+            *public_values.string_violations({"cases": shaped}),
+            *public_values.string_violations(json.loads(item.canonical)),
+        )
+        facts.append(
+            CarriedCodeRuleFacts(
+                item.name,
+                item.version,
+                item.code_sha256,
+                item.visibility_floor,
+                tuple(violations),
+                item.floor_basis,
+            )
+        )
+    return facts
+
+
+@dataclass(frozen=True)
+class Assembled:
+    inputs: CheckInputs
+    sources: list[SourceFacts]
+    labelers: list[dict[str, Any]]
+    calibration: list[dict[str, Any]]
+    dataset: Dataset
+    #: ``lineage_record``: written to the manifest's ``extensions["lineage"]``.
+    lineage: dict[str, Any]
+
+
+def assemble(
+    session: Session,
+    version: Version,
+    *,
+    label_column: str | None,
+    visibility: str,
+    token_scope: TokenScope,
+) -> Assembled:
+    assert visibility in ("private", "public")
+    facts = source_facts(session, version)
+    held_out = [str(s["name"]) for s in version.splits if s["held_out"]]
+    split_inputs = [(version.id, str(s["name"])) for s in version.splits]
+    leakage, warnings = gather_curation_findings(
+        split_inputs,
+        held_out=held_out,
+        group_column=None,
+        label_column=label_column,
+        session=session,
+    )
+    found = model_findings(session, version)
+    labelers, models = found.labelers, found.models
+    generated = generated_row_count(version)
+    checks_list, calibration = labeler_checks(session, labelers)
+    terms = latest_terms(session, models.model_ids) if models.status == CHECKED else []
+    dataset = session.get(Dataset, version.dataset_id)
+    assert dataset is not None
+    balanced = feature_seams.label_balancing_for(version.id, session=session)
+    inputs = CheckInputs(
+        visibility=visibility,  # type: ignore[arg-type]
+        sources=[
+            SourceLicence(
+                source_id=f.source.id,
+                name=f.source.display_name,
+                displayed=f.source.licence_display,
+                current_class=f.current.licence_class,
+                built_class=f.built.licence_class,
+            )
+            for f in facts
+        ],
+        token_scope=token_scope,
+        held_out_splits=held_out,
+        leakage=leakage,
+        models=models,
+        model_terms=terms,
+        audit=feature_seams.audit_status(version.id, session=session),
+        labelers=checks_list,
+        labeler_status=labelers.status,
+        warnings=warnings,
+        diversity=feature_seams.diversity_for(version.id, session=session),
+        generated_rows=generated,
+        generators=list(found.generators.labelers),
+        label_balancing=balanced,
+        carried_rule_sets=carried_rule_set_facts(session, version),
+        visibility_floor=version.visibility_floor,
+        carried_code_rules=carried_code_rule_facts(session, version),
+    )
+    lineage = lineage_record(session, version, found.generators, generated, balanced)
+    return Assembled(inputs, facts, labelers.labelers, calibration, dataset, lineage)
+
+
+def any_forbids(facts: Sequence[SourceFacts]) -> bool:
+    return any(f.current.licence_class is LicenceClass.FORBIDS for f in facts)

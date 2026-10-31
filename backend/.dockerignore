@@ -1,0 +1,21 @@
+# Build context for hitsai/midataworks-backend is backend/ (docker-images.yml).
+# The image needs requirements.txt, requirements-operators.txt, constraints.txt, alembic.ini,
+# alembic/, src/ and docker-entrypoint.sh only.
+# Feature 018 (Discrepancy X3, FTID I4): the backend never carries the runner HOST; it runs in its
+# own image (runner/Dockerfile). The contract package (src/runner_contract/) stays: the API uses it.
+src/runner/
+.venv/
+venv/
+.python/
+tests/
+scripts/
+**/__pycache__/
+*.pyc
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+.env
+.env.*

@@ -1,0 +1,162 @@
+# The isolated code-rule runner (feature 018; FTDD §7.2, §9.3; FTASKS 6.5). Its own image,
+# hitsai/midataworks-runner, running operator code rules inside the published WebAssembly guest on
+# Wasmtime: a fresh instance per (text, function), fuel, a memory cap, an epoch deadline, no
+# preopened directory, an empty environment, no sockets (the contract's guest barrier).
+#
+# PLACEMENT — chosen with miLLM 039 S3 and miStudio 040 S4 read side by side (recorded in
+# 0xcc/reviews/018_implementation_controls_2026-10-24.md, "S2: the runner deployment choice"):
+#   * Its OWN Deployment, never a container of midataworks-backend. Every container of that pod
+#     holds DATABASE_URL, POSTGRES_PASSWORD, SETTINGS_ENCRYPTION_KEY and INTERNAL_API_SECRET, a
+#     NetworkPolicy cannot isolate one container of a pod, and a pod is Ready only when every
+#     container is (miLLM 039 R1 H1: a failed sidecar took its API's only endpoint away).
+#   * seccompProfile RuntimeDefault, NOT a Localhost profile: nothing here needs a file installed
+#     on the node, so a missing node file can never keep this pod (or any other) from starting.
+#     Property 2 does not rest on seccomp in this placement: the NetworkPolicy below is enforced by
+#     the CNI outside the container, so no system call made inside it - io_uring included, which
+#     RuntimeDefault may leave open - reaches a network the policy denies. New namespaces need
+#     CAP_SYS_ADMIN, dropped below.
+#   * The backend NEVER depends on the runner: no init container, readiness gate or start-up check
+#     anywhere in backend.yaml; RUNNER_URL is plain configuration; /api/health reports the runner
+#     and never requires it. With this pod absent, unready or crash-looping, everything else works
+#     and code-rule rows read rule_worker_unavailable (FR-018.22).
+#
+# PROPERTY 1 (no secret; tests/unit/test_k8s_manifests.py TestRunner): literal `value:` env only -
+# no secretKeyRef, configMapKeyRef, valueFrom or envFrom - no volume, no service-account token, no
+# service links, non-root, read-only root, no capability, no GPU (NVIDIA_VISIBLE_DEVICES=void, set
+# explicitly because the node's default runtime is nvidia). Live half: /health `env_names`.
+# PROPERTY 2 (no outbound connection, the guest bypassed): the NetworkPolicy - egress [] (DNS
+# included), ingress only from the backend pod on 8080 (the MCP pod is NOT admitted). Checked live
+# after every runner deploy (FTASKS 8.x) before `code_rules_enabled` may be turned on.
+#
+# ROLLOUT: RollingUpdate with maxUnavailable 0 and a readiness probe on /health (503 on
+# bundle_mismatch), so a bad image never replaces a good pod; a runner-only change rolls only this
+# Deployment, never the Recreate backend pod (docker-images.yml excludes backend/src/runner/ from
+# the backend image). The Service deliberately does NOT publish not-ready addresses: a stuck bad
+# rollout must not split calls onto the broken pod.
+#
+# MEMORY: 6 lanes (2 interactive + 4 batch) × the 64 MiB instance cap + overhead. Measured on the
+# workstation 2026-10-24: 43 MiB idle, 337 MiB peak with all six lanes at the memory edge vector.
+# RUNNER_MAX_MEMORY_BYTES is the floor, so no request can push past this limit; raising the
+# memory setting is a manifest change here first (limit_above_ceiling until then).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: midataworks-runner
+  namespace: midataworks
+  labels:
+    app: midataworks-runner
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: midataworks-runner
+  template:
+    metadata:
+      labels:
+        app: midataworks-runner
+    spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: runner
+          image: hitsai/midataworks-runner:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            # Literal values only (Property 1, FTID I9): never a reference to a Secret or ConfigMap.
+            - name: NVIDIA_VISIBLE_DEVICES
+              value: void
+            - name: RUNNER_PORT
+              value: "8080"
+            - name: RUNNER_INTERACTIVE_SLOTS
+              value: "2"
+            - name: RUNNER_BATCH_SLOTS
+              value: "4"
+            - name: RUNNER_BATCH_TEXTS
+              value: "256"
+            - name: RUNNER_PROCESSES
+              value: "1"
+            # Ceilings: what a caller may ask for, above the contract floor. Memory stays AT the
+            # floor so six busy lanes always fit the container limit below.
+            - name: RUNNER_MAX_CALL_FUEL
+              value: "34359738368"
+            - name: RUNNER_MAX_LOAD_FUEL
+              value: "2147483648"
+            - name: RUNNER_MAX_PRELUDE_FUEL
+              value: "2147483648"
+            - name: RUNNER_MAX_MEMORY_BYTES
+              value: "67108864"
+            - name: RUNNER_MAX_WALL_MS
+              value: "60000"
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 500m
+              memory: 384Mi
+            limits:
+              memory: 640Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: midataworks-runner
+  namespace: midataworks
+spec:
+  type: ClusterIP
+  selector:
+    app: midataworks-runner
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+# PROPERTY 2. Selects ONLY the runner. Egress: none at all (not even DNS). Ingress: the backend pod
+# (the API and the workers are its only callers) on 8080. The suite's first NetworkPolicy here;
+# the cluster's CNI (Calico) enforces it, verified live after each runner deploy (FTASKS 8.x).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: midataworks-runner
+  namespace: midataworks
+spec:
+  podSelector:
+    matchLabels:
+      app: midataworks-runner
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: midataworks-backend
+      ports:
+        - protocol: TCP
+          port: 8080
+  egress: []

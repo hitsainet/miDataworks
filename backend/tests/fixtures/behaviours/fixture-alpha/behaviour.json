@@ -1,0 +1,8 @@
+{
+  "behaviour_key": "fixture-alpha",
+  "description": "Test-only behaviour: a validated, insertable element (a card number) cued by invented words. Its vocabulary occurs nowhere in the shipped tree (FR-016.33 guard).",
+  "vocabulary": [
+    "vexilloquant",
+    "brindlewort"
+  ]
+}

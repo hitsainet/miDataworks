@@ -1,0 +1,5 @@
+{"table": "dw.licence-table", "version": 1,
+ "permits_redistribution": ["apache-2.0", "mit", "bsd-2-clause", "bsd-3-clause", "cc0-1.0",
+   "cc-by-2.0", "cc-by-3.0", "cc-by-4.0", "cc-by-sa-3.0", "cc-by-sa-4.0",
+   "odc-by", "odbl", "pddl", "cdla-permissive-1.0", "cdla-permissive-2.0", "cdla-sharing-1.0"],
+ "notes": "Identifiers as the Hub reports them in cardData.license. Non-commercial and 'other' are private only."}

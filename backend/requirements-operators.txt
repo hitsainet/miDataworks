@@ -1,0 +1,6 @@
+# Third-party operator packages (FR-003.16; T-10). Empty to start.
+#
+# A package reaches the backend image ONLY through a commit to this file, built in CI; nothing is
+# installed while the app runs. Pin each package to an exact version. Its entry points in the
+# `midataworks.operators` group then appear on the Operators screen as "Not allowed" and are not
+# imported until the operator allows one (docs/operators.md).
