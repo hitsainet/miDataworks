@@ -1,0 +1,88 @@
+{
+  "description": "Sizes, budgets and caps for the SSN pilot (D6, D5, K1, K2, K7; D32 starting values). Measurement corrects them before release; any change returns to the operator.",
+  "plans": [
+    {
+      "name": "llama",
+      "generator_model_id": "Llama-3.1-8B-Instruct",
+      "rows": 16200,
+      "templated_share": 0.1,
+      "genre_shares": {
+        "email": 0.0815,
+        "chat": 0.0815,
+        "support_ticket": 0.0815,
+        "form_dump": 0.0815,
+        "csv_line": 0.0815,
+        "json_line": 0.0815,
+        "log_line": 0.0815,
+        "code": 0.0815,
+        "config_file": 0.0815,
+        "ocr_scan": 0.0925,
+        "voice_transcript": 0.0925,
+        "non_english": 0.0815
+      },
+      "expected": {
+        "carriers": 16200,
+        "train_genre_carriers": 13203,
+        "training_rows": 30103,
+        "paired_training_rows": 21125,
+        "free_form_training_rows": 8978,
+        "test_unseen_genre": 2997,
+        "templated_carriers": 1620
+      },
+      "confirm": "D71: the served name is confirmed against miLLM's model list (millm_list_models) at the start of the run, before the carrier run starts; if it differs, this value, splits.json (held_out_values, generators) and the run's generator_model_id change together",
+      "pairs": "ENH-006 D89 (70% minimal pairs). recipe.json's slot_siblings step adds V = 4 siblings (empty, decoy lookalike, decoy naming_no_value, vetoed masked_value) to every pos carrier; siblings of a held-out genre or generator are dropped (D89: test sets stay real text), so only training carriers get them. With pos share p = 0.32: training rows = C x (1 + pV) = C x 2.28; paired rows = C x p(1 + V) = C x 1.60; paired share = 0.702. Training genres hold 0.815 of the carriers (ten at 0.0815), the two held-out genres 0.185 (0.0925 each), so test_unseen_genre keeps ~3,000 rows while training reaches ~30,000: carriers N = 16200; training carriers 13203 x 2.28 = 30103 rows, 21125 paired (70.2%); held-out genre carriers 2997. Before pairs the plan drew 30,000 carriers; 16,200 is 46% fewer Llama carrier calls (GPU hours scale with carriers; siblings are made by code). Label-flipping pairs: only a pos carrier framed as a disclosure (own_identifier, someones_identifier; 0.55 of carriers) flips; on deployed_truth (D91) its empty and decoy siblings always flip and its masked sibling flips when the form shows the digits (the veto cannot see a rendering), on disclosure the masked sibling keeps the label (D12). Measured shares: backend/tests/integration/behaviour/test_ssn_pilot_elements.py."
+    },
+    {
+      "name": "qwen",
+      "generator_model_id": "Qwen2.5-7B-Instruct",
+      "rows": 6000,
+      "templated_share": 0.0,
+      "genre_shares": {
+        "email": 0.05,
+        "chat": 0.05,
+        "support_ticket": 0.05,
+        "form_dump": 0.05,
+        "csv_line": 0.05,
+        "json_line": 0.05,
+        "log_line": 0.05,
+        "code": 0.05,
+        "config_file": 0.05,
+        "non_english": 0.05,
+        "ocr_scan": 0.25,
+        "voice_transcript": 0.25
+      },
+      "expected": {
+        "test_unseen_generator": 3000,
+        "test_unseen_both": 3000
+      },
+      "confirm": "D71: the served name is confirmed against miLLM's model list (millm_list_models) at the start of the run, before the carrier run starts; if it differs, this value, splits.json (held_out_values, generators) and the run's generator_model_id change together"
+    }
+  ],
+  "targets": {
+    "training_rows": 30000,
+    "per_held_out_group": 3000,
+    "calibration_negatives": 5000,
+    "training_rows_paired_share": 0.7
+  },
+  "calibration_negatives": {
+    "basis": "assumed_negative",
+    "rule": "the identifier screen (every identifier rule set)",
+    "rows": 5000,
+    "from": "screened real text (benchmarks.json real_text)"
+  },
+  "second_opinion": {
+    "stratified_rows": 2000,
+    "plus": "every conflict",
+    "per_run_cap_rows": 2500,
+    "price_per_call_usd": 1.5e-05,
+    "spend_ceiling_usd": 5.0,
+    "note": "D66 (operator, 2026-10-25): spend ceiling $5 in total; TypeSafe price measured by the operator: 20,780 tokens over 55 requests cost $0.0008, about $0.0000145 per call. The price field takes six decimals (price_per_call_usd), so the role's price is entered rounded UP to 0.000015 (the conservative side: spend is never under-counted). Both are entered by the operator at 17.1: the classifier role's price in Settings > Endpoints, and CLASSIFIER_SPEND_CEILING_USD (agent-forbidden runtime setting, 'Money: only the operator sets it'); while either is unset every paid run is refused. These values here are the record, not the settings.",
+    "estimate": "Four label runs (one per compared column), each at most the per-run cap of 2,500 rows: at most 10,000 calls x $0.000015 = $0.15 per full second-opinion pass; the $5 ceiling covers about 33 such passes"
+  },
+  "gpu": {
+    "measurement_run": "500 carriers per generator over every genre, GENERATION_REQUESTS_IN_FLIGHT 1 vs 8 (16.8)",
+    "ceiling_gpu_hours": 48,
+    "window": "no miStudio training scheduled; miDataworks deploy hold from 17.3 to 18.3"
+  },
+  "visibility": "private_only"
+}

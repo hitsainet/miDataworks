@@ -1,0 +1,803 @@
+"""Configuration from the environment (ADR-002, PADR section 2.5; Foundation task 3.1).
+
+What this module guarantees:
+- Every variable the backend reads is declared here, and ``.env.example`` lists each one
+  (``tests/unit/test_config.py`` compares the two).
+- A missing required variable fails at start, naming the variable. Nothing is guessed: there is
+  no fallback encryption key and no fallback database.
+- Booleans fall back to their declared default when absent. pydantic rejects an unparsable
+  value loudly rather than reading it as False.
+
+What it refuses: an encryption key shorter than 32 characters, and a ``DATA_DIR`` that is not an
+absolute path.
+"""
+
+from __future__ import annotations
+
+from functools import lru_cache
+from pathlib import Path
+from typing import Literal
+from urllib.parse import urlsplit
+
+from pydantic import Field, SecretStr, ValidationError, field_validator, model_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from ..runner_contract.constants import LIMITS_FLOOR
+from ..runner_contract.document import CODE_RULE_MAX_FUNCTIONS_FLOOR
+
+#: Variables that must be set; there is no safe default for any of them.
+REQUIRED_VARIABLES: tuple[str, ...] = (
+    "DATABASE_URL",
+    "REDIS_URL",
+    "SETTINGS_ENCRYPTION_KEY",
+    "INTERNAL_API_SECRET",
+)
+
+#: The root log levels ``LOG_LEVEL`` accepts (any case; stored upper case).
+LOG_LEVELS: tuple[str, ...] = ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL")
+
+#: Settings whose value is a sibling app's address: blank means "not configured" (ENH-003).
+SIBLING_ADDRESS_FIELDS: tuple[str, ...] = ("millm_base_url", "millm_ui_url", "mistudio_base_url")
+
+#: Feature 018: the runner contract's floor (a deployment may raise a limit, never lower it) and
+#: the most functions a document may declare. Read from the contract package (stdlib only).
+_FLOOR: dict[str, int] = {k: int(v) for k, v in LIMITS_FLOOR.items() if v is not None}
+_MAX_FUNCTIONS = CODE_RULE_MAX_FUNCTIONS_FLOOR
+
+#: Janitor limits (field, seconds per unit) that must exceed twice the progress heartbeat: a job
+#: that misses two heartbeats in a row is dead; one missed beat is noise (012 FTID I4).
+JANITOR_LIMIT_FIELDS: tuple[tuple[str, float], ...] = (
+    ("version_build_janitor_minutes", 60.0),
+    ("source_import_janitor_limit_s", 1.0),
+    ("publish_janitor_limit_seconds", 1.0),
+    ("detector_send_janitor_limit_seconds", 1.0),
+)
+
+
+class Settings(BaseSettings):
+    """The backend's configuration. Field names map to upper-case environment variables."""
+
+    model_config = SettingsConfigDict(env_file=None, case_sensitive=False, extra="ignore")
+
+    # --- required ---------------------------------------------------------------------------
+    database_url: str = Field(
+        ..., description="Async SQLAlchemy URL, postgresql+asyncpg://user:pass@host:port/db"
+    )
+    redis_url: str = Field(..., description="Redis URL; Celery broker and result backend")
+    settings_encryption_key: SecretStr = Field(
+        ..., description="Key material for AES-256-GCM settings encryption (HKDF-derived)"
+    )
+    internal_api_secret: SecretStr = Field(
+        ..., description="Shared secret for the worker-to-API emit route (never exposed)"
+    )
+
+    # --- optional with defaults ---------------------------------------------------------------
+    environment: str = Field("development", description="development | test | production")
+    log_level: str = Field(
+        "INFO", description="Root log level: DEBUG, INFO, WARNING, ERROR or CRITICAL"
+    )
+    data_dir: Path = Field(Path("/data/dataworks"), description="Data volume root (ADR-004)")
+    # Both siblings are OPTIONAL (operator principle, 2026-10-07): miDataworks is a standalone
+    # dataset tool, and every core flow runs with both unset. Unset, health reports the sibling as
+    # "not configured" and only the integration-only actions refuse, naming it.
+    millm_base_url: str | None = Field(
+        None,
+        description="miLLM base URL (optional): health, probe-verdict and feature-tag label runs. "
+        "Endpoint roles are configured separately and may point at any OpenAI-compatible or TEI "
+        "server; miLLM-only behaviour there (lease, batch, steering) is detected at runtime.",
+    )
+    millm_ui_url: str | None = Field(
+        None,
+        description="miLLM's admin UI as a browser reaches it (optional). The Label step links "
+        "to its Models page when a probe needs a model loaded; unset, it names the model only.",
+    )
+    mistudio_base_url: str | None = Field(
+        None,
+        description="miStudio base URL (optional): health, and 009's detector-set send, results "
+        "refresh and reward marks. Unset, those refuse with mistudio_not_configured.",
+    )
+    dataworks_api_url: str = Field(
+        "http://localhost:8000", description="Where workers reach the API's internal emit route"
+    )
+    # --- feature 018: the isolated runner (FTDD §6.2, §8.3) -------------------------------------
+    runner_url: str | None = Field(
+        None,
+        description="The isolated code-rule runner (feature 018), e.g. http://midataworks-runner:8080. "
+        "Optional: unset or unreachable, health says so, code-rule dry runs and saves refuse "
+        "runner_unavailable, and builds read rule_worker_unavailable per row; nothing else waits "
+        "on it (the backend never depends on the runner).",
+    )
+    progress_heartbeat_seconds: float = Field(
+        60.0, gt=0, description="record_progress time throttle (ADR-007)"
+    )
+    health_probe_timeout_seconds: float = Field(
+        2.0, gt=0, description="Timeout for each dependency probe in GET /api/health"
+    )
+    approval_ttl_hours: float = Field(24.0, gt=0, description="Pending approvals expire (P-08)")
+    agent_label_row_threshold: int = Field(
+        5000, ge=0, description="Agent label rows per version per window before approval (P-07)"
+    )
+    agent_label_window_hours: float = Field(
+        24.0, gt=0, description="Length of the P-07 agent labelling window (010 FTDD section 5.4)"
+    )
+    # --- feature 010: the Agent access card (FTID 010 section 9) --------------------------------
+    mcp_public_url: str | None = Field(
+        None, description="The MCP server's address, shown on the Agent access card"
+    )
+    public_api_url: str | None = Field(
+        None,
+        description="The miDataworks address a client off the cluster reaches (for example "
+        "https://midataworks.hitsai.net); prefixes signed split download URLs (PII run G8)",
+    )
+    mcp_internal_url: str | None = Field(
+        None, description="Where the API reads the MCP server's /health for the card"
+    )
+    agent_request_retention_days: int = Field(
+        30, gt=0, description="dw_agent_requests rows older than this are pruned (010 FTDD 4.2)"
+    )
+    janitor_interval_seconds: float = Field(
+        120.0, gt=0, description="Beat interval for the job janitor"
+    )
+    # --- feature 002: versions, recipes and provenance (FTDD 002 section 11) -------------------
+    version_build_janitor_minutes: float = Field(
+        30.0, gt=0, description="Janitor limit for version_build and version_verify jobs"
+    )
+    row_event_copy_chunk: int = Field(
+        50_000, gt=0, description="Row events per COPY chunk at step ingestion"
+    )
+    parquet_row_group_rows: int = Field(
+        100_000, gt=0, description="Rows per Parquet row group in version and step files"
+    )
+    row_history_text_matches: int = Field(
+        50, gt=0, description="Most row keys a text search resolves to in row history"
+    )
+    orphan_sweep_age_minutes: float = Field(
+        60.0, gt=0, description="Version directories with no row older than this are swept"
+    )
+    # --- feature 001: sources and import (001 FTDD section 11) ----------------------------------
+    hf_hub_url: str = Field("https://huggingface.co", description="Hugging Face Hub API base URL")
+    hf_datasets_server_url: str = Field(
+        "https://datasets-server.huggingface.co", description="Hugging Face Dataset Viewer URL"
+    )
+    hf_http_timeout_s: float = Field(30.0, gt=0, description="Timeout for each Hub or Viewer call")
+    preview_timeout_s: float = Field(30.0, gt=0, description="How long the API waits for a preview")
+    ephemeral_secret_ttl_s: int = Field(
+        900, gt=0, description="Lifetime of a per-import token in the ephemeral store"
+    )
+    source_profile_max_rows: int = Field(
+        5_000_000,
+        gt=0,
+        description="Largest source split (rows) dataworks_profile_source reads whole; a larger "
+        "one is refused with the cap named (PII run G2)",
+    )
+    source_import_janitor_limit_s: float = Field(
+        900.0, gt=0, description="Janitor heartbeat limit for source_import jobs"
+    )
+    upload_max_bytes: int = Field(
+        2 * 1024**3, gt=0, description="Default upload size cap per file (app setting overrides)"
+    )
+    import_confirm_bytes: int = Field(
+        50 * 1000**3, gt=0, description="Imports larger than this need confirm_large (T-02)"
+    )
+    # --- feature 008: publishing, export and handoff contract (FTDD 008 section 11) ----------
+    publish_default_namespace: str = Field(
+        "",
+        description=(
+            "Hugging Face namespace a detector-set send publishes to (<namespace>/<dataset>-v<n>); "
+            "empty means the send form asks for one"
+        ),
+    )
+    publish_max_file_bytes: int = Field(
+        200 * 1000**3,
+        gt=0,
+        description=(
+            "Largest split file a publish uploads (FR-008.65). Default: the Hub's recommended "
+            "per-file size (<200GB); its hard limit is 500GB (huggingface.co/docs/hub/"
+            "storage-limits, read 2026-10-07)"
+        ),
+    )
+    publish_hub_retries: int = Field(
+        5, ge=0, description="Retries for a Hub call answered 429 or 5xx (EC-5)"
+    )
+    publish_hub_backoff_s: float = Field(
+        2.0, ge=0, description="First retry wait when the Hub sends no Retry-After"
+    )
+    # --- who (operator decision D8, 2026-10-16; closes PADR open question 2) ---
+    operator_name: str = Field(
+        "operator",
+        max_length=200,
+        description=(
+            "Recorded as who did a UI action when Settings holds no name; an MCP action records "
+            "its agent identity instead. Empty: UI actions are refused until a name is set"
+        ),
+    )
+    # --- feature 014: the Settings PIN's recovery path (operator directive 2026-10-20) ---
+    settings_pin_bypass: bool = Field(
+        False,
+        description=(
+            "Recovery from a forgotten Settings PIN: true lets every Settings write through and "
+            "lets the PIN be set or removed without the current one. Needs access to the "
+            "deployment; remove it and restart the backend after resetting the PIN"
+        ),
+    )
+    # --- feature 006 (FTID 006 section 9) ---
+    calibration_max_per_rater_rows: int = Field(
+        200_000, gt=0, description="Refuse larger per-rater calibration sets until measured"
+    )
+    review_candidate_max_bytes: int = Field(
+        65_536, gt=0, description="Largest external review candidate payload, in bytes"
+    )
+    publish_janitor_limit_seconds: float = Field(
+        1800.0, gt=0, description="Janitor heartbeat limit for the five publish job kinds"
+    )
+    publish_build_batch_rows: int = Field(
+        65_536, gt=0, description="Rows per streamed batch when writing publish split files"
+    )
+    reward_bundle_trl_version: str = Field(
+        "1.14.1", description="TRL version a reward bundle is written for"
+    )
+    app_build: str = Field(
+        "dev", description="Image commit recorded as producer.build in every manifest"
+    )
+    celery_task_always_eager: bool = Field(
+        False, description="Run tasks in-process (tests only); never set in a deployment"
+    )
+    # --- feature 009: detector sets (FTID 009 section 9) -----------------------------------
+    detector_send_poll_seconds: float = Field(
+        10.0, gt=0, description="Seconds between polls of a miStudio download during a send"
+    )
+    detector_send_download_timeout_minutes: float = Field(
+        60.0, gt=0, description="A miStudio download not ready after this long fails the step"
+    )
+    detector_send_janitor_limit_seconds: float = Field(
+        900.0, gt=0, description="Janitor heartbeat limit for a detector-set send (mistudio_send)"
+    )
+    detector_text_separability_rows: int = Field(
+        2000,
+        ge=40,
+        le=100_000,
+        description=(
+            "015 D-9: the most rows per role the wording check reads (a seeded, label-stratified "
+            "subsample); one cold fit costs about 4.6 s per role at 2,000 rows"
+        ),
+    )
+    detector_length_overlap_min: float | None = Field(
+        0.5,
+        ge=0,
+        le=1,
+        description=(
+            "D-5 tolerance for the calibration-length quantile overlap; measured 2026-10-07 at "
+            "0.000 (chat negatives) and 0.777 (headline negatives) against Humicroedit (T-44)"
+        ),
+    )
+    detector_capability_ttl_seconds: float = Field(
+        600.0, gt=0, description="How long a read of miStudio's served OpenAPI is trusted"
+    )
+    mistudio_timeout_seconds: float = Field(
+        30.0, gt=0, description="Timeout of each call to miStudio (FTDD 009 section 5.4)"
+    )
+    # --- feature 003: operators (FTDD 003 section 11.2) ---------------------------------------
+    operator_test_fixtures: bool = Field(
+        False, description="Register the test-only fixture operators (tests only; never deployed)"
+    )
+    operator_preview_sample_default: int = Field(
+        300, gt=0, description="Rows sampled for an operator preview when none is asked for"
+    )
+    operator_preview_sample_max: int = Field(
+        2000, gt=0, description="Largest preview sample for an operator that calls no model"
+    )
+    operator_model_preview_sample_default: int = Field(
+        5, gt=0, description="Preview sample for a model-calling operator (FR-005.20)"
+    )
+    operator_model_preview_sample_max: int = Field(
+        50, gt=0, description="Largest preview sample for a model-calling operator"
+    )
+    operator_batch_rows: int = Field(
+        10_000, gt=0, description="Rows per record batch a step streams to an operator"
+    )
+    operator_preview_sync_wait_s: float = Field(
+        3.0, ge=0, description="How long the preview route waits before answering 202"
+    )
+    operator_preview_soft_limit_s: float = Field(
+        60.0, gt=0, description="Soft time limit of one preview task (preview_timeout)"
+    )
+    operator_preview_hard_limit_s: float = Field(
+        90.0, gt=0, description="Hard time limit of one preview task"
+    )
+    operator_preview_result_ttl_s: int = Field(
+        3600, gt=0, description="How long a preview result stays in Redis"
+    )
+    operator_params_max_bytes: int = Field(
+        65_536, gt=0, description="Largest accepted operator params body, in bytes"
+    )
+    # --- feature 004: curation (FTDD 004 section 11.2). The warning MARGIN is not here: it is
+    # data with history (dw_shortcut_levels) and a code default (P-19).
+    curation_inline_max_rows: int = Field(
+        20_000, gt=0, description="Reports on inputs up to this many rows run inline, not as jobs"
+    )
+    curation_audit_folds: int = Field(
+        5, ge=2, le=20, description="Stratified folds for the held-out shortcut figure"
+    )
+    curation_control_runs: int = Field(
+        5, ge=1, le=50, description="Permuted-label runs averaged into the audit's control"
+    )
+    curation_control_tolerance_pp: float = Field(
+        2.0,
+        ge=0,
+        lt=50,
+        description="Points above chance at which a control marks a column invalid",
+    )
+    curation_text_baseline_max_rows: int = Field(
+        50_000,
+        gt=0,
+        description="Rows the shortcut audit's text baseline fits on; more are a seeded "
+        "stratified sample (PII run G7)",
+    )
+    curation_minhash_permutations: int = Field(
+        128, ge=16, le=1024, description="MinHash permutations for near-dedup and leakage"
+    )
+    curation_embed_exact_max_rows: int = Field(
+        200_000, gt=0, description="Largest input for blocked exact-cosine embedding dedup"
+    )
+    curation_embed_max_input_chars: int = Field(
+        8_000,
+        gt=0,
+        description="Longest row text sent for an embedding; longer rows are skipped, never cut",
+    )
+    curation_embed_batch_size: int = Field(
+        64, gt=0, le=2048, description="Inputs per /v1/embeddings request"
+    )
+    curation_sweep_interval_s: float = Field(
+        60.0, gt=0, description="How often Beat looks for completed versions without an audit"
+    )
+    curation_cell_sample_size: int = Field(
+        30, gt=0, le=500, description="Seeded sample rows shown per audit cell"
+    )
+    datajuicer_health_cache_s: float = Field(
+        30.0, ge=0, description="How long the Data-Juicer worker liveness answer is cached"
+    )
+    designer_handoff_key: SecretStr | None = Field(
+        None,
+        description="Shared with the Data Designer worker only: seals a model key handed to it",
+    )
+    designer_validate_timeout_s: float = Field(
+        15.0,
+        gt=0,
+        description="How long template validation waits for the Data Designer worker's answer",
+    )
+    dj_num_proc: int | None = Field(
+        None, gt=0, description="Data-Juicer num_proc; unset means the container's CPU limit"
+    )
+
+    # --- feature 005: labeling and endpoints (FTDD 005 section 11) ------------------------------
+    # The P-07 threshold is AGENT_LABEL_ROW_THRESHOLD above and the window is the shared ledger's
+    # 24 h (services/agent_label_ledger.py): one budget for builds and label runs (FR-002.50).
+    label_chunk_size: int = Field(200, gt=0, description="Rows per committed label chunk")
+    label_max_consecutive_failures: int = Field(
+        20, gt=0, description="Consecutive non-backpressure row failures before a run fails"
+    )
+    label_backoff_cap_seconds: float = Field(
+        60.0, gt=0, description="Cap of the 503 backoff when no Retry-After is sent (FR-005.46)"
+    )
+    label_transient_retries: int = Field(
+        3, ge=0, description="Retries of a transient 5xx or connection error before it counts"
+    )
+    judge_parse_failure_stop_share: float = Field(
+        0.05, gt=0, le=1, description="Judge runs stop above this parse-failure share (T-23)"
+    )
+    judge_parse_failure_min_rows: int = Field(
+        200, gt=0, description="Judged rows before the parse-failure share is enforced (T-23)"
+    )
+    keep_share_sample_rows: int = Field(
+        400, gt=0, description="Rows a keep-share estimate scores (FR-005.19)"
+    )
+    keep_share_max_rows: int = Field(1000, gt=0, description="Largest keep-share preview sample")
+    label_sample_max_rows: int = Field(
+        20, gt=0, description="Most rows 'Try it on a sample' scores (FR-005.20)"
+    )
+    label_sample_timeout_seconds: float = Field(
+        30.0, gt=0, description="Time limit of one 'Try it on a sample' request"
+    )
+    endpoint_http_timeout_seconds: float = Field(
+        120.0, gt=0, description="Timeout of one request to a classifier or judge endpoint"
+    )
+    millm_lease_ttl_seconds: int = Field(
+        1800, ge=1, le=7200, description="TTL of the shared miLLM model lease (FTDD 005 6.5)"
+    )
+    millm_lease_holder: str = Field(
+        "midataworks", min_length=1, max_length=128, description="Holder name on miLLM leases"
+    )
+    label_batch_max_lines: int = Field(
+        50_000, gt=0, le=50_000, description="Rows per miLLM batch (miLLM's limit is 50,000)"
+    )
+    label_batch_poll_seconds: float = Field(
+        5.0, gt=0, description="How often a batch-transport run polls its batch"
+    )
+    label_lease_retry_seconds: float = Field(
+        60.0, gt=0, description="Wait before a run blocked by another lease holder retries"
+    )
+
+    # --- feature 007: synthetic generation and steered pairs (FTDD 007 section 11) ---------------
+    generation_chunk_size: int = Field(
+        200, gt=0, le=10_000, description="Prompts per committed generation chunk"
+    )
+    generation_preview_max_prompts: int = Field(
+        5, gt=0, le=5, description="Most prompts 'Try on a sample' generates (FR-007.44)"
+    )
+    generation_preview_timeout_seconds: float = Field(
+        60.0, gt=0, le=60, description="Time limit of one generation preview"
+    )
+    generation_max_n_responses: int = Field(
+        16, ge=1, le=16, description="Upper bound on responses per prompt (N)"
+    )
+    #: 003's spike 1.4 (2026-10-07) found Data Designer sends extra_body statically and cannot run
+    #: in this image, so the default is the native path; ``relay`` runs 007's own operator on the
+    #: loopback relay (FTASKS 1.5).
+    generation_engine_path: Literal["relay", "native"] = Field(
+        "native", description="How generation calls reach the endpoint: native or relay"
+    )
+    #: A kill switch, not a claim: whether miLLM serves inline steering is DETECTED from its
+    #: served OpenAPI (``server_probe.serves_inline_steering``; suite tracker 4.12). False here
+    #: refuses steering even on a miLLM that serves it.
+    millm_steering_supported: bool = Field(
+        True,
+        description=(
+            "Allow steered generation when the generation endpoint's miLLM serves inline steering "
+            "(detected); false switches it off"
+        ),
+    )
+    diversity_sample_size: int = Field(
+        5000, gt=0, le=100_000, description="Rows per side a diversity report samples"
+    )
+    diversity_bootstrap_resamples: int = Field(
+        1000, ge=100, le=10_000, description="Bootstrap resamples per diversity interval"
+    )
+    diversity_sweep_seconds: float = Field(
+        300.0, gt=0, description="How often Beat queues missing diversity reports"
+    )
+    diversity_sweep_max_attempts: int = Field(
+        3,
+        ge=1,
+        le=100,
+        description="Failed attempts (unexpected errors) after which the sweep stops re-queueing a "
+        "diversity report; a refusal is never re-queued",
+    )
+    diversity_cluster_k: int = Field(
+        50, ge=2, le=1000, description="Clusters fitted on a diversity reference (lexical)"
+    )
+    # Feature 016 (FR-016.37; FTDD 016 section 8.3, D32 starting values): every count of a rule set
+    # that grows is capped; a cap is refused naming the setting, never truncated. Never applied when
+    # a build loads a stored rule set (a later reduction cannot break a rebuild).
+    rule_set_max_signals: int = Field(
+        64, ge=1, le=10_000, description="Most signals one rule set may declare"
+    )
+    rule_set_max_cases: int = Field(
+        500, ge=2, le=100_000, description="Most embedded cases one rule set may carry"
+    )
+    rule_set_max_terms: int = Field(
+        2000, ge=1, le=1_000_000, description="Most terms one lexical_weights signal may list"
+    )
+    rule_set_max_code_params_bytes: int = Field(
+        16_384,
+        ge=2,
+        le=10_485_760,
+        description="Largest canonical size, in bytes, of one code_rule signal's params",
+    )
+    rule_set_max_document_bytes: int = Field(
+        262_144,
+        ge=1024,
+        le=104_857_600,
+        description="Largest rule-set document, in bytes of its canonical form",
+    )
+    rule_preview_max_text_bytes: int = Field(
+        65_536,
+        ge=1,
+        le=104_857_600,
+        description="Largest text, in UTF-8 bytes, a rule-set preview evaluates",
+    )
+    recipe_max_rule_sets: int = Field(
+        16, ge=1, le=10_000, description="Most distinct rule-set versions one recipe may pin"
+    )
+    behaviour_max_held_out_values: int = Field(
+        16,
+        ge=1,
+        le=10_000,
+        description="Most held-out values one directing column of a split may name (017)",
+    )
+    generation_requests_in_flight: int = Field(
+        1,
+        ge=1,
+        le=64,
+        description="Generation requests a carrier run may have in flight (017; 1 until measured)",
+    )
+    second_opinion_no_rule_negatives: int = Field(
+        1000,
+        ge=1,
+        le=1_000_000,
+        description="Second-opinion rows behind a no-rule behaviour's assumed negatives (017)",
+    )
+    second_opinion_instructed_rate: float = Field(
+        0.10,
+        ge=0,
+        le=1,
+        description="Share of instructed rows a stratified second-opinion sample draws (017)",
+    )
+    second_opinion_instructed_min: int = Field(
+        500,
+        ge=0,
+        le=1_000_000,
+        description="Fewest instructed rows a stratified second-opinion sample draws (017)",
+    )
+    classifier_run_cap_rows: int = Field(
+        2500,
+        ge=1,
+        le=10_000_000,
+        description="Most rows one paid classifier run may score (017; refused above it)",
+    )
+    classifier_spend_ceiling_usd: float | None = Field(
+        None,
+        ge=0,
+        le=1_000_000,
+        description=(
+            "Total US dollars paid classifier runs may spend (017); unset refuses every paid run"
+        ),
+    )
+    detector_max_sets_per_send: int = Field(
+        16,
+        ge=1,
+        le=256,
+        description="Most detector sets one multi-set send may name (017)",
+    )
+    review_max_queues_per_handoff: int = Field(
+        10,
+        ge=1,
+        le=1000,
+        description="Most review queues one disagreement hand-off may open (017)",
+    )
+    behaviour_max_subquestions: int = Field(
+        8,
+        ge=1,
+        le=64,
+        description="Most sub-questions one behaviour's vocabulary may declare (017)",
+    )
+    behaviour_max_vocabulary_values: int = Field(
+        64,
+        ge=1,
+        le=10_000,
+        description="Most values one field of a behaviour's vocabulary may declare (017)",
+    )
+    # Feature 018 (FTDD §8.3; D32 starting values): operator code rules. Every runner limit is
+    # bounded BELOW by the published contract floor (runner_contract.constants.LIMITS_FLOOR): a
+    # deployment may raise a limit, never lower it. The bound refuses a runtime write AND a stored
+    # row at API start (runtime overrides are validated by building Settings; M30).
+    code_rules_enabled: bool = Field(
+        False,
+        description="Run operator code rules at all (018). Off: dry runs and saves refuse "
+        "code_rules_disabled; the operator turns it on after the runner's post-deploy check",
+    )
+    code_rule_call_fuel: int = Field(
+        _FLOOR["call_fuel"],
+        ge=_FLOOR["call_fuel"],
+        le=1 << 40,
+        description="Fuel one code-rule call may spend (018; never below the contract floor)",
+    )
+    code_rule_load_fuel: int = Field(
+        _FLOOR["load_fuel"],
+        ge=_FLOOR["load_fuel"],
+        le=1 << 36,
+        description="Fuel loading one code rule may spend (018; never below the contract floor)",
+    )
+    code_rule_memory_bytes: int = Field(
+        _FLOOR["memory_bytes"],
+        ge=_FLOOR["memory_bytes"],
+        le=4 << 30,
+        description="Memory one code-rule instance may use, in bytes (018; never below the floor)",
+    )
+    code_rule_input_code_points: int = Field(
+        _FLOOR["input_code_points"],
+        ge=_FLOOR["input_code_points"],
+        le=16 << 20,
+        description="Longest text a code rule reads, in code points (018; never below the floor)",
+    )
+    code_rule_output_bytes: int = Field(
+        _FLOOR["output_bytes"],
+        ge=_FLOOR["output_bytes"],
+        le=1 << 20,
+        description="Largest reply a code rule may write, in bytes (018; never below the floor)",
+    )
+    code_rule_wall_ms: int = Field(
+        10_000,
+        ge=100,
+        le=600_000,
+        description="Wall-time backstop of one code-rule call, in ms; also the client's retry "
+        "budget while the runner is unreachable (018)",
+    )
+    code_rule_api_request_s: float = Field(
+        30.0,
+        gt=0,
+        le=600,
+        description="Time limit of one synchronous code-rule request (dry run or save), seconds",
+    )
+    code_rule_failure_share: float = Field(
+        0.01,
+        ge=0.0,
+        le=1.0,
+        description="Share of a build step's rows a code rule may fail for an operator-code reason "
+        "before the step fails, naming the rule (018; host faults never count)",
+    )
+    code_rule_dry_run_per_minute: int = Field(
+        60, ge=1, le=100_000, description="Code-rule dry runs allowed per minute, deployment-wide"
+    )
+    code_rule_dry_run_max_texts: int = Field(
+        20, ge=1, le=1000, description="Most texts one code-rule dry run may carry"
+    )
+    code_rule_max_source_bytes: int = Field(
+        65_536, ge=1, le=10_485_760, description="Largest code-rule source, in UTF-8 bytes"
+    )
+    code_rule_max_functions: int = Field(
+        16,
+        ge=1,
+        le=_MAX_FUNCTIONS,
+        description="Most signal functions one code-rule document may declare",
+    )
+    code_rule_max_cases: int = Field(
+        64, ge=2, le=10_000, description="Most cases stored beside one code rule"
+    )
+    code_rule_max_param_schema_bytes: int = Field(
+        8_192,
+        ge=2,
+        le=1_048_576,
+        description="Largest code-rule parameter schema, in bytes of its canonical form",
+    )
+    rule_derivation_max_signals: int = Field(
+        32, ge=1, le=1000, description="Most literals one rule derivation may propose"
+    )
+    rule_derivation_min_held_out_per_class: int = Field(
+        50,
+        ge=1,
+        le=1_000_000,
+        description="Held-out rows each class needs before a derivation's figures are measured",
+    )
+    rule_derivation_max_source_rows: int = Field(
+        200_000,
+        ge=100,
+        le=100_000_000,
+        description="Source rows a derivation reads (a seeded deterministic sample above it)",
+    )
+    #: OI-2: proposed 3600, not yet signed off by the operator.
+    rule_derivation_time_limit_s: int = Field(
+        3600, ge=60, le=86_400, description="Soft time limit of one rule derivation, in seconds"
+    )
+
+    @field_validator("dj_num_proc", "classifier_spend_ceiling_usd", mode="before")
+    @classmethod
+    def _empty_is_unset(cls, value: object) -> object:
+        return None if value == "" else value
+
+    @field_validator("log_level", mode="before")
+    @classmethod
+    def _known_log_level(cls, value: object) -> object:
+        level = str(value).strip().upper()
+        if level not in LOG_LEVELS:
+            raise ValueError("LOG_LEVEL must be one of " + ", ".join(LOG_LEVELS))
+        return level
+
+    @field_validator(*SIBLING_ADDRESS_FIELDS, "runner_url", mode="before")
+    @classmethod
+    def _sibling_address(cls, value: object) -> object:
+        """Blank is "not configured"; a set address is http(s) and carries no credentials."""
+        if value is None:
+            return None
+        text = str(value).strip()
+        if not text:
+            return None
+        parts = urlsplit(text)
+        if parts.scheme not in ("http", "https") or not parts.hostname:
+            raise ValueError("must be an http:// or https:// address, or empty for not configured")
+        if parts.username or parts.password:
+            raise ValueError("must not carry a user name or password")
+        return text
+
+    @model_validator(mode="after")
+    def _janitor_limits_exceed_the_heartbeat(self) -> Settings:
+        floor = 2 * self.progress_heartbeat_seconds
+        for name, unit in JANITOR_LIMIT_FIELDS:
+            seconds = float(getattr(self, name)) * unit
+            if seconds <= floor:
+                raise ValueError(
+                    f"{name.upper()} ({seconds:g} s) must be more than twice "
+                    f"PROGRESS_HEARTBEAT_SECONDS ({floor:g} s), or the janitor fails live jobs"
+                )
+        return self
+
+    @field_validator("settings_encryption_key")
+    @classmethod
+    def _key_long_enough(cls, value: SecretStr) -> SecretStr:
+        if len(value.get_secret_value()) < 32:
+            raise ValueError("SETTINGS_ENCRYPTION_KEY must be at least 32 characters")
+        return value
+
+    @field_validator("data_dir")
+    @classmethod
+    def _data_dir_absolute(cls, value: Path) -> Path:
+        if not value.is_absolute():
+            raise ValueError("DATA_DIR must be an absolute path")
+        return value
+
+    @property
+    def database_url_sync(self) -> str:
+        """The same database through psycopg2, for Celery workers and Alembic.
+
+        Derived, not configured separately: two variables that must name one database can
+        drift apart, and a worker writing to a different database than the API reads is a
+        silent failure.
+        """
+        url = self.database_url
+        if "+asyncpg" in url:
+            return url.replace("+asyncpg", "+psycopg2", 1)
+        if url.startswith("postgresql://"):
+            return url.replace("postgresql://", "postgresql+psycopg2://", 1)
+        return url
+
+
+class ConfigurationError(RuntimeError):
+    """Configuration is missing or invalid. The message names every offending variable."""
+
+
+def load_settings() -> Settings:
+    """Build settings from the environment, or raise naming what is missing.
+
+    pydantic's own error lists field names in lower case among other noise; this message names
+    the environment variables an operator has to set.
+    """
+    try:
+        return Settings()
+    except ValidationError as exc:
+        problems: list[str] = []
+        for error in exc.errors():
+            name = str(error["loc"][0]).upper() if error["loc"] else "?"
+            if error["type"] == "missing":
+                problems.append(f"{name} is required and not set")
+            else:
+                problems.append(f"{name}: {error['msg']}")
+        raise ConfigurationError("Invalid configuration: " + "; ".join(problems)) from None
+
+
+@lru_cache(maxsize=1)
+def env_settings() -> Settings:
+    """The process's settings as the ENVIRONMENT gives them, loaded once.
+
+    Never the value in force for a runtime-writable key: that is :func:`get_settings`. Read this
+    only to show or validate against the environment value (feature 012).
+    """
+    return load_settings()
+
+
+#: The environment settings with the validated runtime overrides on top, or None when no override
+#: is in force. Replaced in one assignment by ``core.runtime_settings.apply`` (012 FTID 7.1).
+_overlay: Settings | None = None
+
+
+def get_settings() -> Settings:
+    """The settings IN FORCE in this process: the environment with any runtime override applied.
+
+    Every reader calls this at the time it needs a value, so an override reaches every call site
+    (012 FTID I1). Without an override this is the cached environment object itself.
+    """
+    overlay = _overlay
+    return overlay if overlay is not None else env_settings()
+
+
+def install_overlay(overlay: Settings | None) -> None:
+    """Replace the override overlay (``core.runtime_settings`` only)."""
+    global _overlay
+    _overlay = overlay
+
+
+def _clear() -> None:
+    env_settings.cache_clear()
+    install_overlay(None)
+
+
+#: Kept from the ``lru_cache`` era: clears the environment cache and the overlay.
+get_settings.cache_clear = _clear  # type: ignore[attr-defined]

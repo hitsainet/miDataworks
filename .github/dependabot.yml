@@ -1,0 +1,33 @@
+# Dependabot for both ecosystems plus the workflows themselves (Foundation task 13.4).
+#
+# Pins are exact (ADR-002), so every update is a pull request that runs the whole test tree
+# (backend-tests.yml has no path filter). Major versions are separate, deliberate changes
+# (PADR section 5): Dependabot opens them, a person decides.
+#
+# Not covered: the Data-Juicer image's pins (`datajuicer/requirements.txt`). Feature 003's
+# contract test must run every allowlisted operator before Data-Juicer moves, so those are
+# upgraded by hand, never by a bot (ADR-010).
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: /backend
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      backend-minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      frontend-minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

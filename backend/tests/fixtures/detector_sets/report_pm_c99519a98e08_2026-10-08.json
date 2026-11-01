@@ -1,0 +1,772 @@
+{
+ "evaluations": [
+  {
+   "created_at": "2026-10-05T14:32:04.225482Z",
+   "dataset_id": "pmd_fb14b0b206a5",
+   "id": "pme_9030a1bec841",
+   "metrics": {
+    "auroc": 0.9750930056392559,
+    "ci": {
+     "alpha": 0.05,
+     "high": 0.9836579412507365,
+     "low": 0.965238616278091,
+     "resamples": 2000
+    },
+    "length_bands": [
+     {
+      "auroc": 0.9812641402714932,
+      "band": 0,
+      "fpr_at_threshold": 0.004807692307692308,
+      "max_length": 44,
+      "mean_negative_score": 4.1109442710876465,
+      "mean_positive_score": 89.20563350004308,
+      "min_length": 39,
+      "minimum": 20,
+      "n": 276,
+      "n_negative_in_band": 208,
+      "n_positive_in_band": 68,
+      "recall_at_threshold": 0.3088235294117647,
+      "scored": true,
+      "threshold_used": 117.54365539550781
+     },
+     {
+      "auroc": 0.974826170729664,
+      "band": 1,
+      "fpr_at_threshold": 0.0,
+      "max_length": 48,
+      "mean_negative_score": 7.606673143912053,
+      "mean_positive_score": 102.31041788090171,
+      "min_length": 45,
+      "minimum": 20,
+      "n": 311,
+      "n_negative_in_band": 138,
+      "n_positive_in_band": 173,
+      "recall_at_threshold": 0.36416184971098264,
+      "scored": true,
+      "threshold_used": 117.54365539550781
+     },
+     {
+      "auroc": 0.9430995241051107,
+      "band": 2,
+      "fpr_at_threshold": 0.018518518518518517,
+      "max_length": 52,
+      "mean_negative_score": 17.971548716227215,
+      "mean_positive_score": 105.16738066859752,
+      "min_length": 49,
+      "minimum": 20,
+      "n": 233,
+      "n_negative_in_band": 54,
+      "n_positive_in_band": 179,
+      "recall_at_threshold": 0.3854748603351955,
+      "scored": true,
+      "threshold_used": 117.54365539550781
+     },
+     {
+      "auroc": 0.977103448275862,
+      "band": 3,
+      "fpr_at_threshold": 0.020689655172413793,
+      "max_length": 268,
+      "mean_negative_score": 10.926523379621834,
+      "mean_positive_score": 115.82024026489258,
+      "min_length": 53,
+      "minimum": 20,
+      "n": 270,
+      "n_negative_in_band": 145,
+      "n_positive_in_band": 125,
+      "recall_at_threshold": 0.456,
+      "scored": true,
+      "threshold_used": 117.54365539550781
+     }
+    ],
+    "n_negative": 545,
+    "n_positive": 545,
+    "name": "Humor (JEV-9B) held-out test",
+    "operating_points": [
+     {
+      "realised_fpr": 0.009174311926605505,
+      "recall": 0.3853211009174312,
+      "target_fpr": 0.01,
+      "threshold": 117.54365539550781
+     },
+     {
+      "realised_fpr": 0.04954128440366973,
+      "recall": 0.8807339449541285,
+      "target_fpr": 0.05,
+      "threshold": 47.12217712402344
+     },
+     {
+      "realised_fpr": 0.09908256880733946,
+      "recall": 0.9743119266055046,
+      "target_fpr": 0.1,
+      "threshold": 25.176910400390625
+     }
+    ],
+    "out_of_distribution": false,
+    "roc": [
+     {
+      "fpr": 0.0,
+      "threshold": null,
+      "tpr": 0.0
+     },
+     {
+      "fpr": 0.0,
+      "threshold": 212.66537475585938,
+      "tpr": 0.001834862385321101
+     },
+     {
+      "fpr": 0.0,
+      "threshold": 210.07080078125,
+      "tpr": 0.003669724770642202
+     }
+    ],
+    "scored": true
+   },
+   "n_negative": 545,
+   "n_positive": 545,
+   "probe_id": "pm_c99519a98e08",
+   "status": "completed"
+  },
+  {
+   "created_at": "2026-10-05T14:33:44.520534Z",
+   "dataset_id": "pmd_c99c8595671d",
+   "id": "pme_ab3bc0da1f70",
+   "metrics": {
+    "auroc": 0.7375442903756163,
+    "ci": {
+     "alpha": 0.05,
+     "high": 0.7501896404192496,
+     "low": 0.7257708903315967,
+     "resamples": 2000
+    },
+    "length_bands": [
+     {
+      "auroc": 0.7352516657650983,
+      "band": 0,
+      "fpr_at_threshold": 0.0046210720887245845,
+      "max_length": 42,
+      "mean_negative_score": 6.79209408433953,
+      "mean_positive_score": 18.922879762689217,
+      "min_length": 35,
+      "minimum": 20,
+      "n": 1803,
+      "n_negative_in_band": 1082,
+      "n_positive_in_band": 721,
+      "recall_at_threshold": 0.022191400832177532,
+      "scored": true,
+      "threshold_used": 56.095550537109375
+     },
+     {
+      "auroc": 0.7546132438989582,
+      "band": 1,
+      "fpr_at_threshold": 0.01038961038961039,
+      "max_length": 45,
+      "mean_negative_score": 8.343472190956017,
+      "mean_positive_score": 22.672152728824827,
+      "min_length": 43,
+      "minimum": 20,
+      "n": 1883,
+      "n_negative_in_band": 1155,
+      "n_positive_in_band": 728,
+      "recall_at_threshold": 0.04945054945054945,
+      "scored": true,
+      "threshold_used": 56.095550537109375
+     },
+     {
+      "auroc": 0.7240045842398847,
+      "band": 2,
+      "fpr_at_threshold": 0.007909604519774011,
+      "max_length": 48,
+      "mean_negative_score": 10.733184538588011,
+      "mean_positive_score": 24.122562892085586,
+      "min_length": 46,
+      "minimum": 20,
+      "n": 1516,
+      "n_negative_in_band": 885,
+      "n_positive_in_band": 631,
+      "recall_at_threshold": 0.05705229793977813,
+      "scored": true,
+      "threshold_used": 56.095550537109375
+     },
+     {
+      "auroc": 0.7446063323059681,
+      "band": 3,
+      "fpr_at_threshold": 0.01835985312117503,
+      "max_length": 76,
+      "mean_negative_score": 14.105302817672673,
+      "mean_positive_score": 29.326577427875566,
+      "min_length": 49,
+      "minimum": 20,
+      "n": 1398,
+      "n_negative_in_band": 817,
+      "n_positive_in_band": 581,
+      "recall_at_threshold": 0.08777969018932874,
+      "scored": true,
+      "threshold_used": 56.095550537109375
+     }
+    ],
+    "n_negative": 3939,
+    "n_positive": 2661,
+    "name": "Humicroedit humor (human labels)",
+    "operating_points": [
+     {
+      "realised_fpr": 0.009900990099009901,
+      "recall": 0.05223600150319429,
+      "target_fpr": 0.01,
+      "threshold": 56.095550537109375
+     },
+     {
+      "realised_fpr": 0.04950495049504951,
+      "recall": 0.20105223600150318,
+      "target_fpr": 0.05,
+      "threshold": 38.88734436035156
+     },
+     {
+      "realised_fpr": 0.09977151561309977,
+      "recall": 0.33446072904922963,
+      "target_fpr": 0.1,
+      "threshold": 29.385726928710938
+     }
+    ],
+    "out_of_distribution": true,
+    "roc": [
+     {
+      "fpr": 0.0,
+      "threshold": null,
+      "tpr": 0.0
+     },
+     {
+      "fpr": 0.0,
+      "threshold": 107.44375610351562,
+      "tpr": 0.0003757985719654265
+     },
+     {
+      "fpr": 0.0,
+      "threshold": 105.74423217773438,
+      "tpr": 0.000751597143930853
+     }
+    ],
+    "scored": true
+   },
+   "n_negative": 3939,
+   "n_positive": 2661,
+   "probe_id": "pm_c99519a98e08",
+   "status": "completed"
+  }
+ ],
+ "judge_runs": [],
+ "paired_probe_id": null,
+ "probe": {
+  "created_at": "2026-10-05T13:47:24.634193Z",
+  "definition_build": {
+   "built_at": "2026-10-06T00:25:58.551556+00:00",
+   "requested": {
+    "acknowledged": false,
+    "seed": 1337,
+    "tolerance": 0.05,
+    "vector_count": 16
+   },
+   "resolved": {
+    "authoritative_input": "token_ids",
+    "basis": "residual",
+    "bytes": 391044,
+    "messages_reproduce_token_ids": false,
+    "model_dtype": "bfloat16",
+    "model_revision": "0e9e39f249a16976918f6564b8830bc894c89659",
+    "sets_sampled": [
+     "pmd_c99c8595671d",
+     "pmd_fb14b0b206a5"
+    ],
+    "sha256": "bcde7d8b5d9c268107d1c4d32b160f12ae5c89c77cb43942de224d1b625da4cb",
+    "vectors": 16,
+    "vectors_scored": "one_at_a_time"
+   }
+  },
+  "definition_built_at": "2026-10-06T00:25:58.584868Z",
+  "definition_sha256": "bcde7d8b5d9c268107d1c4d32b160f12ae5c89c77cb43942de224d1b625da4cb",
+  "id": "pm_c99519a98e08",
+  "layer": 12,
+  "length_band_count": 0,
+  "published": [],
+  "realised_fpr": 0.01,
+  "render_form": null,
+  "render_served": false,
+  "rule": "rolling_mean_max",
+  "rule_params": {
+   "window": 4
+  },
+  "run_id": "pmr_a1993af56691",
+  "rung": 2,
+  "rung_language": "",
+  "rung_next_step": "",
+  "rung_reasons": [
+   "CI lower bound above 0.5 in-distribution on: pmd_fb14b0b206a5",
+   "every out-of-distribution set run (1) cleared 0.5"
+  ],
+  "sae_feature_indices": null,
+  "sae_id": null,
+  "scope": null,
+  "selected": true,
+  "streamable": true,
+  "target_fpr": 0.01,
+  "threshold": 107.82958984375,
+  "threshold_source": "calibration_set",
+  "val_metrics": {
+   "best_epoch": 41,
+   "epochs_run": 81,
+   "history": [
+    {
+     "epoch": 1,
+     "loss": 0.6931472909636796,
+     "val_auroc": 0.9540209727853142
+    },
+    {
+     "epoch": 2,
+     "loss": 2.758460260927693,
+     "val_auroc": 0.915706602939836
+    },
+    {
+     "epoch": 3,
+     "loss": 10.859634354710579,
+     "val_auroc": 0.948196189864739
+    },
+    {
+     "epoch": 4,
+     "loss": 13.378930658102036,
+     "val_auroc": 0.9686062133659895
+    },
+    {
+     "epoch": 5,
+     "loss": 12.362240210175514,
+     "val_auroc": 0.9699269202265315
+    },
+    {
+     "epoch": 6,
+     "loss": 14.816741853952408,
+     "val_auroc": 0.9692660714073404
+    },
+    {
+     "epoch": 7,
+     "loss": 16.542313545942307,
+     "val_auroc": 0.9692244587380661
+    },
+    {
+     "epoch": 8,
+     "loss": 15.587647140026093,
+     "val_auroc": 0.9681960313402846
+    },
+    {
+     "epoch": 9,
+     "loss": 16.67523431777954,
+     "val_auroc": 0.9684298549104932
+    },
+    {
+     "epoch": 10,
+     "loss": 14.475822910666466,
+     "val_auroc": 0.9682653857890753
+    },
+    {
+     "epoch": 11,
+     "loss": 12.786144763231277,
+     "val_auroc": 0.9653931208313024
+    },
+    {
+     "epoch": 12,
+     "loss": 13.626640066504478,
+     "val_auroc": 0.9648214420176993
+    },
+    {
+     "epoch": 13,
+     "loss": 14.121237933635712,
+     "val_auroc": 0.9675540073000511
+    },
+    {
+     "epoch": 14,
+     "loss": 11.908512502908707,
+     "val_auroc": 0.9673974644013521
+    },
+    {
+     "epoch": 15,
+     "loss": 10.93420061469078,
+     "val_auroc": 0.9666424916873738
+    },
+    {
+     "epoch": 16,
+     "loss": 8.902019709348679,
+     "val_auroc": 0.9650374315867903
+    },
+    {
+     "epoch": 17,
+     "loss": 6.955474689602852,
+     "val_auroc": 0.9644429648828703
+    },
+    {
+     "epoch": 18,
+     "loss": 4.902946352958679,
+     "val_auroc": 0.9605155215256393
+    },
+    {
+     "epoch": 19,
+     "loss": 4.219065546989441,
+     "val_auroc": 0.953362105521803
+    },
+    {
+     "epoch": 20,
+     "loss": 6.760038390755653,
+     "val_auroc": 0.9585993571833376
+    },
+    {
+     "epoch": 21,
+     "loss": 3.6344917863607407,
+     "val_auroc": 0.9545956239324369
+    },
+    {
+     "epoch": 22,
+     "loss": 7.009932592511177,
+     "val_auroc": 0.9605492079721948
+    },
+    {
+     "epoch": 23,
+     "loss": 5.985673174262047,
+     "val_auroc": 0.9672429030583329
+    },
+    {
+     "epoch": 24,
+     "loss": 4.203792423009872,
+     "val_auroc": 0.9678651115417692
+    },
+    {
+     "epoch": 25,
+     "loss": 4.911451756954193,
+     "val_auroc": 0.9680365161080661
+    },
+    {
+     "epoch": 26,
+     "loss": 5.560836970806122,
+     "val_auroc": 0.9681009166676573
+    },
+    {
+     "epoch": 27,
+     "loss": 5.61017207801342,
+     "val_auroc": 0.9687142081505348
+    },
+    {
+     "epoch": 28,
+     "loss": 5.198022216558456,
+     "val_auroc": 0.96934434285669
+    },
+    {
+     "epoch": 29,
+     "loss": 4.1699807941913605,
+     "val_auroc": 0.9698427041101428
+    },
+    {
+     "epoch": 30,
+     "loss": 3.2892871648073196,
+     "val_auroc": 0.9687171804840544
+    },
+    {
+     "epoch": 31,
+     "loss": 2.761780247092247,
+     "val_auroc": 0.9663868710046886
+    },
+    {
+     "epoch": 32,
+     "loss": 2.4742709025740623,
+     "val_auroc": 0.963576034272987
+    },
+    {
+     "epoch": 33,
+     "loss": 2.433175541460514,
+     "val_auroc": 0.9651583064832538
+    },
+    {
+     "epoch": 34,
+     "loss": 1.9866563864052296,
+     "val_auroc": 0.9624445659798596
+    },
+    {
+     "epoch": 35,
+     "loss": 1.9676243886351585,
+     "val_auroc": 0.9569041362993258
+    },
+    {
+     "epoch": 36,
+     "loss": 2.8773387372493744,
+     "val_auroc": 0.9586211542958144
+    },
+    {
+     "epoch": 37,
+     "loss": 3.470423996448517,
+     "val_auroc": 0.9562422967022951
+    },
+    {
+     "epoch": 38,
+     "loss": 6.022759094834328,
+     "val_auroc": 0.9684397626888918
+    },
+    {
+     "epoch": 39,
+     "loss": 2.3155075013637543,
+     "val_auroc": 0.9689292069417857
+    },
+    {
+     "epoch": 40,
+     "loss": 4.000263050198555,
+     "val_auroc": 0.9709523752907933
+    },
+    {
+     "epoch": 41,
+     "loss": 4.340139031410217,
+     "val_auroc": 0.9731360496498591
+    },
+    {
+     "epoch": 42,
+     "loss": 4.318478852510452,
+     "val_auroc": 0.9731261418714604
+    },
+    {
+     "epoch": 43,
+     "loss": 4.817634671926498,
+     "val_auroc": 0.9729755436398008
+    },
+    {
+     "epoch": 44,
+     "loss": 4.234401181340218,
+     "val_auroc": 0.9713149999801846
+    },
+    {
+     "epoch": 45,
+     "loss": 4.247099652886391,
+     "val_auroc": 0.9683159154589085
+    },
+    {
+     "epoch": 46,
+     "loss": 4.792780309915543,
+     "val_auroc": 0.9702509045801677
+    },
+    {
+     "epoch": 47,
+     "loss": 3.073980800807476,
+     "val_auroc": 0.9698991784470152
+    },
+    {
+     "epoch": 48,
+     "loss": 3.193285271525383,
+     "val_auroc": 0.9683436572384249
+    },
+    {
+     "epoch": 49,
+     "loss": 3.823832720518112,
+     "val_auroc": 0.9689827089451387
+    },
+    {
+     "epoch": 50,
+     "loss": 3.1619110852479935,
+     "val_auroc": 0.9695494338695425
+    },
+    {
+     "epoch": 51,
+     "loss": 2.784473568201065,
+     "val_auroc": 0.9696237422075324
+    },
+    {
+     "epoch": 52,
+     "loss": 2.614012084901333,
+     "val_auroc": 0.9675896753022863
+    },
+    {
+     "epoch": 53,
+     "loss": 2.458893671631813,
+     "val_auroc": 0.9641477130865901
+    },
+    {
+     "epoch": 54,
+     "loss": 2.6546410396695137,
+     "val_auroc": 0.9690411648376908
+    },
+    {
+     "epoch": 55,
+     "loss": 2.2184837758541107,
+     "val_auroc": 0.9681296492250137
+    },
+    {
+     "epoch": 56,
+     "loss": 2.145021140575409,
+     "val_auroc": 0.9643349700983248
+    },
+    {
+     "epoch": 57,
+     "loss": 2.070897839963436,
+     "val_auroc": 0.9639961240770905
+    },
+    {
+     "epoch": 58,
+     "loss": 2.287250056862831,
+     "val_auroc": 0.9654287888335373
+    },
+    {
+     "epoch": 59,
+     "loss": 1.9201787374913692,
+     "val_auroc": 0.9656705386264648
+    },
+    {
+     "epoch": 60,
+     "loss": 1.920070443302393,
+     "val_auroc": 0.9631133410217695
+    },
+    {
+     "epoch": 61,
+     "loss": 3.5402819737792015,
+     "val_auroc": 0.9660529788726533
+    },
+    {
+     "epoch": 62,
+     "loss": 2.623599737882614,
+     "val_auroc": 0.9691531227335959
+    },
+    {
+     "epoch": 63,
+     "loss": 2.2034173235297203,
+     "val_auroc": 0.9693423613010101
+    },
+    {
+     "epoch": 64,
+     "loss": 2.558302730321884,
+     "val_auroc": 0.9695682586484999
+    },
+    {
+     "epoch": 65,
+     "loss": 2.9376891627907753,
+     "val_auroc": 0.9697931652181494
+    },
+    {
+     "epoch": 66,
+     "loss": 2.942200392484665,
+     "val_auroc": 0.9705402117094089
+    },
+    {
+     "epoch": 67,
+     "loss": 2.8165719136595726,
+     "val_auroc": 0.9706323540485164
+    },
+    {
+     "epoch": 68,
+     "loss": 2.600931726396084,
+     "val_auroc": 0.9696851704336039
+    },
+    {
+     "epoch": 69,
+     "loss": 2.304049715399742,
+     "val_auroc": 0.9663720093370904
+    },
+    {
+     "epoch": 70,
+     "loss": 2.9913747534155846,
+     "val_auroc": 0.9668535273672656
+    },
+    {
+     "epoch": 71,
+     "loss": 3.9631911665201187,
+     "val_auroc": 0.9688875942725115
+    },
+    {
+     "epoch": 72,
+     "loss": 2.7249769046902657,
+     "val_auroc": 0.9719233375738625
+    },
+    {
+     "epoch": 73,
+     "loss": 2.488304279744625,
+     "val_auroc": 0.9723880123807598
+    },
+    {
+     "epoch": 74,
+     "loss": 2.695503830909729,
+     "val_auroc": 0.9719926920226531
+    },
+    {
+     "epoch": 75,
+     "loss": 2.6001197695732117,
+     "val_auroc": 0.9709018456209602
+    },
+    {
+     "epoch": 76,
+     "loss": 2.3275220543146133,
+     "val_auroc": 0.9688885850503512
+    },
+    {
+     "epoch": 77,
+     "loss": 2.196787439286709,
+     "val_auroc": 0.968564600696715
+    },
+    {
+     "epoch": 78,
+     "loss": 3.0573036670684814,
+     "val_auroc": 0.9714358748766482
+    },
+    {
+     "epoch": 79,
+     "loss": 1.9191789329051971,
+     "val_auroc": 0.9715815192191086
+    },
+    {
+     "epoch": 80,
+     "loss": 1.927187867462635,
+     "val_auroc": 0.9705382301537291
+    },
+    {
+     "epoch": 81,
+     "loss": 1.8825674392282963,
+     "val_auroc": 0.9651236292588586
+    }
+   ],
+   "val_auroc": 0.9731360496498591,
+   "val_auroc_is_selection_maximised": true,
+   "val_auroc_note": "maximum over the epochs and layers this same validation split selected; optimistic by an unmeasured amount. For a held-out in-distribution number, add an evaluation view marked in_distribution."
+  },
+  "variant": "dense",
+  "window_thresholds": {}
+ },
+ "rung_language": "detects on unseen tasks",
+ "rung_next_step": "run the judge baseline on the same out-of-distribution sets",
+ "sae_hf_repo": null,
+ "threshold_transfer": {
+  "caution": "the shipped threshold is above every score on Humicroedit humor (human labels), so recall there is zero however well the probe ranks",
+  "own_threshold_spread": 61.44810485839844,
+  "per_set": [
+   {
+    "auroc": 0.9750930056392559,
+    "fpr_at_shipped": 0.011009174311926606,
+    "max_score": 212.66537475585938,
+    "name": "Humor (JEV-9B) held-out test",
+    "own_threshold_at_1pct": 117.54365539550781,
+    "recall_at_shipped": 0.45321100917431195,
+    "unreachable": false
+   },
+   {
+    "auroc": 0.7375442903756163,
+    "fpr_at_shipped": 0.0,
+    "max_score": 107.44375610351562,
+    "name": "Humicroedit humor (human labels)",
+    "own_threshold_at_1pct": 56.095550537109375,
+    "recall_at_shipped": 0.0,
+    "unreachable": true
+   }
+  ],
+  "shipped_threshold": 107.82958984375,
+  "threshold_source": "calibration_set",
+  "unreachable_sets": [
+   "Humicroedit humor (human labels)"
+  ]
+ },
+ "validation_caveat": {
+  "held_out_alternative": "an evaluation view marked in_distribution is scored like any other set and is never touched by training",
+  "note": "maximum over the epochs and layers this same validation split selected; optimistic by an unmeasured amount. For a held-out in-distribution number, add an evaluation view marked in_distribution.",
+  "selected_over": [
+   "epoch",
+   "layer"
+  ],
+  "selection_maximised": true,
+  "val_auroc": 0.9731360496498591
+ }
+}

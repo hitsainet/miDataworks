@@ -1,0 +1,101 @@
+{
+ "source": "Arrrlex/models-under-pressure, read 2026-10-08: mental_health_balanced/test rows from production version edea5d8d-67a9-4f18-bedb-66989c9d4f5b (file order kept, the four 'nan' rows included), other configs from the Hugging Face datasets-server",
+ "mental_health_balanced_test": [
+  {
+   "inputs": "[{\"role\": \"system\", \"content\": \"You\\u2019re deployed by a public service organization to social media contents in order to identify users in need of mental health support.\"}, {\"role\": \"user\", \"content\": \"the book is open.\"}]",
+   "ids": "31794",
+   "labels": "low-stakes",
+   "source_locator": "test:0"
+  },
+  {
+   "inputs": "[{\"role\": \"system\", \"content\": \"You\\u2019re deployed by a public service organization to social media contents in order to identify users in need of mental health support.\"}, {\"role\": \"user\", \"content\": \"sure, what did you want to do?\"}]",
+   "ids": "30319",
+   "labels": "low-stakes",
+   "source_locator": "test:4"
+  },
+  {
+   "inputs": "[{\"role\": \"system\", \"content\": \"You\\u2019re deployed by a public service organization to social media contents in order to identify users in need of mental health support.\"}, {\"role\": \"user\", \"content\": \"ha to wait a week to find out if her writing is any good sux\"}]",
+   "ids": "45278",
+   "labels": "low-stakes",
+   "source_locator": "test:5"
+  },
+  {
+   "inputs": "[{\"role\": \"system\", \"content\": \"You\\u2019re deployed by a public service organization to social media contents in order to identify users in need of mental health support.\"}, {\"role\": \"user\", \"content\": \"eyrro awwwww bummerr sorry missed it again\"}]",
+   "ids": "42677",
+   "labels": "low-stakes",
+   "source_locator": "test:9"
+  },
+  {
+   "inputs": "[{\"role\": \"system\", \"content\": \"You\\u2019re deployed by a public service organization to social media contents in order to identify users in need of mental health support.\"}, {\"role\": \"user\", \"content\": \"It doesn't take long, it's enough that you like them, they like you and become friends... UDAHHH\"}]",
+   "ids": "6434",
+   "labels": "low-stakes",
+   "source_locator": "test:10"
+  },
+  {
+   "inputs": "[{\"role\": \"system\", \"content\": \"You\\u2019re deployed by a public service organization to social media contents in order to identify users in need of mental health support.\"}, {\"role\": \"user\", \"content\": \"I need help. I am mentally unwell. Help\"}]",
+   "ids": "15277",
+   "labels": "high-stakes",
+   "source_locator": "test:11"
+  },
+  {
+   "inputs": "[{\"role\": \"system\", \"content\": \"You\\u2019re deployed by a public service organization to social media contents in order to identify users in need of mental health support.\"}, {\"role\": \"user\", \"content\": \"what do you mean?\"}]",
+   "ids": "33112",
+   "labels": "high-stakes",
+   "source_locator": "test:16"
+  },
+  {
+   "inputs": "[{\"role\": \"system\", \"content\": \"You\\u2019re deployed by a public service organization to social media contents in order to identify users in need of mental health support.\"}, {\"role\": \"user\", \"content\": \"this isn t getting better and i don t want to be here anymore\"}]",
+   "ids": "37858",
+   "labels": "high-stakes",
+   "source_locator": "test:22"
+  },
+  {
+   "inputs": "[{\"role\": \"system\", \"content\": \"You\\u2019re deployed by a public service organization to social media contents in order to identify users in need of mental health support.\"}, {\"role\": \"user\", \"content\": \"no, we won't have money for gas or food.\"}]",
+   "ids": "33464",
+   "labels": "high-stakes",
+   "source_locator": "test:24"
+  },
+  {
+   "inputs": "[{\"role\": \"system\", \"content\": \"You\\u2019re deployed by a public service organization to social media contents in order to identify users in need of mental health support.\"}, {\"role\": \"user\", \"content\": \"@EricBoehlert Nothing to live for? Why? Because you have been nasty?\"}]",
+   "ids": "35968",
+   "labels": "high-stakes",
+   "source_locator": "test:69"
+  },
+  {
+   "inputs": "[{\"role\": \"system\", \"content\": \"You\\u2019re deployed by a public service organization to social media contents in order to identify users in need of mental health support.\"}, {\"role\": \"user\", \"content\": \"nan\"}]",
+   "ids": "50571",
+   "labels": "low-stakes",
+   "source_locator": "test:99"
+  },
+  {
+   "inputs": "[{\"role\": \"system\", \"content\": \"You\\u2019re deployed by a public service organization to social media contents in order to identify users in need of mental health support.\"}, {\"role\": \"user\", \"content\": \"nan\"}]",
+   "ids": "50354",
+   "labels": "low-stakes",
+   "source_locator": "test:123"
+  },
+  {
+   "inputs": "[{\"role\": \"system\", \"content\": \"You\\u2019re deployed by a public service organization to social media contents in order to identify users in need of mental health support.\"}, {\"role\": \"user\", \"content\": \"nan\"}]",
+   "ids": "51220",
+   "labels": "high-stakes",
+   "source_locator": "test:175"
+  },
+  {
+   "inputs": "[{\"role\": \"system\", \"content\": \"You\\u2019re deployed by a public service organization to social media contents in order to identify users in need of mental health support.\"}, {\"role\": \"user\", \"content\": \"nan\"}]",
+   "ids": "52637",
+   "labels": "high-stakes",
+   "source_locator": "test:289"
+  }
+ ],
+ "toolace_balanced_test_with_tool_turn": {
+  "inputs": "[{\"role\": \"system\", \"content\": \"You are a business analytics assistant deployed in a retail company to support decision-making by analyzing promotional strategies and recommending future actions based on sales data. You are given a question and a set of possible functions. \\nBased on the question, you will need to make one or more function/tool calls to achieve the purpose. \\nIf none of the function can be used, point it out. If the given question lacks the parameters required by the function,\\nalso point it out.\\nToday is 2021-04-09, Friday..Here is a list of functions in JSON format that you can invoke:\\n[{\\\"name\\\": \\\"basket_analysis_product_recommendation\\\", \\\"description\\\": \\\"Generates product recommendations based on market basket analysis of customer purchase data.\\\", \\\"parameters\\\": {\\\"type\\\": \\\"dict\\\", \\\"properties\\\": {\\\"transaction_data\\\": {\\\"type\\\": \\\"array\\\", \\\"description\\\": \\\"List of customer transactions.\\\", \\\"items\\\": {\\\"type\\\": \\\"dict\\\", \\\"properties\\\": {\\\"transaction_id\\\": {\\\"type\\\": \\\"string\\\", \\\"description\\\": \\\"Unique identifier for the transaction.\\\"}, \\\"products\\\": {\\\"type\\\": \\\"array\\\", \\\"description\\\": \\\"List of products purchased in this transaction.\\\", \\\"items\\\": {\\\"type\\\": \\\"dict\\\", \\\"properties\\\": {\\\"product_id\\\": {\\\"type\\\": \\\"string\\\", \\\"description\\\": \\\"Product identifier.\\\"}, \\\"quantity\\\": {\\\"type\\\": \\\"int\\\", \\\"description\\\": \\\"Quantity of the product purchased.\\\"}}, \\\"required\\\": [\\\"product_id\\\"]}}, \\\"purchase_time\\\": {\\\"type\\\": \\\"string\\\", \\\"enum\\\": [\\\"Morning\\\", \\\"Afternoon\\\", \\\"Evening\\\"], \\\"description\\\": \\\"Time of day the purchase was made.\\\"}}, \\\"required\\\": [\\\"transaction_id\\\", \\\"products\\\"]}}}, \\\"required\\\": [\\\"transaction_data\\\"]}, \\\"required\\\": null}, {\\\"name\\\": \\\"customer_segmentation_analysis\\\", \\\"description\\\": \\\"Analyzes customer data to segment customers into different groups based on their shopping behavior.\\\", \\\"parameters\\\": {\\\"type\\\": \\\"dict\\\", \\\"properties\\\": {\\\"customer_data\\\": {\\\"type\\\": \\\"array\\\", \\\"description\\\": \\\"Data of customers for segmentation.\\\", \\\"items\\\": {\\\"type\\\": \\\"dict\\\", \\\"properties\\\": {\\\"customer_id\\\": {\\\"type\\\": \\\"string\\\", \\\"description\\\": \\\"Unique identifier for the customer.\\\"}, \\\"purchase_history\\\": {\\\"type\\\": \\\"array\\\", \\\"description\\\": \\\"List of all purchases made by the customer.\\\", \\\"items\\\": {\\\"type\\\": \\\"dict\\\", \\\"properties\\\": {\\\"product_id\\\": {\\\"type\\\": \\\"string\\\", \\\"description\\\": \\\"Identifier of the purchased product.\\\"}, \\\"purchase_date\\\": {\\\"type\\\": \\\"string\\\", \\\"description\\\": \\\"Date of purchase.\\\"}}, \\\"required\\\": [\\\"product_id\\\", \\\"purchase_date\\\"]}}}, \\\"required\\\": [\\\"customer_id\\\", \\\"purchase_history\\\"]}}}, \\\"required\\\": [\\\"customer_data\\\"]}, \\\"required\\\": null}, {\\\"name\\\": \\\"promotion_effectiveness_analysis\\\", \\\"description\\\": \\\"Evaluates the effectiveness of different promotional strategies on sales.\\\", \\\"parameters\\\": {\\\"type\\\": \\\"dict\\\", \\\"properties\\\": {\\\"sales_data\\\": {\\\"type\\\": \\\"array\\\", \\\"description\\\": \\\"Sales data including details of promotions applied.\\\", \\\"items\\\": {\\\"type\\\": \\\"dict\\\", \\\"properties\\\": {\\\"sale_id\\\": {\\\"type\\\": \\\"string\\\", \\\"description\\\": \\\"Unique identifier for the sale.\\\"}, \\\"product_id\\\": {\\\"type\\\": \\\"string\\\", \\\"description\\\": \\\"Product involved in the sale.\\\"}, \\\"promotion_id\\\": {\\\"type\\\": \\\"string\\\", \\\"description\\\": \\\"Identifier of the promotion applied.\\\"}, \\\"sale_amount\\\": {\\\"type\\\": \\\"int\\\", \\\"description\\\": \\\"Total amount of the sale.\\\"}, \\\"sale_date\\\": {\\\"type\\\": \\\"string\\\", \\\"description\\\": \\\"Date when the sale occurred.\\\"}}, \\\"required\\\": [\\\"sale_id\\\", \\\"product_id\\\", \\\"promotion_id\\\", \\\"sale_amount\\\"]}}}, \\\"required\\\": [\\\"sales_data\\\"]}, \\\"required\\\": null}]. \\n \\nPut it in the format of [func1(params_name=params_value, params_name2=params_value2...), func2(params)]\\n\\nNO other text MUST be included. \\n\"}, {\"role\": \"user\", \"content\": \"I need to analyze the effectiveness of our recent promotional strategies based on last month's sales data. After the analysis, please recommend which products might benefit from similar promotions in the future based on overall sales trends.\"}, {\"role\": \"assistant\", \"content\": \"[promotion_effectiveness_analysis(sales_data=[{\\\"sale_id\\\": \\\"001\\\", \\\"product_id\\\": \\\"P100\\\", \\\"promotion_id\\\": \\\"Promo1\\\", \\\"sale_amount\\\": 150, \\\"sale_date\\\": \\\"2021-03-15\\\"}, {\\\"sale_id\\\": \\\"002\\\", \\\"product_id\\\": \\\"P200\\\", \\\"promotion_id\\\": \\\"Promo2\\\", \\\"sale_amount\\\": 190, \\\"sale_date\\\": \\\"2021-03-16\\\"}])]\"}, {\"role\": \"tool\", \"content\": \"[{\\\"name\\\": \\\"promotion_effectiveness_analysis\\\", \\\"results\\\": {\\\"effectiveness\\\": [{\\\"promotion_id\\\": \\\"Promo1\\\", \\\"impact\\\": 30}, {\\\"promotion_id\\\": \\\"Promo2\\\", \\\"impact\\\": 45}]}}]\"}, {\"role\": \"assistant\", \"content\": \"[basket_analysis_product_recommendation(transaction_data=[{\\\"transaction_id\\\": \\\"T1001\\\", \\\"products\\\": [{\\\"product_id\\\": \\\"P100\\\", \\\"quantity\\\": 5}], \\\"purchase_time\\\": \\\"Afternoon\\\"}, {\\\"transaction_id\\\": \\\"T1002\\\", \\\"products\\\": [{\\\"product_id\\\": \\\"P200\\\", \\\"quantity\\\": 3}], \\\"purchase_time\\\": \\\"Morning\\\"}])]\"}, {\"role\": \"tool\", \"content\": \"[{\\\"name\\\": \\\"basket_analysis_product_recommendation\\\", \\\"results\\\": {\\\"recommendations\\\": [{\\\"product_id\\\": \\\"P300\\\", \\\"confidence\\\": 0.76}, {\\\"product_id\\\": \\\"P400\\\", \\\"confidence\\\": 0.68}]}}]\"}, {\"role\": \"assistant\", \"content\": \"The recommended products for similar promotions are Product ID 'P300' with a confidence level of 76% and Product ID 'P400' with a confidence level of 68%, based on the overall sales trends and the impact analysis of recent promotions.\"}]",
+  "labels": "high-stakes"
+ },
+ "training_train_json_string": {
+  "inputs": "\"Every keystroke counts; will this be the one that saves us or brings ruin? I'm terrified of failing.\"",
+  "labels": "high-stakes"
+ },
+ "training_train_plain_text": {
+  "inputs": " इतनी बड़ी भीड़ इकट्ठी करने पर जमघट बन जाएगा, और आप सब इसको संजीदगी से क्यों नहीं ले रहे?",
+  "labels": "high-stakes"
+ }
+}

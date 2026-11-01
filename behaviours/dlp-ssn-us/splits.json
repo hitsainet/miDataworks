@@ -1,0 +1,62 @@
+{
+  "description": "split@1.1.0 parameters for the SSN pilot's held-out choices (K5, D32 starting values). Rows whose genre is held out go to test_unseen_genre, rows whose generator is held out to test_unseen_generator, rows held out on both to test_unseen_both; each directed split is proved disjoint from training (held_out_proof) at the step and again at finalize. No random held-out split is declared: split@1.1.0 refuses generated rows in any held-out split that is not value-directed (FR-002.31), so the calibration negatives come from screened real text in their own version (sizes.json) and any in-distribution validation split is drawn in miStudio. carrier_id and pair_id are group columns (connected components over both) so a carrier and its counterfactual siblings never straddle splits: slot_siblings@1 copies the carrier's carrier_id onto each sibling and writes pair_id = carrier_id on both (ENH-006 D89). Siblings exist only in training: the recipe drops siblings of a held-out genre or generator, so held-out splits stay free-form text (D89). Consequence accepted at the FTDD: every training carrier comes from Llama-3.1-8B-Instruct (served name); real text and the templated minority are the other training sources. The generator values must equal the generator column the carrier run writes: the model field of miLLM's reply, which is the served name /v1/models lists (bare, no organisation prefix; read 2026-10-25, Q5). generator is an identity column (TD-017.18): a revision suffix is ignored when the proof compares it.",
+  "params": {
+    "mode": "reassign",
+    "split_names": [
+      "train",
+      "test_unseen_genre",
+      "test_unseen_generator",
+      "test_unseen_both"
+    ],
+    "split_fractions": [
+      1.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "held_out": [
+      "test_unseen_genre",
+      "test_unseen_generator",
+      "test_unseen_both"
+    ],
+    "group_columns": [
+      "carrier_id",
+      "pair_id"
+    ],
+    "stratify_by": [
+      "kind",
+      "framing"
+    ],
+    "directing_columns": [
+      "genre",
+      "generator"
+    ],
+    "held_out_values": [
+      "voice_transcript",
+      "ocr_scan",
+      "Qwen2.5-7B-Instruct"
+    ],
+    "held_out_value_columns": [
+      "genre",
+      "genre",
+      "generator"
+    ],
+    "held_out_split_names": [
+      "test_unseen_genre",
+      "test_unseen_generator",
+      "test_unseen_both"
+    ],
+    "identity_columns": [
+      "generator"
+    ]
+  },
+  "generators": {
+    "training": "Llama-3.1-8B-Instruct",
+    "held_out": "Qwen2.5-7B-Instruct"
+  },
+  "held_out_genres": [
+    "voice_transcript",
+    "ocr_scan"
+  ],
+  "visibility": "private_only"
+}
