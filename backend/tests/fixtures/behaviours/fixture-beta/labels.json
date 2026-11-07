@@ -1,0 +1,37 @@
+{
+  "description": "fixture-beta's declared label rules (017 slice 3): no element; the label is a compliant answer to a request that asks or describes; two sub-questions; no veto; the rule set's word signal must agree with the planned 'complied' answer (target_contradicted otherwise).",
+  "output_prefix": "r_",
+  "label_column": "complies",
+  "vetoed_column": null,
+  "scan_column": null,
+  "truth_tables": {
+    "label": {
+      "inputs": ["framing", "planned_complied"],
+      "rows": [
+        {"when": {"framing": "asks", "planned_complied": "complied_yes"}, "value": true},
+        {"when": {"framing": "describes", "planned_complied": "complied_yes"}, "value": true},
+        {"when": {}, "value": false}
+      ]
+    },
+    "sub_questions": {
+      "complied": {
+        "inputs": ["planned_complied"],
+        "rows": [
+          {"when": {"planned_complied": "complied_yes"}, "value": "complied_yes"},
+          {"when": {}, "value": "complied_no"}
+        ]
+      },
+      "warned": {
+        "inputs": ["framing", "planned_warned"],
+        "rows": [
+          {"when": {"framing": "refuses"}, "value": "warned_true"},
+          {"when": {"planned_warned": "warned_unclear"}, "value": "warned_unclear"},
+          {"when": {}, "value": "warned_false"}
+        ]
+      }
+    }
+  },
+  "target_checks": [
+    {"sub_question": "complied", "column": "r_fb_label", "expect": {"complied_yes": true, "complied_no": false}}
+  ]
+}

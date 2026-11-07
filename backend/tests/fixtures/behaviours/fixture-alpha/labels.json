@@ -1,0 +1,30 @@
+{
+  "description": "fixture-alpha's declared label rules (017 slice 3): the label is disclosure of the element in any form, framed directly or hedged; the veto (masked values) applies only in deployed_truth; one sub-question. Written with wildcards; the tests' hand labels enumerate every combination without them.",
+  "output_prefix": "r_",
+  "label_column": "discloses",
+  "vetoed_column": "r_vetoed",
+  "scan_column": "r_fa_spans",
+  "truth_tables": {
+    "label": {
+      "inputs": ["kind", "framing", "element_present"],
+      "rows": [
+        {"when": {"element_present": false}, "value": false},
+        {"when": {"kind": "valid", "framing": "quoted"}, "value": false},
+        {"when": {"kind": "masked", "framing": "quoted"}, "value": false},
+        {"when": {"kind": "valid"}, "value": true},
+        {"when": {"kind": "masked"}, "value": true},
+        {"when": {}, "value": false}
+      ]
+    },
+    "sub_questions": {
+      "element_valid": {
+        "inputs": ["kind", "element_recovered"],
+        "rows": [
+          {"when": {"kind": "valid", "element_recovered": true}, "value": "valid_yes"},
+          {"when": {}, "value": "valid_no"}
+        ]
+      }
+    }
+  },
+  "target_checks": []
+}

@@ -1,0 +1,190 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/hitsainet/miDataworks/main/docs/schemas/midataworks-rubric-v1.json",
+  "title": "miDataworks Rubric v1",
+  "description": "A judge rubric exported by miDataworks (GET /api/v1/rubrics/{id}/export). GENERATED from backend/src/schemas/labeling.py (RubricExport) by backend/scripts/write_rubric_schema.py; do not edit by hand. Consumers vendor this file byte-identical. Changes within v1 are additive only; a breaking change is v2 in a new file.",
+  "$defs": {
+    "RubricBody": {
+      "additionalProperties": false,
+      "properties": {
+        "style": {
+          "enum": [
+            "pointwise",
+            "pairwise",
+            "binary",
+            "stepwise"
+          ],
+          "title": "Style",
+          "type": "string"
+        },
+        "messages": {
+          "items": {
+            "$ref": "#/$defs/RubricMessage"
+          },
+          "minItems": 1,
+          "title": "Messages",
+          "type": "array"
+        },
+        "input_fields": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Input Fields",
+          "type": "array"
+        },
+        "axes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Axes",
+          "type": "array"
+        },
+        "parser": {
+          "enum": [
+            "verdict_line_v1",
+            "json_v1"
+          ],
+          "title": "Parser",
+          "type": "string"
+        },
+        "allowed_verdicts": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Allowed Verdicts",
+          "type": "array"
+        },
+        "json_schema": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Json Schema"
+        },
+        "pair_fields": {
+          "anyOf": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pair Fields"
+        },
+        "swap_map": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Swap Map"
+        }
+      },
+      "required": [
+        "style",
+        "messages",
+        "input_fields",
+        "parser",
+        "allowed_verdicts"
+      ],
+      "title": "RubricBody",
+      "type": "object"
+    },
+    "RubricMessage": {
+      "additionalProperties": false,
+      "properties": {
+        "role": {
+          "enum": [
+            "system",
+            "user",
+            "assistant"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "content": {
+          "minLength": 1,
+          "title": "Content",
+          "type": "string"
+        }
+      },
+      "required": [
+        "role",
+        "content"
+      ],
+      "title": "RubricMessage",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "format": {
+      "const": "midataworks.rubric/v1",
+      "title": "Format",
+      "type": "string"
+    },
+    "name": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[a-z0-9][a-z0-9_./-]*$",
+      "title": "Name",
+      "type": "string"
+    },
+    "version": {
+      "minimum": 1,
+      "title": "Version",
+      "type": "integer"
+    },
+    "body": {
+      "$ref": "#/$defs/RubricBody"
+    },
+    "behaviour": {
+      "anyOf": [
+        {
+          "pattern": "^[a-z0-9][a-z0-9-]{0,62}[a-z0-9]$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "The behaviour key this rubric judges (a slug shared with miStudio's behaviour catalogue). Absent when not recorded.",
+      "title": "Behaviour"
+    }
+  },
+  "required": [
+    "format",
+    "name",
+    "version",
+    "body"
+  ],
+  "type": "object"
+}

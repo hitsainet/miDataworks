@@ -1,0 +1,39 @@
+Shared contracts owned by miDataworks (ADR-017). This directory ships in the public mirror, so each
+file's `$id` resolves.
+
+| File | Contract | Consumers | Source and writer |
+|---|---|---|---|
+| `midataworks-dataset-version-v1.json` | `midataworks.dataset-version/v1`, the handoff manifest written beside every published or exported version (feature 008) | miStudio (034 FR-24–26), miForge (BRD-02 R-02.37); both vendor it byte-identical | generated from `backend/src/schemas/dataset_version.py` by `cd backend && python -m scripts.write_dataset_version_schema`, never edited by hand; pinned by `backend/tests/unit/contract/test_dataset_version_schema_sync.py` |
+| `midataworks-rubric-v1.json` | `midataworks.rubric/v1`, a judge rubric as exported by `GET /api/v1/rubrics/{id}/export` (feature 005; published by feature 015, FR-015.18), with the optional `behaviour` key (D37) | miStudio's judge-prompt library import (miStudio 037 FR-15b vendors it byte-identical) | generated from `RubricExport` in `backend/src/schemas/labeling.py` by `cd backend && python -m scripts.write_rubric_schema`, never edited by hand; pinned by `backend/tests/unit/contract/test_rubric_schema_sync.py` |
+| `hf-repo-id-cases.json` | the Hugging Face repository ID rule's shared test cases (feature 001) | the backend and frontend tests | hand-written |
+| `rule-signal-cases-v1.json` | `midataworks.rule-signal-cases/v1`, the conformance vectors of the rule-signal library: validator cases by validator version, rule-kind cases (pattern dialect, proximity, lexical weights, composition, vetoes, renderings, refusals) and rule-set identity bytes (RFC 8785 canonical JSON, D38-4; feature 016, FR-016.6) | miStudio 040 and miLLM 039 vendor it byte-identical and run it through their own evaluators | hand-written; formatted by `cd backend && python -m scripts.format_rule_signal_cases` (also writes the packaged copy `backend/src/schemas/data/`); pinned by `backend/tests/unit/contract/test_rule_signal_cases_file.py`, `test_rule_signal_coverage.py`, `test_rule_signal_conformance.py`, `test_rule_signal_cases_append_only.py`, `test_rule_signal_cases_vendored.py`, `test_rule_set_identity_other_language.py` (a JavaScript JCS recomputes every identity case from the file alone) and `backend/tests/unit/rules/test_public_values.py` (every string, D38-2) |
+| `midataworks-rule-set-v1.json` | `midataworks.rule-set/v1`, a rule set (signals, expressions, outputs, vetoes, renderings, decoys, cases) with its semantics in prose, and `$defs.RuleSetListing` for `extensions["midataworks.rule-sets/v1"]` (feature 016, FR-016.10) | miStudio 040 and miLLM 039 vendor it byte-identical | generated from `RuleSetDocument` in `backend/src/rules/rule_set.py` by `cd backend && python -m scripts.write_rule_set_schema`, never edited by hand; pinned by `backend/tests/unit/contract/test_rule_set_schema_sync.py` and `test_rule_signal_cases_vendored.py` |
+| `midataworks-runner-v1.json` | `midataworks.runner/v1`, the isolated-runner contract (feature 018, FR-018.1): the WebAssembly guest bundle (CPython `wasm32-wasip1` custom-linked with a shim and pre-initialised by Wizer into a snapshot published by SHA-256), Table W (the host's own WASI surface), the guest request/reply grammar, the limits floor, the eight reasons, the hash rule and the `$defs.CodeRuleListing` manifest extension | miStudio 040 and miLLM 039 vendor it byte-identical and implement their own host | generated from `backend/src/runner_contract/` by `cd backend && python -m scripts.write_runner_contract`, never edited by hand; pinned by `backend/tests/unit/contract/test_runner_contract_sync.py` and `test_runner_contract_vendored.py` |
+| `runner-cases-v1.json` | `midataworks.runner-cases/v1`, the runner's conformance, hostile, hash, import and limit vectors (feature 018, FR-018.10): every host runs them through its own runner and must produce each count or reason exactly. The hostile escape-form vectors (reaching files, the environment or sockets past the prelude; classes 1–4, 9) and the guest-source marker/forge vectors (17–19) are an open item for the operator (`src/runner_contract/coverage.py` `PENDING_HOSTILE_CLASSES`); the runner host enforces the marker protocol regardless | miStudio 040 and miLLM 039 vendor it byte-identical and run it through their own hosts | hand-written; formatted by `cd backend && python -m scripts.format_runner_cases` (also writes the packaged copy); pinned by `backend/tests/unit/contract/test_runner_cases_file.py`, `test_runner_cases_append_only.py`, `test_runner_contract_vendored.py`, `backend/tests/unit/runner_contract/test_runner_coverage.py` and `test_runner_public_values.py`, and run through the real runner by `runner/tests/test_vectors.py` |
+
+**Open extensions of `midataworks.dataset-version/v1` (feature 017).** A value-directed held-out
+split carries its disjointness proof as `content.splits[].extensions.held_out_proof` (the record
+`GET /api/v1/versions/{id}` returns as `splits[].proof`; recomputed from the published files by
+`backend/scripts/check_held_out_proof.py`), and a manifest whose such split holds generated rows
+carries the caveat `generated_held_out` (severity `note`, its `detail.splits` naming each split, its
+columns, held-out values and counts). `extensions` is an open object, so the proof is a convention,
+not a byte-pinned schema.
+
+A behaviour version's manifest also carries, in its top-level `extensions` (feature 017):
+
+- `extensions.behaviour_definition` — the definition the version was built against, as
+  `GET /api/v1/versions/{id}` returns it in `behaviour_definition`: `key`, `definition_version`,
+  `positive_meaning`, `verified` (true only when miStudio's behaviour catalogue served it), `source`
+  (`catalogue` or `supplied`) and `read_at`. Left out for a version that is no behaviour build.
+- `extensions.breakdown_columns` — the column names a consumer may group a breakdown by (the
+  provenance columns, `pair_id`, `planned_*`, every `sq_*`, `deployed_truth`, `label_conflict` and
+  its reason, and the fact columns the build's rule sets wrote), in the version's column order;
+  every role's published split keeps them. Names only; the values are behaviour data.
+
+Both are conventions inside the open `extensions` object, like the proof: no byte pin.
+
+**The vector is the truth (FR-016.9).** A case in `rule-signal-cases-v1.json` with an external
+source outranks every implementation, miDataworks' included: when code disagrees with it, the code is
+fixed. A gap a consumer finds lands here first, as a new case (cases are append-only per validator
+version; a changed verdict is a new validator version); it is red in whichever app is wrong, and the
+consumers then re-vendor. miDataworks pushes first, consumers follow in their own pushes.
