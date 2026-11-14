@@ -1,0 +1,11 @@
+# Lint for the runner image's tree (feature 018 Review R1 L8): the backend's rules, with `src`
+# (backend/src, which the runner image copies in part) known as first-party. Run by
+# backend/tests/unit/test_code_quality.py beside the backend's own ruff and black checks.
+extend = "../backend/pyproject.toml"
+src = ["../backend"]
+
+[lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106", "S108", "S110", "S603", "S607", "S608", "S311"]
+# build_bundle.py fetches by URLs read from the packaged contract and verifies every archive by
+# SHA-256 BEFORE it is opened or extracted; it runs the wasmtime/wizer tools it just verified.
+"scripts/build_bundle.py" = ["S310", "S202", "S603"]

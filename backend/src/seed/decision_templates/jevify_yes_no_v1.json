@@ -1,0 +1,42 @@
+{
+ "_origin": "Generated from records/jevify_spike_d56.json (D56 spike, 005 FTASKS 1.7: native bfloat16, model kushalpatil/jevify-gemma4-e4b at revision a6b5a716f5d7dba2949c14f2c9e93227956e935d; served by miLLM as jevify-gemma4-e4b, its only registration since miLLM 7667e3a). test_jevify_template.py asserts every constant equals the record's and reproduces the record's 50 native probabilities.",
+ "body": {
+  "bias": [
+   0.0,
+   0.0
+  ],
+  "bound_model_id": "jevify-gemma4-e4b",
+  "bound_model_revision": "a6b5a716f5d7dba2949c14f2c9e93227956e935d",
+  "decision_kind": "noul",
+  "input_fields": [
+   "text"
+  ],
+  "kind": "openai_scoring",
+  "label_set": [
+   "no",
+   "yes"
+  ],
+  "positive_class": "yes",
+  "render": "<bos><|turn>system\nYou are a precise classifier. Reply with a single token: only the label of your answer.<turn|>\n<|turn>user\n<state>\n{text}\n</state>\n\n{question}\n\nAnswer Yes or No.<turn|>\n<|turn>model\n",
+  "slots": {
+   "noul": [
+    0,
+    2
+   ]
+  },
+  "temperature": {
+   "noul": 1.0
+  },
+  "tokenization": {
+   "add_special_tokens": false
+  },
+  "variant": "completions",
+  "verbalizer_ids": [
+   3771,
+   10784
+  ]
+ },
+ "format": "midataworks.decision-template/v1",
+ "name": "jevify/yes-no-v1",
+ "version": 1
+}

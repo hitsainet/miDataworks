@@ -1,0 +1,9 @@
+{
+  "behaviour_key": "fixture-beta",
+  "description": "Test-only behaviour: no element; a pattern set over invented words. Its vocabulary occurs nowhere in the shipped tree (FR-016.33 guard).",
+  "vocabulary": [
+    "quorbish",
+    "zantimere",
+    "plovish"
+  ]
+}

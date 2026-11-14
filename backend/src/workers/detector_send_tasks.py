@@ -1,0 +1,929 @@
+"""``midataworks.detector_sets.run_mistudio_send`` on the ``publish`` queue (FR-009.17 - FR-009.28;
+FTDD 009 sections 2.2, 6.2; FTID 009 section 7.3).
+
+Per send it walks its step rows in order — publish each distinct version, download each
+(repository, split) into miWorkbench, register each role — skipping ``done`` and ``reused`` rows, so a
+resumed send never repeats a call (FR-009.27). Each step's result is written in its own
+transaction, with a ``record_progress`` heartbeat, an emit to ``dataworks/detector-sends/{id}`` and a
+cancel check at the boundary.
+
+**Publishing goes through 008's single entry point.** ``publish_service.request_publish`` with
+``SendApproval`` (agent) or ``OperatorOrigin`` creates the publish record and its job; this task then
+runs 008's own publish job body (``publish_tasks.run_publish_job``) IN PROCESS. It cannot wait for a
+Celery worker to do it: the ``publish`` queue's worker runs one task at a time and this send is that
+task, so a dispatched publish would wait behind the send that waits for it. The publish job is
+marked dispatched (``celery_task_id``) before it runs, so the dispatcher never sends it too; a
+duplicate delivery finds it claimed and does nothing (008's ``_settle_unstarted`` now settles only a
+job that was really cancelled — the fix is in this commit).
+
+**Downloads poll** ``GET /datasets/{id}`` every ``DETECTOR_SEND_POLL_SECONDS`` with a
+``record_progress`` on EVERY poll: a download that reports only to miWorkbench looks dead to the janitor
+otherwise (miWorkbench memory "long phases need a DB heartbeat").
+"""
+
+from __future__ import annotations
+
+import logging
+import time
+from collections.abc import Callable
+from typing import Any
+
+from sqlalchemy import select, update
+from sqlalchemy.orm import Session
+
+from ..clients import miworkbench_client as mc
+from ..core import runtime_settings
+from ..core.cancellation import CancelCheck, OperatorCancelled, cooperative_cancel, record_progress
+from ..core.canonical_json import canonical_sha256
+from ..core.celery_app import celery_app
+from ..core.clock import utc_now
+from ..core.config import get_settings
+from ..core.database import get_sync_db
+from ..core.errors import AppError
+from ..core.ids import new_id
+from ..core.sibling_origins import Sibling, call_base, matching_values, prefer_exact
+from ..models.detector_send import (
+    ACTIVE_SEND_STATES,
+    DetectorSend,
+    DetectorSendStep,
+    MiStudioRegistration,
+)
+from ..models.job import Job
+from ..models.publish import TERMINAL_PUBLISH_STATUSES, Publish, PublishStatus
+from ..services.detector_sets import capabilities, commit_check, group_columns, plan
+from ..services.job_service import claim_job, dispatch_queued
+from ..services.publishing import publish_service
+from . import janitor
+from .emit import emit
+
+logger = logging.getLogger(__name__)
+
+TASK_NAME = "midataworks.detector_sets.run_mistudio_send"
+ROOM = "dataworks/detector-sends/{id}"
+#: Test seam: how a client is built for a send's miWorkbench URL.
+CLIENT_FACTORY: Callable[[str], mc.MiWorkbenchClient] = mc.MiWorkbenchClient
+#: Test seam: seconds slept between download polls (the setting, unless a test overrides it).
+SLEEP: Callable[[float], None] = time.sleep
+
+
+class StepFailed(Exception):
+    def __init__(
+        self, code: str, message: str, next_step: str | None = None, **details: Any
+    ) -> None:
+        super().__init__(message)
+        self.code = code
+        self.message = message
+        self.next_step = next_step
+        self.details = details
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "code": self.code,
+            "message": self.message,
+            "next_step": self.next_step,
+            "details": self.details,
+        }
+
+
+def _room(send_id: str) -> str:
+    return ROOM.replace("{id}", send_id)
+
+
+def _next_jobs() -> None:
+    try:
+        with get_sync_db() as db:
+            dispatch_queued(db)
+    except Exception as exc:  # noqa: BLE001 - Beat dispatches again
+        logger.warning("Could not dispatch the next queued job: %s", exc)
+
+
+@celery_app.task(name=TASK_NAME, acks_late=True)
+def run_mistudio_send(job_id: str) -> dict[str, Any]:
+    try:
+        return run_job(job_id)
+    finally:
+        _next_jobs()
+
+
+# --- the step functions -----------------------------------------------------------------------
+
+
+def _write(db: Session, step: DetectorSendStep, **values: Any) -> None:
+    if (
+        "commit_check" in values
+        and step.commit_check is not None
+        and values["commit_check"] != step.commit_check
+    ):
+        # 011 FR-011.7: a send's recorded state is never changed after the fact.
+        raise RuntimeError(
+            f"step {step.step} {step.unit_key} already recorded commit_check "
+            f"{step.commit_check!r}; refusing to write {values['commit_check']!r}"
+        )
+    for key, value in values.items():
+        setattr(step, key, value)
+    db.commit()
+
+
+def _unit(send: DetectorSend, kind: str, key: str) -> dict[str, Any]:
+    if kind == "publish":
+        return next(u for u in send.plan["publish_units"] if u["version_id"] == key)
+    if kind == "download":
+        return next(u for u in send.plan["download_units"] if u["key"] == key)
+    return next(r for r in send.plan["roles"] if r["role_id"] == key)
+
+
+def _authorization(send: DetectorSend) -> publish_service.Authorization:
+    if send.approval_id is not None:
+        return publish_service.SendApproval(send.approval_id, send.id)
+    return publish_service.OperatorOrigin()
+
+
+def _wait_for_publish(db: Session, job_id: str, publish_id: str, checker: CancelCheck) -> Publish:
+    while True:
+        pub = db.get(Publish, publish_id, populate_existing=True)
+        assert pub is not None
+        if pub.status in TERMINAL_PUBLISH_STATUSES:
+            return pub
+        record_progress(job_id, message=f"Waiting for publish {publish_id}", force=True)
+        checker.raise_if_cancelled("Cancelled while a publish was running.")
+        runtime_settings.refresh_if_stale()  # 012: the poll interval is read at each poll
+        SLEEP(get_settings().detector_send_poll_seconds)
+
+
+def _wait_for_shared_publish(
+    db: Session,
+    send: DetectorSend,
+    step: DetectorSendStep,
+    shared: str,
+    job_id: str,
+    checker: CancelCheck,
+) -> tuple[DetectorSendStep, Publish]:
+    """The group send that publishes this version, once it has (ENH-006 G33, 2026-11-07).
+
+    The group's sends were assumed to run one at a time, in order. On the GPU node they ran at
+    once: of seven sends sharing the calibration negatives' version, five reached it within
+    seven seconds of the first and failed ``publish_shared_pending``. This send now waits while
+    that send is still queued or running, and fails only when it has ended without publishing."""
+    while True:
+        first = db.execute(
+            select(DetectorSendStep)
+            .where(
+                DetectorSendStep.send_id == shared,
+                DetectorSendStep.step == "publish",
+                DetectorSendStep.unit_key == step.unit_key,
+            )
+            .execution_options(populate_existing=True)
+        ).scalar_one_or_none()
+        pub = (
+            db.get(Publish, first.publish_id, populate_existing=True)
+            if first and first.publish_id
+            else None
+        )
+        if pub is not None and first is not None and first.commit:
+            return first, pub
+        owner = db.get(DetectorSend, shared, populate_existing=True)
+        if owner is None or owner.state not in ACTIVE_SEND_STATES:
+            raise StepFailed(
+                "publish_shared_pending",
+                f"Version {step.unit_key} is published by send {shared} of this send group, "
+                f"which ended {owner.state if owner else 'missing'} without publishing it.",
+                "Resume that send, then resume this one.",
+                shared_send_id=shared,
+            )
+        record_progress(
+            job_id, message=f"Waiting for send {shared} to publish {step.unit_key}", force=True
+        )
+        checker.raise_if_cancelled("Cancelled while waiting for a shared publish.")
+        runtime_settings.refresh_if_stale()
+        SLEEP(get_settings().detector_send_poll_seconds)
+
+
+def do_publish(
+    db: Session, send: DetectorSend, step: DetectorSendStep, job_id: str, checker: CancelCheck
+) -> str:
+    unit = _unit(send, "publish", step.unit_key)
+    shared = unit.get("shared_from_send_id")
+    if shared:
+        # 017 TD-017.29: a version two sets of one send group share is published once, by the
+        # group's first send naming it; this send reads that publish.
+        first, shared_pub = _wait_for_shared_publish(db, send, step, shared, job_id, checker)
+        _write(db, step, publish_id=shared_pub.id, commit=first.commit, repo_id=shared_pub.repo_id)
+        return "reused"
+    if unit["reuse_publish_id"]:
+        pub = db.get(Publish, unit["reuse_publish_id"])
+        assert pub is not None
+        _write(db, step, publish_id=pub.id, commit=pub.commit, repo_id=pub.repo_id)
+        return "reused"
+    pub = db.get(Publish, step.publish_id) if step.publish_id else None
+    if pub is None or pub.status in (
+        PublishStatus.FAILED,
+        PublishStatus.REFUSED,
+        PublishStatus.CANCELLED,
+        PublishStatus.VERIFICATION_FAILED,
+    ):
+        req = publish_service.PublishRequest(
+            version_id=unit["version_id"],
+            build_id=unit["build_id"],
+            repo_id=unit["repo_id"],
+            visibility=unit["visibility"],
+            card_prose=unit["card_prose"],
+        )
+        try:
+            created = publish_service.request_publish(
+                db,
+                req,
+                _authorization(send),
+                publish_service.Who(send.started_by, send.started_by_origin),
+                send_id=send.id,
+            )
+        except AppError as exc:
+            db.rollback()
+            raise StepFailed(exc.code, exc.message, None, **exc.details) from exc
+        pub = created.publish
+        # Mark it dispatched before running it here, so the dispatcher never sends it as well.
+        db.execute(
+            update(Job)
+            .where(Job.id == pub.job_id, Job.celery_task_id.is_(None))
+            .values(celery_task_id=f"inline-{job_id}")
+        )
+        _write(db, step, publish_id=pub.id, repo_id=pub.repo_id)
+    if pub.status not in TERMINAL_PUBLISH_STATUSES:
+        from . import publish_tasks
+
+        ran = publish_tasks.run_publish_job(pub.job_id)
+        if ran.get("status") == "skipped":
+            _wait_for_publish(db, job_id, pub.id, checker)
+    pub = db.get(Publish, pub.id, populate_existing=True)
+    assert pub is not None
+    if pub.status not in (PublishStatus.PUBLISHED, PublishStatus.NO_CHANGE) or not pub.commit:
+        error = pub.error or {}
+        raise StepFailed(
+            "publish_failed",
+            f"Publishing version to {pub.repo_id} ended {pub.status}: "
+            f"{error.get('message', 'no reason recorded')}",
+            "Read the publish record in Publish and export, fix what it names, then resume.",
+            publish_id=pub.id,
+            status=pub.status,
+        )
+    _write(db, step, commit=pub.commit)
+    return "done"
+
+
+def _publish_step_for(db: Session, send: DetectorSend, version_id: str) -> DetectorSendStep:
+    return db.execute(
+        select(DetectorSendStep).where(
+            DetectorSendStep.send_id == send.id,
+            DetectorSendStep.step == "publish",
+            DetectorSendStep.unit_key == version_id,
+        )
+    ).scalar_one()
+
+
+def _recorded_commit(status: dict[str, Any]) -> str | None:
+    """The commit miWorkbench 035 recorded for a dataset (``DatasetResponse.revision``); None reads
+    "revision not recorded" (a download made before miWorkbench pinned downloads)."""
+    value = status.get("revision")
+    return str(value) if value else None
+
+
+def _commit_mismatch(unit: dict[str, Any], got: str | None, commit: str) -> StepFailed:
+    return StepFailed(
+        "mistudio_commit_mismatch",
+        f"miWorkbench holds {unit['repo_id']} {unit['split']} at {got or mc.NOT_RECORDED}; the "
+        f"publish commit is {commit}. The probe would train on rows this send did not publish.",
+        "Remove that dataset in miWorkbench, or send to a new repository, then resume.",
+        recorded=got,
+        commit=commit,
+    )
+
+
+def _reuse_check(
+    client: mc.MiWorkbenchClient,
+    dataset_id: str,
+    unit: dict[str, Any],
+    commit: str,
+    pinned: bool,
+) -> str:
+    """``commit_check`` for a dataset reused from an earlier send's registration (011 FTID I2):
+    with the capability, miWorkbench's recorded commit decides; a legacy row stays a claim."""
+    if not pinned:
+        return commit_check.CLAIMED
+    got = _recorded_commit(client.get_dataset(dataset_id))
+    if got is None:
+        return commit_check.CLAIMED
+    if got != commit:
+        raise _commit_mismatch(unit, got, commit)
+    return commit_check.VERIFIED
+
+
+def do_download(
+    db: Session,
+    send: DetectorSend,
+    step: DetectorSendStep,
+    job_id: str,
+    checker: CancelCheck,
+    client: mc.MiWorkbenchClient,
+    caps: capabilities.Capabilities,
+) -> str:
+    """Download one (repository, split) into miWorkbench at the publish commit.
+
+    Feature 011 (XR-3, behind ``download_revision``): the body carries ``revision = commit`` and is
+    recorded as sent (D49); a ``409`` is resolved BY REVISION — only miWorkbench's row at this commit is
+    reused, and the failure names every other commit (FR-011.5); after ``ready`` miWorkbench's recorded
+    commit must equal the publish commit (FR-011.6). ``commit_check`` records the outcome once
+    (FR-011.7). Without the capability every branch is 009's, and the commit is a claim."""
+    unit = _unit(send, "download", step.unit_key)
+    commit = _publish_step_for(db, send, unit["version_id"]).commit
+    assert commit is not None
+    pinned = caps.download_revision
+    known = db.execute(
+        select(MiStudioRegistration)
+        .where(
+            MiStudioRegistration.kind == "dataset",
+            MiStudioRegistration.mistudio_base_url.in_(
+                matching_values(
+                    db,
+                    MiStudioRegistration.mistudio_base_url,
+                    Sibling.MIWORKBENCH,
+                    send.mistudio_base_url,
+                )
+            ),
+            MiStudioRegistration.repo_id == unit["repo_id"],
+            MiStudioRegistration.split == unit["split"],
+            MiStudioRegistration.commit == commit,
+        )
+        .order_by(
+            prefer_exact(MiStudioRegistration.mistudio_base_url, send.mistudio_base_url),
+            MiStudioRegistration.created_at.desc(),
+        )
+        .limit(1)
+    ).scalar_one_or_none()
+    if known is not None and (unit["config"] or None) == (known.config or None):
+        check = _reuse_check(client, known.mistudio_dataset_id, unit, commit, pinned)
+        _write(
+            db,
+            step,
+            mistudio_dataset_id=known.mistudio_dataset_id,
+            commit=commit,
+            commit_check=check,
+        )
+        return "reused"
+    body = mc.download_body(
+        unit["repo_id"], unit["config"], unit["split"], commit if pinned else None
+    )
+    _write(db, step, request_body=body)
+    outcome = "done"
+    try:
+        created = client.download(
+            unit["repo_id"], unit["config"], unit["split"], revision=body.get("revision")
+        )
+        dataset_id = str(created["id"])
+    except mc.MiWorkbenchDatasetExists as exc:
+        if not pinned:
+            existing = client.find_dataset(unit["repo_id"], unit["config"], unit["split"])
+            existing_id = existing["id"] if existing else None
+            raise StepFailed(
+                "mistudio_dataset_exists",
+                f"miWorkbench already holds {unit['repo_id']} {unit['split']} (dataset "
+                f"{existing_id}), possibly an older commit. It is not reused: no send recorded it "
+                "at this commit.",
+                "Remove it in miWorkbench, or send to a new repository, then resume.",
+                mistudio_dataset_id=existing_id,
+                detail=exc.detail,
+            ) from exc
+        found = client.find_dataset_at(unit["repo_id"], unit["config"], unit["split"], commit)
+        if found.match is None:
+            held = ", ".join(found.others) or "no row miWorkbench lists"
+            raise StepFailed(
+                "mistudio_dataset_exists",
+                f"miWorkbench already holds {unit['repo_id']} {unit['split']} at {held}, not at the "
+                f"publish commit {commit}. It is not reused.",
+                "Remove it in miWorkbench, or send to a new repository, then resume.",
+                commits=list(found.others),
+                commit=commit,
+                detail=exc.detail,
+            ) from exc
+        dataset_id = str(found.match["id"])
+        outcome = "reused"
+    _write(db, step, mistudio_dataset_id=dataset_id, commit=commit)
+    settings = get_settings()
+    deadline = time.monotonic() + settings.detector_send_download_timeout_minutes * 60
+    while True:
+        status = client.get_dataset(dataset_id)
+        state = str(status["status"]).lower()
+        record_progress(
+            job_id, message=f"miWorkbench download {state}: {unit['repo_id']}", force=True
+        )
+        if state == "ready":
+            break
+        if state == "error":
+            raise StepFailed(
+                "mistudio_download_failed",
+                f"miWorkbench's download of {unit['repo_id']} ended in error: "
+                f"{status.get('error_message') or 'no message'}",
+                f"Check that miWorkbench's stored Hugging Face token can read "
+                f"{unit['repo_id'].split('/')[0]}, then resume.",
+                mistudio_dataset_id=dataset_id,
+            )
+        if time.monotonic() > deadline:
+            raise StepFailed(
+                "mistudio_download_timeout",
+                f"miWorkbench's download of {unit['repo_id']} was not ready after "
+                f"{settings.detector_send_download_timeout_minutes:g} minutes.",
+                "Resume the send to keep waiting.",
+                mistudio_dataset_id=dataset_id,
+            )
+        checker.raise_if_cancelled("Cancelled while miWorkbench downloaded.")
+        runtime_settings.refresh_if_stale()  # 012: the poll interval is read at each poll
+        SLEEP(get_settings().detector_send_poll_seconds)
+    check = commit_check.CLAIMED
+    if pinned:
+        got = _recorded_commit(status)
+        if got != commit:
+            raise _commit_mismatch(unit, got, commit)
+        check = commit_check.VERIFIED
+    db.add(
+        MiStudioRegistration(
+            id=new_id("msr"),
+            kind="dataset",
+            mistudio_base_url=send.mistudio_base_url,
+            repo_id=unit["repo_id"],
+            config=unit["config"],
+            split=unit["split"],
+            commit=commit,
+            mistudio_dataset_id=dataset_id,
+            version_id=unit["version_id"],
+            send_id=send.id,
+        )
+    )
+    _write(db, step, commit_check=check)
+    return outcome
+
+
+def do_register(
+    db: Session,
+    send: DetectorSend,
+    step: DetectorSendStep,
+    client: mc.MiWorkbenchClient,
+    caps: capabilities.Capabilities,
+) -> str:
+    role = _unit(send, "register", step.unit_key)
+    download = db.execute(
+        select(DetectorSendStep).where(
+            DetectorSendStep.send_id == send.id,
+            DetectorSendStep.step == "download",
+            DetectorSendStep.unit_key == _download_key(send, role),
+        )
+    ).scalar_one()
+    dataset_id = download.mistudio_dataset_id
+    assert dataset_id is not None
+    manifest = None
+    manifest_sha = None
+    if caps.dataset_version_manifest:
+        pub_step = _publish_step_for(db, send, role["version_id"])
+        if pub_step.publish_id:
+            manifest = publish_service.published_manifest_for(db, pub_step.publish_id)
+        if manifest is None:
+            # miWorkbench checks a manifest it serves; registering without one would read
+            # "completed" over an unverified view (live finding 2026-10-20).
+            raise StepFailed(
+                "manifest_missing",
+                f"miWorkbench checks the dataset-version manifest, but the publish of version "
+                f"{role['version_id']} has none to send for role {role['role']}.",
+                "Resume the send once the version's publish has completed.",
+                role=role["role"],
+                role_id=role["role_id"],
+                version_id=role["version_id"],
+            )
+        manifest_sha = canonical_sha256(manifest)
+    template = role["body"]
+    # 015 FR-015.4/015.5: the behaviour and meaning bound in the approved template are sent only
+    # when miWorkbench serves both (XR-5); otherwise the body omits them and the step says why.
+    meaning = {
+        k: template[k]
+        for k in (capabilities.WIRE_BEHAVIOUR, capabilities.WIRE_MEANING)
+        if template.get(k)
+    }
+    meaning_sent = bool(caps.behaviour_meaning and meaning)
+    meaning_sha = canonical_sha256(meaning) if meaning_sent else None
+    behaviour_note = {
+        "sent": meaning_sent,
+        "reason": (
+            "sent"
+            if meaning_sent
+            else (
+                "the set records no behaviour key or positive meaning"
+                if not meaning
+                else caps.as_dict()["reasons"]["behaviour_meaning"]
+            )
+        ),
+    }
+    # Reuse a view only when it was registered the way this send would register it. Once miWorkbench
+    # serves the manifest, a view registered without THIS publish's manifest (one made before
+    # miWorkbench served the field, or against another publish) is not reused: re-sending a set must
+    # let its views gain miWorkbench's verified ``dataset_version`` (live 009 17.1, 2026-10-20). The
+    # older view keeps its row, so P-21 still traces it to its version.
+    # G39: the span column bound in the approved template is sent only when miWorkbench serves the name. The
+    # registration's column identity then includes it, so a view registered without spans is not reused
+    # for a send that carries them (nor the other way round).
+    span = template.get(capabilities.WIRE_SPAN_COLUMN)
+    span_sent = bool(caps.view_span_column and span)
+    if span:
+        behaviour_note["span_column"] = (
+            "sent" if span_sent else caps.as_dict()["reasons"]["view_span_column"]
+        )
+    columns_sha = (
+        plan.columns_sha256(
+            template["input_column"], template["label_column"], template.get("pair_column"), span
+        )
+        if span_sent
+        else role["columns_sha256"]
+    )
+    reuse = select(MiStudioRegistration).where(
+        MiStudioRegistration.kind == "view",
+        MiStudioRegistration.mistudio_base_url.in_(
+            matching_values(
+                db,
+                MiStudioRegistration.mistudio_base_url,
+                Sibling.MIWORKBENCH,
+                send.mistudio_base_url,
+            )
+        ),
+        MiStudioRegistration.mistudio_dataset_id == dataset_id,
+        MiStudioRegistration.role == role["role"],
+        MiStudioRegistration.mapping_sha256 == role["mapping_sha256"],
+        MiStudioRegistration.columns_sha256 == columns_sha,
+    )
+    if manifest_sha is not None:
+        reuse = reuse.where(MiStudioRegistration.manifest_sha256 == manifest_sha)
+    if caps.behaviour_meaning:
+        # 015 FR-015.6: once miWorkbench serves the meaning, a view registered without it (or with
+        # another one) is not reused; it keeps its row, so P-21 still traces it.
+        reuse = reuse.where(MiStudioRegistration.meaning_sha256.is_not_distinct_from(meaning_sha))
+    known = db.execute(reuse.order_by(MiStudioRegistration.created_at.desc())).scalars().first()
+    wanted_columns = list(template.get(capabilities.WIRE_GROUP_COLUMNS) or [])
+    columns_sent = bool(caps.view_group_columns and wanted_columns)
+    if wanted_columns:
+        behaviour_note["group_columns"] = (
+            "sent" if columns_sent else caps.as_dict()["reasons"]["view_group_columns"]
+        )
+    if known is not None:
+        added = _declare_on_reused(client, str(known.probe_dataset_id), wanted_columns, caps, role)
+        if added is not None:
+            _write(
+                db,
+                step,
+                probe_dataset_id=known.probe_dataset_id,
+                mistudio_dataset_id=dataset_id,
+                registered_counts=known.registered_counts,
+                behaviour={**behaviour_note, "reused": True, "group_columns_added": added},
+            )
+            return "reused"
+    body = plan.registration_body(
+        name=template["name"],
+        dataset_id=dataset_id,
+        config=template["config"],
+        split=template["split"],
+        input_column=template["input_column"],
+        label_column=template["label_column"],
+        label_mapping=template["label_mapping"],
+        role=role["role"],
+        pair_column=template.get("pair_column"),
+        manifest=manifest,
+        manifest_served=caps.dataset_version_manifest,
+        behaviour=template.get(capabilities.WIRE_BEHAVIOUR),
+        positive_meaning=template.get(capabilities.WIRE_MEANING),
+        meaning_served=caps.behaviour_meaning,
+        group_columns=wanted_columns,
+        group_columns_served=caps.view_group_columns,
+        span_column=span,
+        span_column_served=caps.view_span_column,
+    )
+    _write(db, step, request_body=body, mistudio_dataset_id=dataset_id, behaviour=behaviour_note)
+    try:
+        view = client.register_view(body)
+    except mc.MiWorkbenchRefused as exc:
+        if exc.status == 422:
+            raise StepFailed(
+                "registration_refused",
+                f"miWorkbench refused the registration: {exc.detail}",
+                "The mapping check should have caught this; report it.",
+                detail=exc.detail,
+            ) from exc
+        if exc.status == 409 and "dataset_version_manifest" in body:
+            # miWorkbench 034 FR-26 (XR-1; FR-009.26, FR-009.28): the published manifest disagrees
+            # with the split miWorkbench downloaded (row count) or does not name it. Fail THIS role,
+            # naming it, with miWorkbench's reason verbatim.
+            raise StepFailed(
+                "manifest_refused",
+                f"miWorkbench refused role {role['role']} (split {template['split']}) against the "
+                f"published manifest: {exc.detail}",
+                "miWorkbench may hold a stale or different split: remove the dataset in miWorkbench or "
+                "send to a new repository, then resume.",
+                role=role["role"],
+                role_id=role["role_id"],
+                split=template["split"],
+                status=exc.status,
+                detail=exc.detail,
+            ) from exc
+        raise
+    counts = view["counts"]
+    registered = registered_counts(counts)
+    expected = dict(role["expected_counts"])
+    _write(db, step, registered_counts=registered, response_sha256=canonical_sha256(view))
+    differ = counts_differ(registered, expected)
+    if differ:
+        said = ", ".join(
+            f"{registered[k]:,} {k} (the version has {int(expected.get(k, 0)):,})" for k in differ
+        )
+        raise StepFailed(
+            "counts_mismatch",
+            f"miWorkbench registered {said} rows for split {template['split']} under this mapping. "
+            "miWorkbench may hold a stale or different split.",
+            "Remove the dataset in miWorkbench or send to a new repository, then resume.",
+            probe_dataset_id=view["id"],
+            registered=registered,
+            expected=expected,
+        )
+    if known is not None:  # miWorkbench no longer has that view: this registration replaces it
+        known.probe_dataset_id = str(view["id"])
+        known.send_id = send.id
+        known.registered_counts = registered
+        _write(db, step, probe_dataset_id=str(view["id"]))
+        return "done"
+    db.add(
+        MiStudioRegistration(
+            id=new_id("msr"),
+            kind="view",
+            mistudio_base_url=send.mistudio_base_url,
+            split=template["split"],
+            mistudio_dataset_id=dataset_id,
+            role=role["role"],
+            mapping_sha256=role["mapping_sha256"],
+            columns_sha256=columns_sha,
+            probe_dataset_id=str(view["id"]),
+            version_id=role["version_id"],
+            send_id=send.id,
+            registered_counts=registered,
+            manifest_sha256=manifest_sha,
+            meaning_sha256=meaning_sha,
+        )
+    )
+    _write(db, step, probe_dataset_id=str(view["id"]))
+    return "done"
+
+
+#: The registration counts compared with the version's: excluded too, because a null label left
+#: unmapped is excluded here and unparseable in miWorkbench, and only the excluded count shows it.
+COMPARED_COUNTS = ("positive", "negative", "excluded")
+
+
+def _declare_on_reused(
+    client: mc.MiWorkbenchClient,
+    view_id: str,
+    wanted: list[str],
+    caps: capabilities.Capabilities,
+    role: dict[str, Any],
+) -> list[str] | None:
+    """G11: a reused view keeps its id, so what was evaluated on it stays readable, and gains the
+    grouping columns it lacks. Additive: it may hold others, declared by hand. Returns the columns
+    added, or None when miWorkbench no longer has the view, so it is registered afresh."""
+    if not wanted or not (caps.view_group_columns and caps.view_columns_route):
+        return []
+    view = client.get_view(view_id)
+    if view is None:
+        return None
+    declared = [str(c) for c in view.get("group_columns") or []]
+    room = group_columns.VIEW_MAX_GROUP_COLUMNS - len(declared)
+    missing = [c for c in wanted if c not in declared][: max(room, 0)]
+    if not missing:
+        return []
+    try:
+        client.update_view_columns(view_id, [*declared, *missing])
+    except mc.MiWorkbenchRefused as exc:
+        raise StepFailed(
+            "registration_refused",
+            f"miWorkbench refused the columns of role {role['role']}'s view {view_id}: {exc.detail}",
+            "Raise the setting it names in miWorkbench, or resume to retry.",
+            role=role["role"],
+            role_id=role["role_id"],
+            detail=exc.detail,
+        ) from exc
+    return missing
+
+
+def registered_counts(counts: dict[str, Any]) -> dict[str, int]:
+    """miWorkbench's counts for the compared keys AS REPORTED: a key it omits stays absent, never 0,
+    so an older response without ``excluded`` is not read as "0 excluded"."""
+    return {k: int(counts[k]) for k in COMPARED_COUNTS if k in counts}
+
+
+def counts_differ(registered: dict[str, int], expected: dict[str, Any]) -> list[str]:
+    """The counts miWorkbench reported that disagree with the version's; ``excluded`` only where
+    miWorkbench reports it (positive and negative are always required)."""
+    out = []
+    for key in COMPARED_COUNTS:
+        if key == "excluded" and key not in registered:
+            continue
+        if int(registered.get(key, -1)) != int(expected.get(key, 0)):
+            out.append(key)
+    return out
+
+
+def _download_key(send: DetectorSend, role: dict[str, Any]) -> str:
+    unit = next(u for u in send.plan["download_units"] if role["role_id"] in u["role_ids"])
+    return str(unit["key"])
+
+
+# --- the job ----------------------------------------------------------------------------------
+
+
+def _fail(
+    db: Session, job_id: str, send: DetectorSend, step: DetectorSendStep | None, err: dict[str, Any]
+) -> dict[str, Any]:
+    db.rollback()
+    send = db.get(DetectorSend, send.id, populate_existing=True)  # type: ignore[assignment]
+    if step is not None:
+        step = db.get(
+            DetectorSendStep, (step.send_id, step.step, step.unit_key), populate_existing=True
+        )
+        assert step is not None
+        _write(db, step, state="failed", error=err, finished_at=utc_now())
+    where = {"step": step.step, "unit": step.unit_key, "role_ids": step.role_ids} if step else {}
+    send.state = "failed"
+    send.error = {**where, **err}
+    send.completed_at = utc_now()
+    db.commit()
+    logger.info(
+        "detector_send.step send=%s step=%s unit=%s outcome=failed code=%s",
+        send.id,
+        where.get("step"),
+        where.get("unit"),
+        err.get("code"),
+    )
+    record_progress(
+        job_id,
+        status="failed",
+        error=err.get("message", "failed")[:4000],
+        result={"send_id": send.id},
+    )
+    emit(
+        _room(send.id),
+        "detector_send:status",
+        {"send_id": send.id, "state": "failed", "error": send.error},
+    )
+    return {"status": "failed", "send_id": send.id}
+
+
+@cooperative_cancel
+def run_job(job_id: str) -> dict[str, Any]:
+    with get_sync_db() as db:
+        job = claim_job(db, job_id)
+        if job is None:
+            return {"status": "skipped", "job_id": job_id}
+        send = db.get(DetectorSend, str(job.params["send_id"]))
+        if send is None:
+            # The row is committed before dispatch; a job without one never runs (FTID 009 s5).
+            record_progress(job_id, status="failed", error="No send record for this job.")
+            return {"status": "failed", "job_id": job_id}
+        send.state = "running"
+        db.commit()
+        emit(_room(send.id), "detector_send:status", {"send_id": send.id, "state": "running"})
+        checker = CancelCheck(job_id)
+        # C1 (020): a send stored under a previous miWorkbench origin calls the current address.
+        client = CLIENT_FACTORY(call_base(Sibling.MIWORKBENCH, send.mistudio_base_url))
+        current: DetectorSendStep | None = None
+        try:
+            try:
+                caps = capabilities.read(client, fresh=True)
+            except mc.MiWorkbenchError as exc:
+                return _fail(db, job_id, send, None, {"code": exc.code, "message": exc.message})
+            steps = list(
+                db.execute(
+                    select(DetectorSendStep)
+                    .where(DetectorSendStep.send_id == send.id)
+                    .order_by(DetectorSendStep.position)
+                ).scalars()
+            )
+            total = len(steps) or 1
+            for index, step in enumerate(steps):
+                if step.state in ("done", "reused"):
+                    continue
+                # A step boundary is rare and coarse: poll the row now, not on the time throttle.
+                if checker.poll_now():
+                    raise OperatorCancelled(
+                        job_id, checker.reason or "cancelled", f"before {step.step} {step.unit_key}"
+                    )
+                current = step
+                _write(db, step, state="running", started_at=utc_now(), error=None)
+                emit(
+                    _room(send.id),
+                    "detector_send:step",
+                    {
+                        "send_id": send.id,
+                        "step": step.step,
+                        "unit": step.unit_key,
+                        "state": "running",
+                    },
+                )
+                if step.step == "publish":
+                    outcome = do_publish(db, send, step, job_id, checker)
+                elif step.step == "download":
+                    outcome = do_download(db, send, step, job_id, checker, client, caps)
+                else:
+                    outcome = do_register(db, send, step, client, caps)
+                _write(db, step, state=outcome, finished_at=utc_now())
+                logger.info(
+                    "detector_send.step send=%s step=%s unit=%s outcome=%s workbench_dataset=%s probe_dataset=%s",
+                    send.id,
+                    step.step,
+                    step.unit_key,
+                    outcome,
+                    step.mistudio_dataset_id,
+                    step.probe_dataset_id,
+                )
+                record_progress(
+                    job_id, progress=100.0 * (index + 1) / total, message=f"{step.step} {outcome}"
+                )
+                emit(
+                    _room(send.id),
+                    "detector_send:step",
+                    {
+                        "send_id": send.id,
+                        "step": step.step,
+                        "unit": step.unit_key,
+                        "state": outcome,
+                    },
+                )
+                current = None
+        except StepFailed as exc:
+            return _fail(db, job_id, send, current, exc.as_dict())
+        except mc.MiWorkbenchError as exc:
+            return _fail(
+                db,
+                job_id,
+                send,
+                current,
+                {
+                    "code": exc.code,
+                    "message": exc.message,
+                    "details": {"status": exc.status, "detail": exc.detail},
+                },
+            )
+        except OperatorCancelled:
+            db.rollback()
+            if current is not None:
+                row = db.get(
+                    DetectorSendStep,
+                    (current.send_id, current.step, current.unit_key),
+                    populate_existing=True,
+                )
+                if row is not None and row.state == "running":
+                    _write(db, row, state="pending")
+            sent = db.get(DetectorSend, send.id, populate_existing=True)
+            assert sent is not None
+            sent.state = "cancelled"
+            sent.completed_at = utc_now()
+            db.commit()
+            emit(_room(send.id), "detector_send:status", {"send_id": send.id, "state": "cancelled"})
+            raise
+        except Exception as exc:
+            logger.exception("detector_send %s failed", send.id)
+            return _fail(
+                db,
+                job_id,
+                send,
+                current,
+                {"code": "send_failed", "message": f"{type(exc).__name__}: {exc}"[:2000]},
+            )
+        finally:
+            client.close()
+        send.state = "completed"
+        send.completed_at = utc_now()
+        db.commit()
+        send_id = send.id
+    record_progress(
+        job_id,
+        status="completed",
+        progress=100.0,
+        message="Sent to miWorkbench.",
+        result={"send_id": send_id},
+    )
+    emit(_room(send_id), "detector_send:status", {"send_id": send_id, "state": "completed"})
+    return {"status": "completed", "send_id": send_id}
+
+
+def reap_send(db: Session, job_id: str, status: str, reason: str) -> None:
+    """Janitor hook: a reaped send job fails (or cancels) its send too."""
+    send = db.execute(
+        select(DetectorSend).where(DetectorSend.job_id == job_id)
+    ).scalar_one_or_none()
+    if send is None or send.state not in ("queued", "running"):
+        return
+    send.state = "cancelled" if status == "cancelled" else "failed"
+    send.error = {"code": "worker_lost", "message": reason}
+    send.completed_at = utc_now()
+    db.commit()
+
+
+janitor.register_on_reap("mistudio_send", reap_send)
