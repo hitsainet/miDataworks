@@ -1,0 +1,30 @@
+{
+  "$comment": "The brand guard's scope rule (feature 020; FPRD Q4, PD-7): one table, three readers. backend/tests/unit/brand/test_brand_scope.py (pytest loader), frontend/src/test/brandGuard.test.ts (Vitest loader) and the standard-library twin in manual/scripts/check_published.py must each give these answers. whole: the text is one literal. spans: backtick code spans count.",
+  "cases": [
+    {"text": "is_millm", "whole": true, "spans": true, "read": [], "identifier": ["millm"]},
+    {"text": "PROBE_ENDPOINT_NOT_MILLM", "whole": true, "spans": true, "read": [], "identifier": ["MILLM"]},
+    {"text": "MiStudioRegistration", "whole": true, "spans": true, "read": [], "identifier": ["MiStudio"]},
+    {"text": "millm", "whole": true, "spans": true, "read": [], "identifier": ["millm"]},
+    {"text": "mistudio_spot_check/v1", "whole": true, "spans": true, "read": [], "identifier": ["mistudio"]},
+    {"text": "midataworks.detector_sets.run_mistudio_send", "whole": true, "spans": true, "read": [], "identifier": ["mistudio"]},
+    {"text": "miLLM", "whole": true, "spans": true, "read": ["miLLM"], "identifier": []},
+    {"text": "miStudio", "whole": true, "spans": true, "read": ["miStudio"], "identifier": []},
+    {"text": "MILLM", "whole": true, "spans": true, "read": ["MILLM"], "identifier": []},
+    {"text": "Load it in miLLM first.", "whole": true, "spans": true, "read": ["miLLM"], "identifier": []},
+    {"text": "mistudio is not configured", "whole": true, "spans": true, "read": ["mistudio"], "identifier": []},
+    {"text": "mistudio-foo", "whole": true, "spans": true, "read": ["mistudio"], "identifier": []},
+    {"text": "http://millm-backend.millm.example:8000", "whole": true, "spans": true, "read": ["millm", "millm"], "identifier": []},
+    {"text": "refuses with `PROBE_ENDPOINT_NOT_MILLM` when miLLM is absent", "whole": true, "spans": true, "read": ["miLLM"], "identifier": ["MILLM"]},
+    {"text": "read `dependencies.millm.ui_url`", "whole": true, "spans": true, "read": [], "identifier": ["millm"]},
+    {"text": "see `miLLM`", "whole": true, "spans": true, "read": ["miLLM"], "identifier": []},
+    {"text": "see `Open miStudio now`", "whole": true, "spans": true, "read": ["miStudio"], "identifier": []},
+    {"text": "the file `label-step-no-millm.png`", "whole": true, "spans": true, "read": ["millm"], "identifier": []},
+    {"text": "millm_probe_id", "whole": true, "spans": true, "read": [], "identifier": []},
+    {"text": "send X-miLLM-Strict: true", "whole": true, "spans": true, "read": [], "identifier": []},
+    {"text": "`MILLM_BASE_URL` is read", "whole": true, "spans": true, "read": [], "identifier": ["MILLM"]},
+    {"text": "MILLM_FOO", "whole": false, "spans": true, "read": ["MILLM"], "identifier": []},
+    {"text": "dataworks_list_millm_probes", "whole": false, "spans": true, "read": ["millm"], "identifier": []},
+    {"text": "see `millm_foo_bar`", "whole": false, "spans": true, "read": [], "identifier": ["millm"]},
+    {"text": "see `millm_foo_bar`", "whole": false, "spans": false, "read": ["millm"], "identifier": []}
+  ]
+}

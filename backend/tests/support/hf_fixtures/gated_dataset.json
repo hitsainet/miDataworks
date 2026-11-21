@@ -1,0 +1,42 @@
+{
+ "id": "lmsys/lmsys-chat-1m",
+ "author": "lmsys",
+ "sha": "200748d9d3cddcc9d782887541057aca0b18c5da",
+ "private": false,
+ "gated": "auto",
+ "disabled": false,
+ "tags": [
+  "size_categories:1M<n<10M",
+  "format:parquet",
+  "modality:text",
+  "library:datasets",
+  "library:dask",
+  "library:polars",
+  "library:mlcroissant",
+  "arxiv:2309.11998",
+  "region:us"
+ ],
+ "cardData": {
+  "license": null
+ },
+ "siblings": [
+  {
+   "rfilename": ".gitattributes"
+  },
+  {
+   "rfilename": "README.md"
+  },
+  {
+   "rfilename": "data/train-00000-of-00006-4feeb3f83346a0e9.parquet"
+  },
+  {
+   "rfilename": "data/train-00001-of-00006-4030672591c2f478.parquet"
+  },
+  {
+   "rfilename": "data/train-00002-of-00006-1779b7cec9462180.parquet"
+  },
+  {
+   "rfilename": "data/train-00003-of-00006-2fa862bfed56af1f.parquet"
+  }
+ ]
+}

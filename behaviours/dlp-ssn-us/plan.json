@@ -1,0 +1,155 @@
+{
+  "description": "carrier_plan@1 parameters (vocabulary, shares, templated share and ceiling) for the SSN pilot. Pass vocabulary and shares as JSON text; rows comes from sizes.json. Values follow BRD-MIDATAWORKS-BEHAVIOUR-DATA-001 section 6.3 and the D32 starting values; shares are proposals the operator may change (any change is recorded on the version as its configuration). Form names use '_' where the BRD writes 'digits:<delimiter style>'. framing_phrase_share is 0: insert_element@1 puts a phrase from phrase_list before the element whatever the row's framing, so a non-zero share writes 'SSN:' before numbers the label calls no disclosure (other_type, other_number, discussed_in_general, naming_no_value; review 2026-10-25). Raise it only once phrases can be limited to the positive framings. Kind shares (ENH-006 D89, 2026-10-30): pos is 0.32, not D32's 0.40, because recipe.json's slot_siblings step gives every pos carrier four code-made siblings (empty, lookalike, naming_no_value, masked), so pairs are pos x 5 of the rows over 1 + pos x 4: 0.40 gave 76.9% paired rows, 0.32 gives 70.2% (D89's 70%). The 0.08 went to the near-miss kinds siblings cannot make (wrong_length 0.08 -> 0.11, bad_check 0.10 -> 0.13, glued_letters 0.07 -> 0.09), because the siblings already add one lookalike, one naming_no_value and one masked row per pos carrier; the free-form share is where the other near misses come from.",
+  "vocabulary": {
+    "genres": [
+      "email",
+      "chat",
+      "support_ticket",
+      "form_dump",
+      "csv_line",
+      "json_line",
+      "log_line",
+      "code",
+      "config_file",
+      "ocr_scan",
+      "voice_transcript",
+      "non_english"
+    ],
+    "framings": [
+      "own_identifier",
+      "someones_identifier",
+      "discussed_in_general",
+      "naming_no_value",
+      "other_type",
+      "other_number"
+    ],
+    "kinds": [
+      "pos",
+      "masked",
+      "wrong_length",
+      "bad_check",
+      "glued_letters",
+      "lookalike",
+      "naming_no_value"
+    ],
+    "forms": [
+      "digits",
+      "digits_dash",
+      "digits_space",
+      "digits_dot",
+      "spaced",
+      "spelled",
+      "split_lines",
+      "mixed_words",
+      "prose"
+    ],
+    "placements": [
+      "start",
+      "middle",
+      "end"
+    ],
+    "length_bands": [
+      {
+        "name": "short",
+        "min_chars": 0,
+        "max_chars": 280
+      },
+      {
+        "name": "medium",
+        "min_chars": 280,
+        "max_chars": 1200
+      },
+      {
+        "name": "long",
+        "min_chars": 1200,
+        "max_chars": null
+      }
+    ],
+    "sub_questions": [
+      {
+        "name": "id_shape",
+        "values": [
+          "yes",
+          "no"
+        ]
+      },
+      {
+        "name": "presented",
+        "values": [
+          "yes",
+          "no"
+        ]
+      },
+      {
+        "name": "masked",
+        "values": [
+          "yes",
+          "no"
+        ]
+      }
+    ],
+    "phrase_list": [
+      "SSN:",
+      "SSN #",
+      "SS#",
+      "Soc. Sec. No.",
+      "social security no."
+    ],
+    "decoys": [
+      "lookalike",
+      "naming_no_value"
+    ]
+  },
+  "shares": {
+    "genre": {
+      "email": 0.09,
+      "chat": 0.09,
+      "support_ticket": 0.09,
+      "form_dump": 0.09,
+      "csv_line": 0.09,
+      "json_line": 0.09,
+      "log_line": 0.09,
+      "code": 0.09,
+      "config_file": 0.09,
+      "ocr_scan": 0.05,
+      "voice_transcript": 0.05,
+      "non_english": 0.09
+    },
+    "framing": {
+      "own_identifier": 0.3,
+      "someones_identifier": 0.25,
+      "discussed_in_general": 0.12,
+      "naming_no_value": 0.1,
+      "other_type": 0.12,
+      "other_number": 0.11
+    },
+    "kind": {
+      "pos": 0.32,
+      "masked": 0.1,
+      "wrong_length": 0.11,
+      "bad_check": 0.13,
+      "glued_letters": 0.09,
+      "lookalike": 0.15,
+      "naming_no_value": 0.1
+    },
+    "form": {
+      "digits": 0.1,
+      "digits_dash": 0.25,
+      "digits_space": 0.1,
+      "digits_dot": 0.05,
+      "spaced": 0.1,
+      "spelled": 0.12,
+      "split_lines": 0.06,
+      "mixed_words": 0.1,
+      "prose": 0.12
+    },
+    "length_band": {
+      "short": 0.45,
+      "medium": 0.4,
+      "long": 0.15
+    }
+  },
+  "templated_share": 0.1,
+  "templated_ceiling": 0.15,
+  "framing_phrase_share": 0.0
+}

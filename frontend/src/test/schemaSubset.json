@@ -1,0 +1,102 @@
+{
+  "by_type": {
+    "array": [
+      "items",
+      "maxItems",
+      "minItems",
+      "uniqueItems"
+    ],
+    "boolean": [],
+    "integer": [
+      "exclusiveMaximum",
+      "exclusiveMinimum",
+      "maximum",
+      "minimum",
+      "multipleOf"
+    ],
+    "number": [
+      "exclusiveMaximum",
+      "exclusiveMinimum",
+      "maximum",
+      "minimum",
+      "multipleOf"
+    ],
+    "string": [
+      "maxLength",
+      "minLength",
+      "pattern"
+    ]
+  },
+  "common": [
+    "const",
+    "default",
+    "description",
+    "enum",
+    "title",
+    "type"
+  ],
+  "draft": "https://json-schema.org/draft/2020-12/schema",
+  "extensions": [
+    "x-advanced",
+    "x-hint",
+    "x-unit",
+    "x-widget"
+  ],
+  "items": [
+    "const",
+    "default",
+    "description",
+    "enum",
+    "exclusiveMaximum",
+    "exclusiveMinimum",
+    "maxLength",
+    "maximum",
+    "minLength",
+    "minimum",
+    "multipleOf",
+    "pattern",
+    "title",
+    "type"
+  ],
+  "property_types": [
+    "array",
+    "boolean",
+    "integer",
+    "number",
+    "string"
+  ],
+  "refused": [
+    "$defs",
+    "$ref",
+    "allOf",
+    "anyOf",
+    "contains",
+    "definitions",
+    "dependentRequired",
+    "dependentSchemas",
+    "else",
+    "format",
+    "if",
+    "not",
+    "oneOf",
+    "patternProperties",
+    "prefixItems",
+    "propertyNames",
+    "then",
+    "unevaluatedProperties"
+  ],
+  "top_level": [
+    "$schema",
+    "additionalProperties",
+    "description",
+    "properties",
+    "required",
+    "title",
+    "type"
+  ],
+  "widgets": [
+    "select",
+    "slider",
+    "textarea"
+  ]
+}

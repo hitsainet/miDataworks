@@ -1,0 +1,7 @@
+{
+  "description": "fixture-alpha's second-opinion questions (017 slice 6, FR-017.39): one question per compared column, worded as behaviour data. Test-only.",
+  "questions": {
+    "discloses": "Does the text disclose a card number in any form, including spelled out or masked?",
+    "sq_element_valid": "Is the card number in the text one that passes its check digit?"
+  }
+}

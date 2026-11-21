@@ -1,0 +1,125 @@
+{
+ "artifact_dir": "/data/probe_monitors/pmr_59980a0fb155",
+ "calibration_dataset_id": "pmd_3222ea3bc591",
+ "celery_task_id": "83804c0d-47fc-4b8c-a340-68c664fbba2a",
+ "completed_at": "2026-10-08T07:30:33.844478Z",
+ "config": {
+  "batch_size": null,
+  "calibration_max_rows": 2000,
+  "dtype": null,
+  "layers": [
+   12
+  ],
+  "max_length": 4096,
+  "rolling_windows": [
+   4
+  ],
+  "rules": [
+   "rolling_mean_max"
+  ],
+  "sae_k": [
+   128
+  ],
+  "sae_variant": false,
+  "scope": "all",
+  "seed": 1337,
+  "stride": null,
+  "target_fpr": 0.01,
+  "top_n_layers": 1,
+  "val_fraction": 0.15
+ },
+ "created_at": "2026-10-08T07:06:11.107184Z",
+ "environment": {
+  "activation_storage_dtype": "float16",
+  "architecture": "llama",
+  "checkpoint_dtype": "bfloat16",
+  "dtype_source": "config",
+  "layers_swept": [
+   12
+  ],
+  "max_length": 4096,
+  "model_dtype": "bfloat16",
+  "n_layers": 32,
+  "quantization": "FP16",
+  "render": {
+   "content_mask_unavailable": 0,
+   "counts": {
+    "excluded": 0,
+    "filtered_out": 0,
+    "negative": 4912,
+    "positive": 4912,
+    "unparseable": 0
+   },
+   "failed": 0,
+   "kinds": {
+    "plain": 9824
+   },
+   "rendered": 9824,
+   "role_mask_unreliable": 0,
+   "scored_tokens": 547674,
+   "source_rows": 9824,
+   "truncated": 0
+  },
+  "render_form": {
+   "add_special_tokens": false,
+   "generation_prompt": true
+  },
+  "scope": "all",
+  "seed": 1337,
+  "stage_seconds": {
+   "calibrating": 464.589,
+   "evaluating": 136.005,
+   "layer_selection": 1.971,
+   "pooled_capture": 360.41,
+   "rendering": 3.08,
+   "token_capture": 368.646,
+   "training": 123.407
+  },
+  "template_hash": "e10ca381b1ccc5cf9db52e371f3b6651576caee0a630b452e2816b2d404d4b65"
+ },
+ "error_message": null,
+ "eval_dataset_ids": [
+  "pmd_fb14b0b206a5",
+  "pmd_c99c8595671d"
+ ],
+ "gpu_request": "GPU-247aa582-0d1b-e161-8156-983ed1fefc57",
+ "gpu_uuid": "GPU-247aa582-0d1b-e161-8156-983ed1fefc57",
+ "id": "pmr_59980a0fb155",
+ "layer_selection": {
+  "chosen": [
+   12
+  ],
+  "grid": [
+   {
+    "layer": 12,
+    "n_train": 8403,
+    "n_val": 1421,
+    "pooling": "mean",
+    "val_auroc": 0.998388995232377
+   },
+   {
+    "layer": 12,
+    "n_train": 8403,
+    "n_val": 1421,
+    "pooling": "last",
+    "val_auroc": 0.998745675254729
+   }
+  ],
+  "margin": null,
+  "poolings": [
+   "mean",
+   "last"
+  ]
+ },
+ "model_dtype_label": {
+  "note": null,
+  "source": "recorded",
+  "value": "bfloat16"
+ },
+ "model_id": "m_40e78d80",
+ "progress": 100.0,
+ "stage": "rung",
+ "status": "completed",
+ "train_dataset_id": "pmd_eaa518e859d3",
+ "updated_at": "2026-10-08T07:30:33.844866Z"
+}

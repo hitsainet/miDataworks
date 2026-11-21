@@ -1,0 +1,77 @@
+{
+  "description": "fixture-alpha's carrier plan (017 slices 2-3): an insertable element in slot carriers, with a vetoed kind (masked), a decoy kind (lookalike) and a rendering form (spelled). Its vocabulary shares no value with fixture-beta's; the same code builds both.",
+  "vocabulary": {
+    "genres": [
+      "email",
+      "chat",
+      "report"
+    ],
+    "framings": [
+      "direct",
+      "hedged",
+      "quoted"
+    ],
+    "kinds": [
+      "valid",
+      "invalid",
+      "masked",
+      "lookalike"
+    ],
+    "forms": [
+      "plain",
+      "spelled"
+    ],
+    "placements": [
+      "start",
+      "middle",
+      "end"
+    ],
+    "length_bands": [
+      {
+        "name": "short",
+        "min_chars": 0,
+        "max_chars": 200
+      },
+      {
+        "name": "long",
+        "min_chars": 200,
+        "max_chars": null
+      }
+    ],
+    "sub_questions": [
+      {
+        "name": "element_valid",
+        "values": [
+          "valid_yes",
+          "valid_no"
+        ]
+      }
+    ],
+    "phrase_list": [
+      "for reference"
+    ],
+    "decoys": [
+      "lookalike"
+    ]
+  },
+  "shares": {
+    "genre": {
+      "email": 0.5,
+      "chat": 0.3,
+      "report": 0.2
+    },
+    "framing": {
+      "direct": 0.6,
+      "hedged": 0.3,
+      "quoted": 0.1
+    },
+    "kind": {
+      "valid": 0.5,
+      "invalid": 0.2,
+      "masked": 0.2,
+      "lookalike": 0.1
+    }
+  },
+  "templated_share": 0.1,
+  "templated_ceiling": 0.15
+}

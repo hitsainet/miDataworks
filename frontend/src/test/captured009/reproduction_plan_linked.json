@@ -1,0 +1,108 @@
+{
+ "rows_total": 10,
+ "rows_reused": 0,
+ "rows_to_score": 10,
+ "agent_window_rows": 0,
+ "approval_needed": false,
+ "threshold": 5000,
+ "labeler_identity": {
+  "protocol": "millm_probe_score",
+  "model_id": "Llama-3.1-8B-Instruct",
+  "model_revision": "0e9e39f249a16976918f6564b8830bc894c89659",
+  "probe_id": "pr_humor",
+  "mistudio_probe_id": "pm_c99519a98e08",
+  "threshold_revision": 1,
+  "window": "all",
+  "input_form": "one_user_turn",
+  "sent": "one input per request"
+ },
+ "labeler_identity_hash": "dfcbe0cf6783e20508cb105545343f94d057acd7f12292acf075ba1b42c5315a",
+ "labeler_fingerprint": "ab12bbe6f840b9fe840e85923d953d5f07d129219b27dafec7446baa58d9b132",
+ "server_kind": "millm",
+ "resident_model": "Llama-3.1-8B-Instruct",
+ "model_revision": "0e9e39f249a16976918f6564b8830bc894c89659",
+ "probe": {
+  "probe_id": "pr_humor",
+  "name": "pr_humor probe",
+  "hf_id": "meta-llama/Llama-3.1-8B-Instruct",
+  "layer": 16,
+  "scope": "all",
+  "window": "all",
+  "window_bar": {
+   "threshold": 2.5,
+   "provisional": false
+  },
+  "threshold_revision": 1,
+  "rung": 2,
+  "rung_language": "detects on unseen tasks",
+  "armed": false,
+  "mistudio_probe_id": "pm_c99519a98e08",
+  "mistudio_run_id": "pmr_1",
+  "load_dtype": "bfloat16",
+  "preflight": {
+   "checked": true,
+   "row_key": "bd9406aac044f700cf2d038d18f73b934c2d05c507eb77203b4d9c4d9e8785be",
+   "error": null,
+   "score": 3.0,
+   "threshold": 2.5,
+   "verdict": true,
+   "provisional": false,
+   "model": {
+    "hf_id": "meta-llama/Llama-3.1-8B-Instruct",
+    "revision": "0e9e39f249a16976918f6564b8830bc894c89659",
+    "dtype": "bfloat16",
+    "quantization": "FP16"
+   }
+  }
+ },
+ "reproduction": {
+  "source": "linked_mistudio_evaluation",
+  "link_id": "rpl_9eca8cd72c38c6131a69fb84",
+  "link_check_level": "content",
+  "scoring_form": {
+   "mistudio": {
+    "input_kinds": {
+     "plain": 60
+    },
+    "scope": "all",
+    "template_hash": "e10ca381b1ccc5cf9db52e371f3b6651576caee0a630b452e2816b2d404d4b65",
+    "max_length": 4096,
+    "render_form": null,
+    "render_form_recorded": false,
+    "render_form_source": null,
+    "render_served": false,
+    "mistudio_render_served": null,
+    "described_as": "each plain-text row parsed as one user turn, rendered with the model's chat template; render form not recorded - rendered without the generation prompt (miStudio records no render_form for probes trained before 2026-10-08)"
+   },
+   "millm": {
+    "input_form": "text",
+    "described_as": "each value sent to miLLM's POST /api/probes/score as one user turn, rendered as a user-ended input with the generation prompt, an assistant-ended chat without it, one BOS from the chat template (miLLM probe_scoring.served_render, ecb88ac)",
+    "last_roles": {
+     "user": 60,
+     "assistant": 0,
+     "other": 0
+    }
+   },
+   "agreement": "differs",
+   "token_ids_compared": false,
+   "reason": "miStudio's render form is not recorded - rendered without the generation prompt; miLLM renders a user-ended input WITH it, and 60 of the 60 rows end on a user turn, so miLLM scores a longer sequence than miStudio did. Scored over scope 'all'. No token ids of these rows are available from miStudio, so the two are not compared token by token: this is not verified by token ids."
+  },
+  "mistudio_probe_id": "pm_c99519a98e08",
+  "snapshot_id": null,
+  "set_id": null,
+  "send_id": null,
+  "probe_dataset_id": "pmd_fb14b0b206a5",
+  "role": "id_test",
+  "view_name": "Humor (JEV-9B) held-out test",
+  "version_id": "9dacec66-035c-4ebc-ae53-71870859ada5",
+  "split": "test",
+  "mistudio_auroc": 0.9750930056392559,
+  "mistudio_ci": [
+   0.965238616278091,
+   0.9836579412507365
+  ],
+  "n_rows": 60,
+  "state": "will_run"
+ },
+ "features": null
+}
