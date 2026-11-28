@@ -1,0 +1,782 @@
+{
+  "description": "Respond templates for carrier_slot runs, one per genre, and the run's template_map (column genre). Save each with dataworks_save_generation_template (kind respond, behaviour_key, check_rule_sets = each template's check_rule_sets (D72: the pilot rule set's new version, the pin of recipe.json; its version is filled at 17.3 from the save), check_phrases = plan.json phrase_list) so the template check (FR-017.16) runs at save. The templates hold no example value and none of the framing phrases: a model copies what its template shows (miDataworks memory 'measure wording before publishing pairs'). Placeholders: {slot} (the run's slot token), {placement}, {length_band}, {framing} from the plan row. Bodies are the ones the SSN dry run generated with (2026-11-01, `ran`): v4 for every genre, and for voice_transcript v4@3 (2026-11-26, FU-7a; before it v4@2, whose own first v4 lost nearly all of Qwen's voice rows to a word in the template). Superseded bodies and why are in `history`. A generator measured on other bodies has them under by_generator, with the ids it ran, why and the pilots' keep rates: Gemma's seen-genre v4@2 (FU-7a W4, 2026-11-27).",
+  "templates": {
+    "ssn-carrier-email": {
+      "kind": "respond",
+      "genre": "email",
+      "body": {
+        "prompt": "Write one email (subject line, greeting, body, sign-off) from a person or an organisation.",
+        "system": "You write realistic text of one kind for a test corpus. The text must contain the marker {slot} exactly once, written exactly as shown, and no other number that could be a personal identifier. The marker stands for a value that is filled in later; never write a value yourself.\n\nTHE MOST IMPORTANT RULE: in this text the marker is {role}.\n\nThe marker can play one of six roles. Only the one above applies to this text; the other five show what this text must NOT look like:\n- the writer's own Social Security number: the writer clearly says it is their own Social Security number, so a reader is certain of it.\n- the Social Security number of a named other person (a customer, patient, employee or relative): the text clearly says it is that person's Social Security number, so a reader is certain of it.\n- an example in a general discussion of Social Security numbers (rules, formats, fraud or policy): it belongs to nobody, is never put in anyone's record, form, field or account, and is never called anyone's number.\n- a note in a Social Security number field saying the number is missing, withheld or kept elsewhere.\n- a different kind of identifier (an employee, account, licence or member number): it is never called a Social Security number, and Social Security numbers are not mentioned anywhere in the text.\n- an ordinary number (a reference, a quantity or a code) with no identifier meaning: Social Security numbers are not mentioned anywhere in the text.\n\nWhere the marker goes: {placement} (start: in the first sentence or line; middle: somewhere in the body; end: in the last sentence or line).\nLength: {length_band} (short: under 280 characters; medium: 280 to 1,200 characters; long: over 1,200 characters).\nUse varied names, places, companies and wording.\n\nOutput only the text itself: no title or introduction before it (never begin with words like \"Here is\" or \"Sure\"), no note, explanation or translation after it, and never repeat or mention these instructions, the roles or the words of these rules.",
+        "sampling": {
+          "top_p": 0.95,
+          "max_tokens": 900,
+          "temperature": 0.9
+        },
+        "json_schema": null,
+        "structured_output": "none"
+      },
+      "check_rule_sets": [
+        {
+          "name": "dlp-ssn-us-elements",
+          "version": 2,
+          "sha256": "73bd179f96a88518cf84bb94d1e7a54f2d2325cb071c7bc7d1bedaaaa0cccfa5"
+        }
+      ]
+    },
+    "ssn-carrier-chat": {
+      "kind": "respond",
+      "genre": "chat",
+      "body": {
+        "prompt": "Write one short chat exchange between two or three people, one message per line with the speaker's name.",
+        "system": "You write realistic text of one kind for a test corpus. The text must contain the marker {slot} exactly once, written exactly as shown, and no other number that could be a personal identifier. The marker stands for a value that is filled in later; never write a value yourself.\n\nTHE MOST IMPORTANT RULE: in this text the marker is {role}.\n\nThe marker can play one of six roles. Only the one above applies to this text; the other five show what this text must NOT look like:\n- the writer's own Social Security number: the writer clearly says it is their own Social Security number, so a reader is certain of it.\n- the Social Security number of a named other person (a customer, patient, employee or relative): the text clearly says it is that person's Social Security number, so a reader is certain of it.\n- an example in a general discussion of Social Security numbers (rules, formats, fraud or policy): it belongs to nobody, is never put in anyone's record, form, field or account, and is never called anyone's number.\n- a note in a Social Security number field saying the number is missing, withheld or kept elsewhere.\n- a different kind of identifier (an employee, account, licence or member number): it is never called a Social Security number, and Social Security numbers are not mentioned anywhere in the text.\n- an ordinary number (a reference, a quantity or a code) with no identifier meaning: Social Security numbers are not mentioned anywhere in the text.\n\nWhere the marker goes: {placement} (start: in the first sentence or line; middle: somewhere in the body; end: in the last sentence or line).\nLength: {length_band} (short: under 280 characters; medium: 280 to 1,200 characters; long: over 1,200 characters).\nUse varied names, places, companies and wording.\n\nOutput only the text itself: no title or introduction before it (never begin with words like \"Here is\" or \"Sure\"), no note, explanation or translation after it, and never repeat or mention these instructions, the roles or the words of these rules.",
+        "sampling": {
+          "top_p": 0.95,
+          "max_tokens": 900,
+          "temperature": 0.9
+        },
+        "json_schema": null,
+        "structured_output": "none"
+      },
+      "check_rule_sets": [
+        {
+          "name": "dlp-ssn-us-elements",
+          "version": 2,
+          "sha256": "73bd179f96a88518cf84bb94d1e7a54f2d2325cb071c7bc7d1bedaaaa0cccfa5"
+        }
+      ]
+    },
+    "ssn-carrier-support-ticket": {
+      "kind": "respond",
+      "genre": "support_ticket",
+      "body": {
+        "prompt": "Write one customer support ticket: a title, the customer's description and, if it fits, an agent's first reply.",
+        "system": "You write realistic text of one kind for a test corpus. The text must contain the marker {slot} exactly once, written exactly as shown, and no other number that could be a personal identifier. The marker stands for a value that is filled in later; never write a value yourself.\n\nTHE MOST IMPORTANT RULE: in this text the marker is {role}.\n\nThe marker can play one of six roles. Only the one above applies to this text; the other five show what this text must NOT look like:\n- the writer's own Social Security number: the writer clearly says it is their own Social Security number, so a reader is certain of it.\n- the Social Security number of a named other person (a customer, patient, employee or relative): the text clearly says it is that person's Social Security number, so a reader is certain of it.\n- an example in a general discussion of Social Security numbers (rules, formats, fraud or policy): it belongs to nobody, is never put in anyone's record, form, field or account, and is never called anyone's number.\n- a note in a Social Security number field saying the number is missing, withheld or kept elsewhere.\n- a different kind of identifier (an employee, account, licence or member number): it is never called a Social Security number, and Social Security numbers are not mentioned anywhere in the text.\n- an ordinary number (a reference, a quantity or a code) with no identifier meaning: Social Security numbers are not mentioned anywhere in the text.\n\nWhere the marker goes: {placement} (start: in the first sentence or line; middle: somewhere in the body; end: in the last sentence or line).\nLength: {length_band} (short: under 280 characters; medium: 280 to 1,200 characters; long: over 1,200 characters).\nUse varied names, places, companies and wording.\n\nOutput only the text itself: no title or introduction before it (never begin with words like \"Here is\" or \"Sure\"), no note, explanation or translation after it, and never repeat or mention these instructions, the roles or the words of these rules.",
+        "sampling": {
+          "top_p": 0.95,
+          "max_tokens": 900,
+          "temperature": 0.9
+        },
+        "json_schema": null,
+        "structured_output": "none"
+      },
+      "check_rule_sets": [
+        {
+          "name": "dlp-ssn-us-elements",
+          "version": 2,
+          "sha256": "73bd179f96a88518cf84bb94d1e7a54f2d2325cb071c7bc7d1bedaaaa0cccfa5"
+        }
+      ]
+    },
+    "ssn-carrier-form-dump": {
+      "kind": "respond",
+      "genre": "form_dump",
+      "body": {
+        "prompt": "Write the text of one filled-in form as it would look when copied out of a web page or PDF: field labels and their values, one per line.",
+        "system": "You write realistic text of one kind for a test corpus. The text must contain the marker {slot} exactly once, written exactly as shown, and no other number that could be a personal identifier. The marker stands for a value that is filled in later; never write a value yourself.\n\nTHE MOST IMPORTANT RULE: in this text the marker is {role}.\n\nThe marker can play one of six roles. Only the one above applies to this text; the other five show what this text must NOT look like:\n- the writer's own Social Security number: the writer clearly says it is their own Social Security number, so a reader is certain of it.\n- the Social Security number of a named other person (a customer, patient, employee or relative): the text clearly says it is that person's Social Security number, so a reader is certain of it.\n- an example in a general discussion of Social Security numbers (rules, formats, fraud or policy): it belongs to nobody, is never put in anyone's record, form, field or account, and is never called anyone's number.\n- a note in a Social Security number field saying the number is missing, withheld or kept elsewhere.\n- a different kind of identifier (an employee, account, licence or member number): it is never called a Social Security number, and Social Security numbers are not mentioned anywhere in the text.\n- an ordinary number (a reference, a quantity or a code) with no identifier meaning: Social Security numbers are not mentioned anywhere in the text.\n\nWhere the marker goes: {placement} (start: in the first sentence or line; middle: somewhere in the body; end: in the last sentence or line).\nLength: {length_band} (short: under 280 characters; medium: 280 to 1,200 characters; long: over 1,200 characters).\nUse varied names, places, companies and wording.\n\nOutput only the text itself: no title or introduction before it (never begin with words like \"Here is\" or \"Sure\"), no note, explanation or translation after it, and never repeat or mention these instructions, the roles or the words of these rules.",
+        "sampling": {
+          "top_p": 0.95,
+          "max_tokens": 900,
+          "temperature": 0.9
+        },
+        "json_schema": null,
+        "structured_output": "none"
+      },
+      "check_rule_sets": [
+        {
+          "name": "dlp-ssn-us-elements",
+          "version": 2,
+          "sha256": "73bd179f96a88518cf84bb94d1e7a54f2d2325cb071c7bc7d1bedaaaa0cccfa5"
+        }
+      ]
+    },
+    "ssn-carrier-csv-line": {
+      "kind": "respond",
+      "genre": "csv_line",
+      "body": {
+        "prompt": "Write a CSV file of a header line and between one and five data lines; the marker is the value of one cell, and the column header says what that cell holds.",
+        "system": "You write realistic text of one kind for a test corpus. The text must contain the marker {slot} exactly once, written exactly as shown, and no other number that could be a personal identifier. The marker stands for a value that is filled in later; never write a value yourself.\n\nTHE MOST IMPORTANT RULE: in this text the marker is {role}.\n\nThe marker can play one of six roles. Only the one above applies to this text; the other five show what this text must NOT look like:\n- the writer's own Social Security number: the writer clearly says it is their own Social Security number, so a reader is certain of it.\n- the Social Security number of a named other person (a customer, patient, employee or relative): the text clearly says it is that person's Social Security number, so a reader is certain of it.\n- an example in a general discussion of Social Security numbers (rules, formats, fraud or policy): it belongs to nobody, is never put in anyone's record, form, field or account, and is never called anyone's number.\n- a note in a Social Security number field saying the number is missing, withheld or kept elsewhere.\n- a different kind of identifier (an employee, account, licence or member number): it is never called a Social Security number, and Social Security numbers are not mentioned anywhere in the text.\n- an ordinary number (a reference, a quantity or a code) with no identifier meaning: Social Security numbers are not mentioned anywhere in the text.\n\nWhere the marker goes: {placement} (start: in the first sentence or line; middle: somewhere in the body; end: in the last sentence or line).\nLength: {length_band} (short: under 280 characters; medium: 280 to 1,200 characters; long: over 1,200 characters).\nUse varied names, places, companies and wording.\n\nOutput only the text itself: no title or introduction before it (never begin with words like \"Here is\" or \"Sure\"), no note, explanation or translation after it, and never repeat or mention these instructions, the roles or the words of these rules.",
+        "sampling": {
+          "top_p": 0.95,
+          "max_tokens": 900,
+          "temperature": 0.9
+        },
+        "json_schema": null,
+        "structured_output": "none"
+      },
+      "check_rule_sets": [
+        {
+          "name": "dlp-ssn-us-elements",
+          "version": 2,
+          "sha256": "73bd179f96a88518cf84bb94d1e7a54f2d2325cb071c7bc7d1bedaaaa0cccfa5"
+        }
+      ]
+    },
+    "ssn-carrier-json-line": {
+      "kind": "respond",
+      "genre": "json_line",
+      "body": {
+        "prompt": "Write one JSON object on a single line, as found in an export or an API log; the marker is the value of one field, inside a string, and the field's name says what it holds.",
+        "system": "You write realistic text of one kind for a test corpus. The text must contain the marker {slot} exactly once, written exactly as shown, and no other number that could be a personal identifier. The marker stands for a value that is filled in later; never write a value yourself.\n\nTHE MOST IMPORTANT RULE: in this text the marker is {role}.\n\nThe marker can play one of six roles. Only the one above applies to this text; the other five show what this text must NOT look like:\n- the writer's own Social Security number: the writer clearly says it is their own Social Security number, so a reader is certain of it.\n- the Social Security number of a named other person (a customer, patient, employee or relative): the text clearly says it is that person's Social Security number, so a reader is certain of it.\n- an example in a general discussion of Social Security numbers (rules, formats, fraud or policy): it belongs to nobody, is never put in anyone's record, form, field or account, and is never called anyone's number.\n- a note in a Social Security number field saying the number is missing, withheld or kept elsewhere.\n- a different kind of identifier (an employee, account, licence or member number): it is never called a Social Security number, and Social Security numbers are not mentioned anywhere in the text.\n- an ordinary number (a reference, a quantity or a code) with no identifier meaning: Social Security numbers are not mentioned anywhere in the text.\n\nWhere the marker goes: {placement} (start: in the first sentence or line; middle: somewhere in the body; end: in the last sentence or line).\nLength: {length_band} (short: under 280 characters; medium: 280 to 1,200 characters; long: over 1,200 characters).\nUse varied names, places, companies and wording.\n\nOutput only the text itself: no title or introduction before it (never begin with words like \"Here is\" or \"Sure\"), no note, explanation or translation after it, and never repeat or mention these instructions, the roles or the words of these rules.",
+        "sampling": {
+          "top_p": 0.95,
+          "max_tokens": 900,
+          "temperature": 0.9
+        },
+        "json_schema": null,
+        "structured_output": "none"
+      },
+      "check_rule_sets": [
+        {
+          "name": "dlp-ssn-us-elements",
+          "version": 2,
+          "sha256": "73bd179f96a88518cf84bb94d1e7a54f2d2325cb071c7bc7d1bedaaaa0cccfa5"
+        }
+      ]
+    },
+    "ssn-carrier-log-line": {
+      "kind": "respond",
+      "genre": "log_line",
+      "body": {
+        "prompt": "Write between one and six application log lines with timestamps, levels and messages; the marker appears in one message, and that message says what it is.",
+        "system": "You write realistic text of one kind for a test corpus. The text must contain the marker {slot} exactly once, written exactly as shown, and no other number that could be a personal identifier. The marker stands for a value that is filled in later; never write a value yourself.\n\nTHE MOST IMPORTANT RULE: in this text the marker is {role}.\n\nThe marker can play one of six roles. Only the one above applies to this text; the other five show what this text must NOT look like:\n- the writer's own Social Security number: the writer clearly says it is their own Social Security number, so a reader is certain of it.\n- the Social Security number of a named other person (a customer, patient, employee or relative): the text clearly says it is that person's Social Security number, so a reader is certain of it.\n- an example in a general discussion of Social Security numbers (rules, formats, fraud or policy): it belongs to nobody, is never put in anyone's record, form, field or account, and is never called anyone's number.\n- a note in a Social Security number field saying the number is missing, withheld or kept elsewhere.\n- a different kind of identifier (an employee, account, licence or member number): it is never called a Social Security number, and Social Security numbers are not mentioned anywhere in the text.\n- an ordinary number (a reference, a quantity or a code) with no identifier meaning: Social Security numbers are not mentioned anywhere in the text.\n\nWhere the marker goes: {placement} (start: in the first sentence or line; middle: somewhere in the body; end: in the last sentence or line).\nLength: {length_band} (short: under 280 characters; medium: 280 to 1,200 characters; long: over 1,200 characters).\nUse varied names, places, companies and wording.\n\nOutput only the text itself: no title or introduction before it (never begin with words like \"Here is\" or \"Sure\"), no note, explanation or translation after it, and never repeat or mention these instructions, the roles or the words of these rules.",
+        "sampling": {
+          "top_p": 0.95,
+          "max_tokens": 900,
+          "temperature": 0.9
+        },
+        "json_schema": null,
+        "structured_output": "none"
+      },
+      "check_rule_sets": [
+        {
+          "name": "dlp-ssn-us-elements",
+          "version": 2,
+          "sha256": "73bd179f96a88518cf84bb94d1e7a54f2d2325cb071c7bc7d1bedaaaa0cccfa5"
+        }
+      ]
+    },
+    "ssn-carrier-code": {
+      "kind": "respond",
+      "genre": "code",
+      "body": {
+        "prompt": "Write a short code snippet (any common programming language) such as a test fixture, a seed script or a configuration block; the marker appears once in a string literal or a comment, and the variable name or comment says what it holds.",
+        "system": "You write realistic text of one kind for a test corpus. The text must contain the marker {slot} exactly once, written exactly as shown, and no other number that could be a personal identifier. The marker stands for a value that is filled in later; never write a value yourself.\n\nTHE MOST IMPORTANT RULE: in this text the marker is {role}.\n\nThe marker can play one of six roles. Only the one above applies to this text; the other five show what this text must NOT look like:\n- the writer's own Social Security number: the writer clearly says it is their own Social Security number, so a reader is certain of it.\n- the Social Security number of a named other person (a customer, patient, employee or relative): the text clearly says it is that person's Social Security number, so a reader is certain of it.\n- an example in a general discussion of Social Security numbers (rules, formats, fraud or policy): it belongs to nobody, is never put in anyone's record, form, field or account, and is never called anyone's number.\n- a note in a Social Security number field saying the number is missing, withheld or kept elsewhere.\n- a different kind of identifier (an employee, account, licence or member number): it is never called a Social Security number, and Social Security numbers are not mentioned anywhere in the text.\n- an ordinary number (a reference, a quantity or a code) with no identifier meaning: Social Security numbers are not mentioned anywhere in the text.\n\nWhere the marker goes: {placement} (start: in the first sentence or line; middle: somewhere in the body; end: in the last sentence or line).\nLength: {length_band} (short: under 280 characters; medium: 280 to 1,200 characters; long: over 1,200 characters).\nUse varied names, places, companies and wording.\n\nOutput only the text itself: no title or introduction before it (never begin with words like \"Here is\" or \"Sure\"), no note, explanation or translation after it, and never repeat or mention these instructions, the roles or the words of these rules.",
+        "sampling": {
+          "top_p": 0.95,
+          "max_tokens": 900,
+          "temperature": 0.9
+        },
+        "json_schema": null,
+        "structured_output": "none"
+      },
+      "check_rule_sets": [
+        {
+          "name": "dlp-ssn-us-elements",
+          "version": 2,
+          "sha256": "73bd179f96a88518cf84bb94d1e7a54f2d2325cb071c7bc7d1bedaaaa0cccfa5"
+        }
+      ]
+    },
+    "ssn-carrier-config-file": {
+      "kind": "respond",
+      "genre": "config_file",
+      "body": {
+        "prompt": "Write a short configuration file (YAML, INI, TOML or .env style); the marker is one value, and its key name says what it holds.",
+        "system": "You write realistic text of one kind for a test corpus. The text must contain the marker {slot} exactly once, written exactly as shown, and no other number that could be a personal identifier. The marker stands for a value that is filled in later; never write a value yourself.\n\nTHE MOST IMPORTANT RULE: in this text the marker is {role}.\n\nThe marker can play one of six roles. Only the one above applies to this text; the other five show what this text must NOT look like:\n- the writer's own Social Security number: the writer clearly says it is their own Social Security number, so a reader is certain of it.\n- the Social Security number of a named other person (a customer, patient, employee or relative): the text clearly says it is that person's Social Security number, so a reader is certain of it.\n- an example in a general discussion of Social Security numbers (rules, formats, fraud or policy): it belongs to nobody, is never put in anyone's record, form, field or account, and is never called anyone's number.\n- a note in a Social Security number field saying the number is missing, withheld or kept elsewhere.\n- a different kind of identifier (an employee, account, licence or member number): it is never called a Social Security number, and Social Security numbers are not mentioned anywhere in the text.\n- an ordinary number (a reference, a quantity or a code) with no identifier meaning: Social Security numbers are not mentioned anywhere in the text.\n\nWhere the marker goes: {placement} (start: in the first sentence or line; middle: somewhere in the body; end: in the last sentence or line).\nLength: {length_band} (short: under 280 characters; medium: 280 to 1,200 characters; long: over 1,200 characters).\nUse varied names, places, companies and wording.\n\nOutput only the text itself: no title or introduction before it (never begin with words like \"Here is\" or \"Sure\"), no note, explanation or translation after it, and never repeat or mention these instructions, the roles or the words of these rules.",
+        "sampling": {
+          "top_p": 0.95,
+          "max_tokens": 900,
+          "temperature": 0.9
+        },
+        "json_schema": null,
+        "structured_output": "none"
+      },
+      "check_rule_sets": [
+        {
+          "name": "dlp-ssn-us-elements",
+          "version": 2,
+          "sha256": "73bd179f96a88518cf84bb94d1e7a54f2d2325cb071c7bc7d1bedaaaa0cccfa5"
+        }
+      ]
+    },
+    "ssn-carrier-ocr-scan": {
+      "kind": "respond",
+      "genre": "ocr_scan",
+      "body": {
+        "prompt": "Write the text of a scanned paper document as optical character recognition (OCR) would return it: broken lines, stray characters, a few misread letters and uneven spacing. Keep the marker intact.",
+        "system": "You write realistic text of one kind for a test corpus. The text must contain the marker {slot} exactly once, written exactly as shown, and no other number that could be a personal identifier. The marker stands for a value that is filled in later; never write a value yourself.\n\nTHE MOST IMPORTANT RULE: in this text the marker is {role}.\n\nThe marker can play one of six roles. Only the one above applies to this text; the other five show what this text must NOT look like:\n- the writer's own Social Security number: the writer clearly says it is their own Social Security number, so a reader is certain of it.\n- the Social Security number of a named other person (a customer, patient, employee or relative): the text clearly says it is that person's Social Security number, so a reader is certain of it.\n- an example in a general discussion of Social Security numbers (rules, formats, fraud or policy): it belongs to nobody, is never put in anyone's record, form, field or account, and is never called anyone's number.\n- a note in a Social Security number field saying the number is missing, withheld or kept elsewhere.\n- a different kind of identifier (an employee, account, licence or member number): it is never called a Social Security number, and Social Security numbers are not mentioned anywhere in the text.\n- an ordinary number (a reference, a quantity or a code) with no identifier meaning: Social Security numbers are not mentioned anywhere in the text.\n\nWhere the marker goes: {placement} (start: in the first sentence or line; middle: somewhere in the body; end: in the last sentence or line).\nLength: {length_band} (short: under 280 characters; medium: 280 to 1,200 characters; long: over 1,200 characters).\nUse varied names, places, companies and wording.\n\nOutput only the text itself: no title or introduction before it (never begin with words like \"Here is\" or \"Sure\"), no note, explanation or translation after it, and never repeat or mention these instructions, the roles or the words of these rules.",
+        "sampling": {
+          "top_p": 0.95,
+          "max_tokens": 900,
+          "temperature": 0.9
+        },
+        "json_schema": null,
+        "structured_output": "none"
+      },
+      "check_rule_sets": [
+        {
+          "name": "dlp-ssn-us-elements",
+          "version": 2,
+          "sha256": "73bd179f96a88518cf84bb94d1e7a54f2d2325cb071c7bc7d1bedaaaa0cccfa5"
+        }
+      ]
+    },
+    "ssn-carrier-voice-transcript": {
+      "kind": "respond",
+      "genre": "voice_transcript",
+      "body": {
+        "prompt": "Write a transcript of a phone call or voice note as automatic speech recognition would produce it: lower case, little punctuation, fillers, speaker turns. Only the spoken words are lower case. The marker is not a spoken word: copy it character for character, in CAPITAL letters, inside its double square brackets, exactly as shown. A marker with any lower-case letter, a missing bracket or a changed character makes the whole transcript unusable.",
+        "system": "You write realistic text of one kind for a test corpus. The text must contain the marker {slot} exactly once, written exactly as shown, and no other number that could be a personal identifier. Write the marker in CAPITAL letters with both pairs of square brackets, character for character, even where the text around it is lower case. The marker stands for a value that is filled in later; never write a value yourself.\n\nTHE MOST IMPORTANT RULE: in this text the marker is {role}.\n\nThe marker can play one of six roles. Only the one above applies to this text; the other five show what this text must NOT look like:\n- the writer's own Social Security number: the writer clearly says it is their own Social Security number, so a reader is certain of it.\n- the Social Security number of a named other person (a customer, patient, employee or relative): the text clearly says it is that person's Social Security number, so a reader is certain of it.\n- an example in a general discussion of Social Security numbers (rules, formats, fraud or policy): it belongs to nobody, is never put in anyone's record, form, field or account, and is never called anyone's number.\n- a note in a Social Security number field saying the number is missing, withheld or kept elsewhere.\n- a different kind of identifier (an employee, account, licence or member number): it is never called a Social Security number, and Social Security numbers are not mentioned anywhere in the text.\n- an ordinary number (a reference, a quantity or a code) with no identifier meaning: Social Security numbers are not mentioned anywhere in the text.\n\nWhere the marker goes: {placement} (start: in the first sentence or line; middle: somewhere in the body; end: in the last sentence or line).\nLength: {length_band} (short: under 280 characters; medium: 280 to 1,200 characters; long: over 1,200 characters).\nUse varied names, places, companies and wording.\n\nOutput only the text itself: no title or introduction before it (never begin with words like \"Here is\" or \"Sure\"), no note, explanation or translation after it, and never repeat or mention these instructions, the roles or the words of these rules.",
+        "sampling": {
+          "top_p": 0.95,
+          "max_tokens": 900,
+          "temperature": 0.9
+        },
+        "json_schema": null,
+        "structured_output": "none"
+      },
+      "check_rule_sets": [
+        {
+          "name": "dlp-ssn-us-elements",
+          "version": 2,
+          "sha256": "73bd179f96a88518cf84bb94d1e7a54f2d2325cb071c7bc7d1bedaaaa0cccfa5"
+        }
+      ]
+    },
+    "ssn-carrier-non-english": {
+      "kind": "respond",
+      "genre": "non_english",
+      "body": {
+        "prompt": "Write the text in a language other than English (choose one, for example Spanish, German, French, Portuguese, Italian, Polish, Vietnamese, Chinese or Arabic); any genre of everyday writing. Keep the marker intact. Write everything, including what the marker is, in that language.",
+        "system": "You write realistic text of one kind for a test corpus. The text must contain the marker {slot} exactly once, written exactly as shown, and no other number that could be a personal identifier. The marker stands for a value that is filled in later; never write a value yourself.\n\nTHE MOST IMPORTANT RULE: in this text the marker is {role}.\n\nThe marker can play one of six roles. Only the one above applies to this text; the other five show what this text must NOT look like:\n- the writer's own Social Security number: the writer clearly says it is their own Social Security number, so a reader is certain of it.\n- the Social Security number of a named other person (a customer, patient, employee or relative): the text clearly says it is that person's Social Security number, so a reader is certain of it.\n- an example in a general discussion of Social Security numbers (rules, formats, fraud or policy): it belongs to nobody, is never put in anyone's record, form, field or account, and is never called anyone's number.\n- a note in a Social Security number field saying the number is missing, withheld or kept elsewhere.\n- a different kind of identifier (an employee, account, licence or member number): it is never called a Social Security number, and Social Security numbers are not mentioned anywhere in the text.\n- an ordinary number (a reference, a quantity or a code) with no identifier meaning: Social Security numbers are not mentioned anywhere in the text.\n\nWhere the marker goes: {placement} (start: in the first sentence or line; middle: somewhere in the body; end: in the last sentence or line).\nLength: {length_band} (short: under 280 characters; medium: 280 to 1,200 characters; long: over 1,200 characters).\nUse varied names, places, companies and wording.\n\nOutput only the text itself: no title or introduction before it (never begin with words like \"Here is\" or \"Sure\"), no note, explanation or translation after it, and never repeat or mention these instructions, the roles or the words of these rules.",
+        "sampling": {
+          "top_p": 0.95,
+          "max_tokens": 900,
+          "temperature": 0.9
+        },
+        "json_schema": null,
+        "structured_output": "none"
+      },
+      "check_rule_sets": [
+        {
+          "name": "dlp-ssn-us-elements",
+          "version": 2,
+          "sha256": "73bd179f96a88518cf84bb94d1e7a54f2d2325cb071c7bc7d1bedaaaa0cccfa5"
+        }
+      ]
+    }
+  },
+  "template_map": {
+    "column": "genre",
+    "templates": {
+      "email": "ssn-carrier-email",
+      "chat": "ssn-carrier-chat",
+      "support_ticket": "ssn-carrier-support-ticket",
+      "form_dump": "ssn-carrier-form-dump",
+      "csv_line": "ssn-carrier-csv-line",
+      "json_line": "ssn-carrier-json-line",
+      "log_line": "ssn-carrier-log-line",
+      "code": "ssn-carrier-code",
+      "config_file": "ssn-carrier-config-file",
+      "ocr_scan": "ssn-carrier-ocr-scan",
+      "voice_transcript": "ssn-carrier-voice-transcript",
+      "non_english": "ssn-carrier-non-english"
+    }
+  },
+  "check_phrases_from": "plan.json vocabulary.phrase_list",
+  "ran": {
+    "chat": "ssn-carrier-chat-v4@1",
+    "code": "ssn-carrier-code-v4@1",
+    "config_file": "ssn-carrier-config-file-v4@1",
+    "csv_line": "ssn-carrier-csv-line-v4@1",
+    "email": "ssn-carrier-email-v4@1",
+    "form_dump": "ssn-carrier-form-dump-v4@1",
+    "json_line": "ssn-carrier-json-line-v4@1",
+    "log_line": "ssn-carrier-log-line-v4@1",
+    "non_english": "ssn-carrier-non-english-v4@1",
+    "ocr_scan": "ssn-carrier-ocr-scan-v4@1",
+    "support_ticket": "ssn-carrier-support-ticket-v4@1",
+    "voice_transcript": "ssn-carrier-voice-transcript-v4@3"
+  },
+  "ran_sha256": {
+    "email": "92f1903d57997666d9639233e5b091a6b6402095db43517fa18b976466303ff3",
+    "chat": "fa0df3010920aa506dd8c94ea343d41bef0c8c484e5e6594018b28b89713dccf",
+    "support_ticket": "43315826ac725165f2cc252684950ef16e91c3c155f6121d28ca712fe4c1cb85",
+    "form_dump": "7fffc25b242b5641d48d15ecfad3217e263e20688efb81c700a84cad7e3afa15",
+    "csv_line": "fffb1c5a5b3d48c74472fdad955554e6548ae7535aa1d14828689d4989845e16",
+    "json_line": "fce73717a5986325795801745498b363d5f0152365d1b0e78ee06f90461dc735",
+    "log_line": "94915f39c83a4b7191f201e05f4ddce2afe2229881cdbdf2ec09ac50825f44c2",
+    "code": "23619692f2f8fea9076b07a8f9ed4b0da2e4273f6afaead3991a2633c18c304b",
+    "config_file": "958bd3b3f1d91e2161b993fa47188cf30c00338975795ac1cb30a7e58abafe34",
+    "ocr_scan": "bc1a231b64ab08a1107d7111322dbc3276f2734a18abe60cd420c0b00a83b7a0",
+    "voice_transcript": "6c56f1ceba8a1431abed521e350053bfa41433caeeedb1a14ae4c006d8cd3022",
+    "non_english": "33105cdb63a2fc757f05b41a9a61520c1409ce5c1a38ede28f83c7062816a171"
+  },
+  "history": {
+    "voice_transcript": [
+      {
+        "ref": "ssn-carrier-voice-transcript-v4@2",
+        "id": "gt_9fdad41a74e5397519fac203",
+        "used": "the SSN dry run (2026-11-01) and FU-7a until 2026-11-26",
+        "sha256": "3165775c15a23e64e3a222812ae7c1ad05d127ab4254910d1c3ae20127a1597a",
+        "body": {
+          "prompt": "Write a transcript of a phone call or voice note as automatic speech recognition would produce it: lower case, little punctuation, fillers, speaker turns. The marker is the one exception to lower case: copy it character for character, in capital letters and with its brackets, exactly as shown, even though everything around it is lower case.",
+          "system": "You write realistic text of one kind for a test corpus. The text must contain the marker {slot} exactly once, written exactly as shown, and no other number that could be a personal identifier. The marker stands for a value that is filled in later; never write a value yourself.\n\nTHE MOST IMPORTANT RULE: in this text the marker is {role}.\n\nThe marker can play one of six roles. Only the one above applies to this text; the other five show what this text must NOT look like:\n- the writer's own Social Security number: the writer clearly says it is their own Social Security number, so a reader is certain of it.\n- the Social Security number of a named other person (a customer, patient, employee or relative): the text clearly says it is that person's Social Security number, so a reader is certain of it.\n- an example in a general discussion of Social Security numbers (rules, formats, fraud or policy): it belongs to nobody, is never put in anyone's record, form, field or account, and is never called anyone's number.\n- a note in a Social Security number field saying the number is missing, withheld or kept elsewhere.\n- a different kind of identifier (an employee, account, licence or member number): it is never called a Social Security number, and Social Security numbers are not mentioned anywhere in the text.\n- an ordinary number (a reference, a quantity or a code) with no identifier meaning: Social Security numbers are not mentioned anywhere in the text.\n\nWhere the marker goes: {placement} (start: in the first sentence or line; middle: somewhere in the body; end: in the last sentence or line).\nLength: {length_band} (short: under 280 characters; medium: 280 to 1,200 characters; long: over 1,200 characters).\nUse varied names, places, companies and wording.\n\nOutput only the text itself: no title or introduction before it (never begin with words like \"Here is\" or \"Sure\"), no note, explanation or translation after it, and never repeat or mention these instructions, the roles or the words of these rules.",
+          "sampling": {
+            "top_p": 0.95,
+            "max_tokens": 900,
+            "temperature": 0.9
+          },
+          "json_schema": null,
+          "structured_output": "none"
+        },
+        "superseded_by": {
+          "ref": "ssn-carrier-voice-transcript-v4@3",
+          "id": "gt_dc75edd811f5519d709075a0",
+          "cloned_from": "gt_9fdad41a74e5397519fac203",
+          "sha256": "6c56f1ceba8a1431abed521e350053bfa41433caeeedb1a14ae4c006d8cd3022",
+          "live_content_hash": "a1412fc5d7d7c9b69ff9c5c852bf19ae44825d9ab6223ecfb7f51ae023f9abef"
+        },
+        "why": "Qwen2.5-7B-Instruct lowercased the slot marker in voice transcripts: v4@2 said the marker was the one exception to lower case, and 24 of the 28 discards in its measurement run were the marker written in lower case (slot_missing). v4@3 adds a system sentence (write the marker in CAPITAL letters with both pairs of square brackets, character for character, even where the text around it is lower case) and replaces the prompt's exception sentence: only the spoken words are lower case; the marker is not a spoken word and is copied in CAPITAL letters inside its double square brackets; a marker with any lower-case letter, a missing bracket or a changed character makes the transcript unusable. Nothing else in the template map changed; the rule-set pin is unchanged.",
+        "measured": {
+          "generator": "Qwen2.5-7B-Instruct",
+          "plan_rows": 60,
+          "genre": "voice_transcript only",
+          "runs": [
+            {
+              "template": "ssn-carrier-voice-transcript-v4@2",
+              "run": "gr_1eeb9a9de3ae3302f02d78fb",
+              "plan_version": "v24 af3b8c50",
+              "plan_seed": 2611291,
+              "kept": 32,
+              "kept_share": 0.533,
+              "note": "24 of 28 discards lowercased the marker"
+            },
+            {
+              "template": "ssn-carrier-voice-transcript-v4@3",
+              "run": "gr_e9d564f9fa0bb08dfb63ff05",
+              "plan_version": "v26 ce96a155",
+              "plan_seed": 2611293,
+              "kept": 54,
+              "kept_share": 0.9,
+              "note": "5 slot repeated, 1 slot missing; 53 of 54 kept rows all lower case outside the marker"
+            }
+          ],
+          "record": "suite specs/ENH-010-weight-space-programming, FU-7a data prep record section 9 (2026-11-26)",
+          "full_runs": [
+            {
+              "template": "ssn-carrier-voice-transcript-v4@3",
+              "run": "gr_1690e5b52ea8de05f01446cb",
+              "generator": "Qwen2.5-7B-Instruct",
+              "run_name": "Q",
+              "voice_plan_rows": 2616,
+              "voice_kept": 2209,
+              "voice_kept_share": 0.844,
+              "slot_missing": 15,
+              "slot_repeated": 392
+            },
+            {
+              "template": "ssn-carrier-voice-transcript-v4@3",
+              "run": "gr_66ab6b7f5b4ad98e1077a34d",
+              "generator": "Qwen2.5-7B-Instruct",
+              "run_name": "R (reserve)",
+              "voice_plan_rows": 2644,
+              "voice_kept": 2245,
+              "voice_kept_share": 0.849,
+              "slot_missing": 9,
+              "slot_repeated": 389
+            }
+          ],
+          "full_runs_note": "On full runs v4@3 kept 84% of voice rows (the 60-row measurement read 90%); its losses are almost all slot_repeated, the marker written twice."
+        }
+      }
+    ]
+  },
+  "by_generator": {
+    "gemma-4-26B-A4B-it-uncensored-heretic-GGUF:Q4_K_M": {
+      "used": "FU-7a W4 (2026-11-27): pilot 2 and run G, the seen genres only (Gemma generates no ocr_scan or voice_transcript rows)",
+      "templates": {
+        "chat": {
+          "ref": "ssn-carrier-chat-v4@2",
+          "id": "gt_c56f8e7950456371837a3fa3",
+          "cloned_from": "gt_3dbcd592065d8def1f9cd346",
+          "cloned_from_ref": "ssn-carrier-chat-v4@1",
+          "sha256": "457d645baae73179a218c7636b44b01c51d84a5281e400a744c734ce7991398c",
+          "live_content_hash": "fad50ac65b4b9e1de9e830f401352e8aef11ba4c75c14642fa2c1fc6d5cb1c27",
+          "body": {
+            "prompt": "Write one short chat exchange between two or three people, one message per line with the speaker's name. Copy the marker character for character, exactly as shown: the word SLOT in CAPITAL letters, then the hyphen and the code, inside its double square brackets. A marker with a changed, missing or extra letter, or a missing bracket, makes the whole text unusable.",
+            "system": "You write realistic text of one kind for a test corpus. The text must contain the marker {slot} exactly once, written exactly as shown, and no other number that could be a personal identifier. Copy the marker character for character: the word SLOT in CAPITAL letters, the hyphen, every character of the code after it and both pairs of square brackets. Never shorten, respell or change any letter of it. The marker stands for a value that is filled in later; never write a value yourself.\n\nTHE MOST IMPORTANT RULE: in this text the marker is {role}.\n\nThe marker can play one of six roles. Only the one above applies to this text; the other five show what this text must NOT look like:\n- the writer's own Social Security number: the writer clearly says it is their own Social Security number, so a reader is certain of it.\n- the Social Security number of a named other person (a customer, patient, employee or relative): the text clearly says it is that person's Social Security number, so a reader is certain of it.\n- an example in a general discussion of Social Security numbers (rules, formats, fraud or policy): it belongs to nobody, is never put in anyone's record, form, field or account, and is never called anyone's number.\n- a note in a Social Security number field saying the number is missing, withheld or kept elsewhere.\n- a different kind of identifier (an employee, account, licence or member number): it is never called a Social Security number, and Social Security numbers are not mentioned anywhere in the text.\n- an ordinary number (a reference, a quantity or a code) with no identifier meaning: Social Security numbers are not mentioned anywhere in the text.\n\nWhere the marker goes: {placement} (start: in the first sentence or line; middle: somewhere in the body; end: in the last sentence or line).\nLength: {length_band} (short: under 280 characters; medium: 280 to 1,200 characters; long: over 1,200 characters).\nUse varied names, places, companies and wording.\n\nOutput only the text itself: no title or introduction before it (never begin with words like \"Here is\" or \"Sure\"), no note, explanation or translation after it, and never repeat or mention these instructions, the roles or the words of these rules.",
+            "sampling": {
+              "temperature": 0.9,
+              "top_p": 0.95,
+              "max_tokens": 900
+            },
+            "structured_output": "none",
+            "json_schema": null
+          }
+        },
+        "code": {
+          "ref": "ssn-carrier-code-v4@2",
+          "id": "gt_8bcd8e75e18159e0e82c1459",
+          "cloned_from": "gt_654bdad69cf5bfdbc20cae6c",
+          "cloned_from_ref": "ssn-carrier-code-v4@1",
+          "sha256": "365af5b502b86b1239530fca96ca5fe68257bceb4317b7d8368cbfab55fa158d",
+          "live_content_hash": "b053c08f66dacc1db8ea1eda8be3a53f46dc9961bfa0af74a7fe8aed5919e34a",
+          "body": {
+            "prompt": "Write a short code snippet (any common programming language) such as a test fixture, a seed script or a configuration block; the marker appears once in a string literal or a comment, and the variable name or comment says what it holds. Copy the marker character for character, exactly as shown: the word SLOT in CAPITAL letters, then the hyphen and the code, inside its double square brackets. A marker with a changed, missing or extra letter, or a missing bracket, makes the whole text unusable.",
+            "system": "You write realistic text of one kind for a test corpus. The text must contain the marker {slot} exactly once, written exactly as shown, and no other number that could be a personal identifier. Copy the marker character for character: the word SLOT in CAPITAL letters, the hyphen, every character of the code after it and both pairs of square brackets. Never shorten, respell or change any letter of it. The marker stands for a value that is filled in later; never write a value yourself.\n\nTHE MOST IMPORTANT RULE: in this text the marker is {role}.\n\nThe marker can play one of six roles. Only the one above applies to this text; the other five show what this text must NOT look like:\n- the writer's own Social Security number: the writer clearly says it is their own Social Security number, so a reader is certain of it.\n- the Social Security number of a named other person (a customer, patient, employee or relative): the text clearly says it is that person's Social Security number, so a reader is certain of it.\n- an example in a general discussion of Social Security numbers (rules, formats, fraud or policy): it belongs to nobody, is never put in anyone's record, form, field or account, and is never called anyone's number.\n- a note in a Social Security number field saying the number is missing, withheld or kept elsewhere.\n- a different kind of identifier (an employee, account, licence or member number): it is never called a Social Security number, and Social Security numbers are not mentioned anywhere in the text.\n- an ordinary number (a reference, a quantity or a code) with no identifier meaning: Social Security numbers are not mentioned anywhere in the text.\n\nWhere the marker goes: {placement} (start: in the first sentence or line; middle: somewhere in the body; end: in the last sentence or line).\nLength: {length_band} (short: under 280 characters; medium: 280 to 1,200 characters; long: over 1,200 characters).\nUse varied names, places, companies and wording.\n\nOutput only the text itself: no title or introduction before it (never begin with words like \"Here is\" or \"Sure\"), no note, explanation or translation after it, and never repeat or mention these instructions, the roles or the words of these rules.",
+            "sampling": {
+              "temperature": 0.9,
+              "top_p": 0.95,
+              "max_tokens": 900
+            },
+            "structured_output": "none",
+            "json_schema": null
+          }
+        },
+        "email": {
+          "ref": "ssn-carrier-email-v4@2",
+          "id": "gt_b06ab54c4bc8181df9e73403",
+          "cloned_from": "gt_8bdb5a1c33812f0f50f736c6",
+          "cloned_from_ref": "ssn-carrier-email-v4@1",
+          "sha256": "9ac03db4dcbdb2b3530a947db7f8873fc36114b8a4ddae1ef15b1e3b69d0763c",
+          "live_content_hash": "7d587a30af1a05a95eca863667004119f0d7133f423ce0427b2e7c793dd006d2",
+          "body": {
+            "prompt": "Write one email (subject line, greeting, body, sign-off) from a person or an organisation. Copy the marker character for character, exactly as shown: the word SLOT in CAPITAL letters, then the hyphen and the code, inside its double square brackets. A marker with a changed, missing or extra letter, or a missing bracket, makes the whole text unusable.",
+            "system": "You write realistic text of one kind for a test corpus. The text must contain the marker {slot} exactly once, written exactly as shown, and no other number that could be a personal identifier. Copy the marker character for character: the word SLOT in CAPITAL letters, the hyphen, every character of the code after it and both pairs of square brackets. Never shorten, respell or change any letter of it. The marker stands for a value that is filled in later; never write a value yourself.\n\nTHE MOST IMPORTANT RULE: in this text the marker is {role}.\n\nThe marker can play one of six roles. Only the one above applies to this text; the other five show what this text must NOT look like:\n- the writer's own Social Security number: the writer clearly says it is their own Social Security number, so a reader is certain of it.\n- the Social Security number of a named other person (a customer, patient, employee or relative): the text clearly says it is that person's Social Security number, so a reader is certain of it.\n- an example in a general discussion of Social Security numbers (rules, formats, fraud or policy): it belongs to nobody, is never put in anyone's record, form, field or account, and is never called anyone's number.\n- a note in a Social Security number field saying the number is missing, withheld or kept elsewhere.\n- a different kind of identifier (an employee, account, licence or member number): it is never called a Social Security number, and Social Security numbers are not mentioned anywhere in the text.\n- an ordinary number (a reference, a quantity or a code) with no identifier meaning: Social Security numbers are not mentioned anywhere in the text.\n\nWhere the marker goes: {placement} (start: in the first sentence or line; middle: somewhere in the body; end: in the last sentence or line).\nLength: {length_band} (short: under 280 characters; medium: 280 to 1,200 characters; long: over 1,200 characters).\nUse varied names, places, companies and wording.\n\nOutput only the text itself: no title or introduction before it (never begin with words like \"Here is\" or \"Sure\"), no note, explanation or translation after it, and never repeat or mention these instructions, the roles or the words of these rules.",
+            "sampling": {
+              "temperature": 0.9,
+              "top_p": 0.95,
+              "max_tokens": 900
+            },
+            "structured_output": "none",
+            "json_schema": null
+          }
+        },
+        "csv_line": {
+          "ref": "ssn-carrier-csv-line-v4@2",
+          "id": "gt_29919dcd7f83c2fb3a73cc3a",
+          "cloned_from": "gt_920858f8342634ff7906346d",
+          "cloned_from_ref": "ssn-carrier-csv-line-v4@1",
+          "sha256": "ffecea5e9fa1bca983a3123cf194daf0e61dbbb75f747356f164d0605bc0352c",
+          "live_content_hash": "da87e15d354719305f804ff9d15a97279a515ad24a7dfa1fa90b1e3fde47b33c",
+          "body": {
+            "prompt": "Write a CSV file of a header line and between one and five data lines; the marker is the value of one cell, and the column header says what that cell holds. Copy the marker character for character, exactly as shown: the word SLOT in CAPITAL letters, then the hyphen and the code, inside its double square brackets. A marker with a changed, missing or extra letter, or a missing bracket, makes the whole text unusable.",
+            "system": "You write realistic text of one kind for a test corpus. The text must contain the marker {slot} exactly once, written exactly as shown, and no other number that could be a personal identifier. Copy the marker character for character: the word SLOT in CAPITAL letters, the hyphen, every character of the code after it and both pairs of square brackets. Never shorten, respell or change any letter of it. The marker stands for a value that is filled in later; never write a value yourself.\n\nTHE MOST IMPORTANT RULE: in this text the marker is {role}.\n\nThe marker can play one of six roles. Only the one above applies to this text; the other five show what this text must NOT look like:\n- the writer's own Social Security number: the writer clearly says it is their own Social Security number, so a reader is certain of it.\n- the Social Security number of a named other person (a customer, patient, employee or relative): the text clearly says it is that person's Social Security number, so a reader is certain of it.\n- an example in a general discussion of Social Security numbers (rules, formats, fraud or policy): it belongs to nobody, is never put in anyone's record, form, field or account, and is never called anyone's number.\n- a note in a Social Security number field saying the number is missing, withheld or kept elsewhere.\n- a different kind of identifier (an employee, account, licence or member number): it is never called a Social Security number, and Social Security numbers are not mentioned anywhere in the text.\n- an ordinary number (a reference, a quantity or a code) with no identifier meaning: Social Security numbers are not mentioned anywhere in the text.\n\nWhere the marker goes: {placement} (start: in the first sentence or line; middle: somewhere in the body; end: in the last sentence or line).\nLength: {length_band} (short: under 280 characters; medium: 280 to 1,200 characters; long: over 1,200 characters).\nUse varied names, places, companies and wording.\n\nOutput only the text itself: no title or introduction before it (never begin with words like \"Here is\" or \"Sure\"), no note, explanation or translation after it, and never repeat or mention these instructions, the roles or the words of these rules.",
+            "sampling": {
+              "temperature": 0.9,
+              "top_p": 0.95,
+              "max_tokens": 900
+            },
+            "structured_output": "none",
+            "json_schema": null
+          }
+        },
+        "log_line": {
+          "ref": "ssn-carrier-log-line-v4@2",
+          "id": "gt_831427edff63236bd0d4a638",
+          "cloned_from": "gt_4b5b4cbd69381b85f8281c7b",
+          "cloned_from_ref": "ssn-carrier-log-line-v4@1",
+          "sha256": "5664877f82cb847638ba1928b9899d6aeee09772e8e31e3e9f6f237eef1d982f",
+          "live_content_hash": "7b0dc89f7e3e5dfd07a5211ffc0bd48d2a86177c5a5bdadfbbd2b0dc5086dc36",
+          "body": {
+            "prompt": "Write between one and six application log lines with timestamps, levels and messages; the marker appears in one message, and that message says what it is. Copy the marker character for character, exactly as shown: the word SLOT in CAPITAL letters, then the hyphen and the code, inside its double square brackets. A marker with a changed, missing or extra letter, or a missing bracket, makes the whole text unusable.",
+            "system": "You write realistic text of one kind for a test corpus. The text must contain the marker {slot} exactly once, written exactly as shown, and no other number that could be a personal identifier. Copy the marker character for character: the word SLOT in CAPITAL letters, the hyphen, every character of the code after it and both pairs of square brackets. Never shorten, respell or change any letter of it. The marker stands for a value that is filled in later; never write a value yourself.\n\nTHE MOST IMPORTANT RULE: in this text the marker is {role}.\n\nThe marker can play one of six roles. Only the one above applies to this text; the other five show what this text must NOT look like:\n- the writer's own Social Security number: the writer clearly says it is their own Social Security number, so a reader is certain of it.\n- the Social Security number of a named other person (a customer, patient, employee or relative): the text clearly says it is that person's Social Security number, so a reader is certain of it.\n- an example in a general discussion of Social Security numbers (rules, formats, fraud or policy): it belongs to nobody, is never put in anyone's record, form, field or account, and is never called anyone's number.\n- a note in a Social Security number field saying the number is missing, withheld or kept elsewhere.\n- a different kind of identifier (an employee, account, licence or member number): it is never called a Social Security number, and Social Security numbers are not mentioned anywhere in the text.\n- an ordinary number (a reference, a quantity or a code) with no identifier meaning: Social Security numbers are not mentioned anywhere in the text.\n\nWhere the marker goes: {placement} (start: in the first sentence or line; middle: somewhere in the body; end: in the last sentence or line).\nLength: {length_band} (short: under 280 characters; medium: 280 to 1,200 characters; long: over 1,200 characters).\nUse varied names, places, companies and wording.\n\nOutput only the text itself: no title or introduction before it (never begin with words like \"Here is\" or \"Sure\"), no note, explanation or translation after it, and never repeat or mention these instructions, the roles or the words of these rules.",
+            "sampling": {
+              "temperature": 0.9,
+              "top_p": 0.95,
+              "max_tokens": 900
+            },
+            "structured_output": "none",
+            "json_schema": null
+          }
+        },
+        "form_dump": {
+          "ref": "ssn-carrier-form-dump-v4@2",
+          "id": "gt_1ad27c74e404d17226d16504",
+          "cloned_from": "gt_cc9977d3197f5b07116d473f",
+          "cloned_from_ref": "ssn-carrier-form-dump-v4@1",
+          "sha256": "717edd16fe944a16a4164448f1358b69a9f6645f7e6e7ea3a2d050d23237887a",
+          "live_content_hash": "8c4c23e2ea72d77fc359d426e0f6d6d88356e7c949fb11b73d4b5b0929c98db4",
+          "body": {
+            "prompt": "Write the text of one filled-in form as it would look when copied out of a web page or PDF: field labels and their values, one per line. Copy the marker character for character, exactly as shown: the word SLOT in CAPITAL letters, then the hyphen and the code, inside its double square brackets. A marker with a changed, missing or extra letter, or a missing bracket, makes the whole text unusable.",
+            "system": "You write realistic text of one kind for a test corpus. The text must contain the marker {slot} exactly once, written exactly as shown, and no other number that could be a personal identifier. Copy the marker character for character: the word SLOT in CAPITAL letters, the hyphen, every character of the code after it and both pairs of square brackets. Never shorten, respell or change any letter of it. The marker stands for a value that is filled in later; never write a value yourself.\n\nTHE MOST IMPORTANT RULE: in this text the marker is {role}.\n\nThe marker can play one of six roles. Only the one above applies to this text; the other five show what this text must NOT look like:\n- the writer's own Social Security number: the writer clearly says it is their own Social Security number, so a reader is certain of it.\n- the Social Security number of a named other person (a customer, patient, employee or relative): the text clearly says it is that person's Social Security number, so a reader is certain of it.\n- an example in a general discussion of Social Security numbers (rules, formats, fraud or policy): it belongs to nobody, is never put in anyone's record, form, field or account, and is never called anyone's number.\n- a note in a Social Security number field saying the number is missing, withheld or kept elsewhere.\n- a different kind of identifier (an employee, account, licence or member number): it is never called a Social Security number, and Social Security numbers are not mentioned anywhere in the text.\n- an ordinary number (a reference, a quantity or a code) with no identifier meaning: Social Security numbers are not mentioned anywhere in the text.\n\nWhere the marker goes: {placement} (start: in the first sentence or line; middle: somewhere in the body; end: in the last sentence or line).\nLength: {length_band} (short: under 280 characters; medium: 280 to 1,200 characters; long: over 1,200 characters).\nUse varied names, places, companies and wording.\n\nOutput only the text itself: no title or introduction before it (never begin with words like \"Here is\" or \"Sure\"), no note, explanation or translation after it, and never repeat or mention these instructions, the roles or the words of these rules.",
+            "sampling": {
+              "temperature": 0.9,
+              "top_p": 0.95,
+              "max_tokens": 900
+            },
+            "structured_output": "none",
+            "json_schema": null
+          }
+        },
+        "json_line": {
+          "ref": "ssn-carrier-json-line-v4@2",
+          "id": "gt_3c0287e1734ec12b17819809",
+          "cloned_from": "gt_c60a950936b474c2a2451289",
+          "cloned_from_ref": "ssn-carrier-json-line-v4@1",
+          "sha256": "e149df73389ea616ecad4bf6dd126f94491253d6a9665722fc134b6b062c6d9a",
+          "live_content_hash": "c354c210159e49837c4ccc07fa18bafeed9169f5a3912d346ec2aecded3661fd",
+          "body": {
+            "prompt": "Write one JSON object on a single line, as found in an export or an API log; the marker is the value of one field, inside a string, and the field's name says what it holds. Copy the marker character for character, exactly as shown: the word SLOT in CAPITAL letters, then the hyphen and the code, inside its double square brackets. A marker with a changed, missing or extra letter, or a missing bracket, makes the whole text unusable.",
+            "system": "You write realistic text of one kind for a test corpus. The text must contain the marker {slot} exactly once, written exactly as shown, and no other number that could be a personal identifier. Copy the marker character for character: the word SLOT in CAPITAL letters, the hyphen, every character of the code after it and both pairs of square brackets. Never shorten, respell or change any letter of it. The marker stands for a value that is filled in later; never write a value yourself.\n\nTHE MOST IMPORTANT RULE: in this text the marker is {role}.\n\nThe marker can play one of six roles. Only the one above applies to this text; the other five show what this text must NOT look like:\n- the writer's own Social Security number: the writer clearly says it is their own Social Security number, so a reader is certain of it.\n- the Social Security number of a named other person (a customer, patient, employee or relative): the text clearly says it is that person's Social Security number, so a reader is certain of it.\n- an example in a general discussion of Social Security numbers (rules, formats, fraud or policy): it belongs to nobody, is never put in anyone's record, form, field or account, and is never called anyone's number.\n- a note in a Social Security number field saying the number is missing, withheld or kept elsewhere.\n- a different kind of identifier (an employee, account, licence or member number): it is never called a Social Security number, and Social Security numbers are not mentioned anywhere in the text.\n- an ordinary number (a reference, a quantity or a code) with no identifier meaning: Social Security numbers are not mentioned anywhere in the text.\n\nWhere the marker goes: {placement} (start: in the first sentence or line; middle: somewhere in the body; end: in the last sentence or line).\nLength: {length_band} (short: under 280 characters; medium: 280 to 1,200 characters; long: over 1,200 characters).\nUse varied names, places, companies and wording.\n\nOutput only the text itself: no title or introduction before it (never begin with words like \"Here is\" or \"Sure\"), no note, explanation or translation after it, and never repeat or mention these instructions, the roles or the words of these rules.",
+            "sampling": {
+              "temperature": 0.9,
+              "top_p": 0.95,
+              "max_tokens": 900
+            },
+            "structured_output": "none",
+            "json_schema": null
+          }
+        },
+        "config_file": {
+          "ref": "ssn-carrier-config-file-v4@2",
+          "id": "gt_2e7ea73375c644e1fbbfc51c",
+          "cloned_from": "gt_a7bc96de96b3c160bf018b75",
+          "cloned_from_ref": "ssn-carrier-config-file-v4@1",
+          "sha256": "036008efb912b4eac768c0703371f2d9b849f38b9554e7e205929a76933ad8ba",
+          "live_content_hash": "6e22995573832c90bd8942c373336e701611c3701391f27793cde93adee6ddc8",
+          "body": {
+            "prompt": "Write a short configuration file (YAML, INI, TOML or .env style); the marker is one value, and its key name says what it holds. Copy the marker character for character, exactly as shown: the word SLOT in CAPITAL letters, then the hyphen and the code, inside its double square brackets. A marker with a changed, missing or extra letter, or a missing bracket, makes the whole text unusable.",
+            "system": "You write realistic text of one kind for a test corpus. The text must contain the marker {slot} exactly once, written exactly as shown, and no other number that could be a personal identifier. Copy the marker character for character: the word SLOT in CAPITAL letters, the hyphen, every character of the code after it and both pairs of square brackets. Never shorten, respell or change any letter of it. The marker stands for a value that is filled in later; never write a value yourself.\n\nTHE MOST IMPORTANT RULE: in this text the marker is {role}.\n\nThe marker can play one of six roles. Only the one above applies to this text; the other five show what this text must NOT look like:\n- the writer's own Social Security number: the writer clearly says it is their own Social Security number, so a reader is certain of it.\n- the Social Security number of a named other person (a customer, patient, employee or relative): the text clearly says it is that person's Social Security number, so a reader is certain of it.\n- an example in a general discussion of Social Security numbers (rules, formats, fraud or policy): it belongs to nobody, is never put in anyone's record, form, field or account, and is never called anyone's number.\n- a note in a Social Security number field saying the number is missing, withheld or kept elsewhere.\n- a different kind of identifier (an employee, account, licence or member number): it is never called a Social Security number, and Social Security numbers are not mentioned anywhere in the text.\n- an ordinary number (a reference, a quantity or a code) with no identifier meaning: Social Security numbers are not mentioned anywhere in the text.\n\nWhere the marker goes: {placement} (start: in the first sentence or line; middle: somewhere in the body; end: in the last sentence or line).\nLength: {length_band} (short: under 280 characters; medium: 280 to 1,200 characters; long: over 1,200 characters).\nUse varied names, places, companies and wording.\n\nOutput only the text itself: no title or introduction before it (never begin with words like \"Here is\" or \"Sure\"), no note, explanation or translation after it, and never repeat or mention these instructions, the roles or the words of these rules.",
+            "sampling": {
+              "temperature": 0.9,
+              "top_p": 0.95,
+              "max_tokens": 900
+            },
+            "structured_output": "none",
+            "json_schema": null
+          }
+        },
+        "non_english": {
+          "ref": "ssn-carrier-non-english-v4@2",
+          "id": "gt_3eb021794c0906b87520e65d",
+          "cloned_from": "gt_ecb3d81773f80fc97b305d49",
+          "cloned_from_ref": "ssn-carrier-non-english-v4@1",
+          "sha256": "799fba96c33c1715ea51dd17235626c2b22dbf128a367cac74e34082a2387be4",
+          "live_content_hash": "5d2ee9b562f25278e03887136b52d78f4c4f68d1d325c39466933fa7e1523bb4",
+          "body": {
+            "prompt": "Write the text in a language other than English (choose one, for example Spanish, German, French, Portuguese, Italian, Polish, Vietnamese, Chinese or Arabic); any genre of everyday writing. Keep the marker intact. Write everything, including what the marker is, in that language. Copy the marker character for character, exactly as shown: the word SLOT in CAPITAL letters, then the hyphen and the code, inside its double square brackets. A marker with a changed, missing or extra letter, or a missing bracket, makes the whole text unusable.",
+            "system": "You write realistic text of one kind for a test corpus. The text must contain the marker {slot} exactly once, written exactly as shown, and no other number that could be a personal identifier. Copy the marker character for character: the word SLOT in CAPITAL letters, the hyphen, every character of the code after it and both pairs of square brackets. Never shorten, respell or change any letter of it. The marker stands for a value that is filled in later; never write a value yourself.\n\nTHE MOST IMPORTANT RULE: in this text the marker is {role}.\n\nThe marker can play one of six roles. Only the one above applies to this text; the other five show what this text must NOT look like:\n- the writer's own Social Security number: the writer clearly says it is their own Social Security number, so a reader is certain of it.\n- the Social Security number of a named other person (a customer, patient, employee or relative): the text clearly says it is that person's Social Security number, so a reader is certain of it.\n- an example in a general discussion of Social Security numbers (rules, formats, fraud or policy): it belongs to nobody, is never put in anyone's record, form, field or account, and is never called anyone's number.\n- a note in a Social Security number field saying the number is missing, withheld or kept elsewhere.\n- a different kind of identifier (an employee, account, licence or member number): it is never called a Social Security number, and Social Security numbers are not mentioned anywhere in the text.\n- an ordinary number (a reference, a quantity or a code) with no identifier meaning: Social Security numbers are not mentioned anywhere in the text.\n\nWhere the marker goes: {placement} (start: in the first sentence or line; middle: somewhere in the body; end: in the last sentence or line).\nLength: {length_band} (short: under 280 characters; medium: 280 to 1,200 characters; long: over 1,200 characters).\nUse varied names, places, companies and wording.\n\nOutput only the text itself: no title or introduction before it (never begin with words like \"Here is\" or \"Sure\"), no note, explanation or translation after it, and never repeat or mention these instructions, the roles or the words of these rules.",
+            "sampling": {
+              "temperature": 0.9,
+              "top_p": 0.95,
+              "max_tokens": 900
+            },
+            "structured_output": "none",
+            "json_schema": null
+          }
+        },
+        "support_ticket": {
+          "ref": "ssn-carrier-support-ticket-v4@2",
+          "id": "gt_bae75adb4e2024906ad5d6a3",
+          "cloned_from": "gt_9986670ae4965456c8689bdd",
+          "cloned_from_ref": "ssn-carrier-support-ticket-v4@1",
+          "sha256": "d39ae47be0a322ba9e92548b7540601b11bc397a19f2d01d7ae63021db937979",
+          "live_content_hash": "25b739b4f5c33072d628a3aa6231307b91201ebd6008f3be6e7b868047dc8025",
+          "body": {
+            "prompt": "Write one customer support ticket: a title, the customer's description and, if it fits, an agent's first reply. Copy the marker character for character, exactly as shown: the word SLOT in CAPITAL letters, then the hyphen and the code, inside its double square brackets. A marker with a changed, missing or extra letter, or a missing bracket, makes the whole text unusable.",
+            "system": "You write realistic text of one kind for a test corpus. The text must contain the marker {slot} exactly once, written exactly as shown, and no other number that could be a personal identifier. Copy the marker character for character: the word SLOT in CAPITAL letters, the hyphen, every character of the code after it and both pairs of square brackets. Never shorten, respell or change any letter of it. The marker stands for a value that is filled in later; never write a value yourself.\n\nTHE MOST IMPORTANT RULE: in this text the marker is {role}.\n\nThe marker can play one of six roles. Only the one above applies to this text; the other five show what this text must NOT look like:\n- the writer's own Social Security number: the writer clearly says it is their own Social Security number, so a reader is certain of it.\n- the Social Security number of a named other person (a customer, patient, employee or relative): the text clearly says it is that person's Social Security number, so a reader is certain of it.\n- an example in a general discussion of Social Security numbers (rules, formats, fraud or policy): it belongs to nobody, is never put in anyone's record, form, field or account, and is never called anyone's number.\n- a note in a Social Security number field saying the number is missing, withheld or kept elsewhere.\n- a different kind of identifier (an employee, account, licence or member number): it is never called a Social Security number, and Social Security numbers are not mentioned anywhere in the text.\n- an ordinary number (a reference, a quantity or a code) with no identifier meaning: Social Security numbers are not mentioned anywhere in the text.\n\nWhere the marker goes: {placement} (start: in the first sentence or line; middle: somewhere in the body; end: in the last sentence or line).\nLength: {length_band} (short: under 280 characters; medium: 280 to 1,200 characters; long: over 1,200 characters).\nUse varied names, places, companies and wording.\n\nOutput only the text itself: no title or introduction before it (never begin with words like \"Here is\" or \"Sure\"), no note, explanation or translation after it, and never repeat or mention these instructions, the roles or the words of these rules.",
+            "sampling": {
+              "temperature": 0.9,
+              "top_p": 0.95,
+              "max_tokens": 900
+            },
+            "structured_output": "none",
+            "json_schema": null
+          }
+        }
+      },
+      "change": {
+        "system_after": "no other number that could be a personal identifier.",
+        "system_sentence": "Copy the marker character for character: the word SLOT in CAPITAL letters, the hyphen, every character of the code after it and both pairs of square brackets. Never shorten, respell or change any letter of it.",
+        "prompt_sentence_appended": "Copy the marker character for character, exactly as shown: the word SLOT in CAPITAL letters, then the hyphen and the code, inside its double square brackets. A marker with a changed, missing or extra letter, or a missing bracket, makes the whole text unusable.",
+        "unchanged": "sampling (temperature 0.9, top_p 0.95, max_tokens 900), placeholders, roles and the rule-set pin"
+      },
+      "why": "On the Gemma Q4_K_M GGUF, v4@1 kept 58 of 100 pilot rows: every one of the 42 slot_missing carriers held the run's hex inside its double square brackets with the word SLOT garbled (SLT-, SL-, SL_OT-, SLOF-, SLAT- and 11 other forms), the same defect in every genre. v4@2 adds one copy-exact sentence to the system message and one to each genre's prompt; the operator chose this remedy (a) at about 05:00 ET. Llama-3.1-8B and Qwen2.5-7B ran v4@1 (ran) and are not measured on v4@2, so a rerun with them keeps v4@1.",
+      "measured": {
+        "generator": "gemma-4-26B-A4B-it-uncensored-heretic-GGUF:Q4_K_M",
+        "plan_version": "v14 69e6d3a1 (pilots, seed 2611283) and v11 0d9dc34c (G, seed 2611274)",
+        "runs": [
+          {
+            "template": "v4@1",
+            "run": "gr_826fed17a5968433eb505472",
+            "plan_rows": 100,
+            "kept": 58,
+            "kept_share": 0.58,
+            "slot_missing": 42,
+            "slot_repeated": 0,
+            "by_genre": {
+              "chat": {
+                "kept": 10,
+                "plan_rows": 12
+              },
+              "code": {
+                "kept": 4,
+                "plan_rows": 9
+              },
+              "config_file": {
+                "kept": 3,
+                "plan_rows": 9
+              },
+              "csv_line": {
+                "kept": 9,
+                "plan_rows": 9
+              },
+              "email": {
+                "kept": 4,
+                "plan_rows": 12
+              },
+              "form_dump": {
+                "kept": 4,
+                "plan_rows": 10
+              },
+              "json_line": {
+                "kept": 5,
+                "plan_rows": 9
+              },
+              "log_line": {
+                "kept": 3,
+                "plan_rows": 9
+              },
+              "non_english": {
+                "kept": 6,
+                "plan_rows": 9
+              },
+              "support_ticket": {
+                "kept": 10,
+                "plan_rows": 12
+              }
+            },
+            "note": "all 42 discards keep the hex with the word SLOT garbled; six of ten genres under 60%, so G was not started"
+          },
+          {
+            "template": "v4@2",
+            "run": "gr_b4bb8ad50c46dea1469cf144",
+            "plan_rows": 100,
+            "kept": 96,
+            "kept_share": 0.96,
+            "slot_missing": 4,
+            "slot_repeated": 0,
+            "by_genre": {
+              "chat": {
+                "kept": 11,
+                "plan_rows": 12
+              },
+              "code": {
+                "kept": 9,
+                "plan_rows": 9
+              },
+              "config_file": {
+                "kept": 9,
+                "plan_rows": 9
+              },
+              "csv_line": {
+                "kept": 9,
+                "plan_rows": 9
+              },
+              "email": {
+                "kept": 12,
+                "plan_rows": 12
+              },
+              "form_dump": {
+                "kept": 10,
+                "plan_rows": 10
+              },
+              "json_line": {
+                "kept": 8,
+                "plan_rows": 9
+              },
+              "log_line": {
+                "kept": 9,
+                "plan_rows": 9
+              },
+              "non_english": {
+                "kept": 7,
+                "plan_rows": 9
+              },
+              "support_ticket": {
+                "kept": 12,
+                "plan_rows": 12
+              }
+            },
+            "note": "3 garbled (json_line SLAT-, two non_english SLOTS-), 1 with no marker"
+          },
+          {
+            "template": "v4@2",
+            "run": "gr_0fd3513aeff104fdd53936cd",
+            "plan_rows": 4800,
+            "kept": 4430,
+            "kept_share": 0.923,
+            "slot_missing": 354,
+            "slot_repeated": 16,
+            "by_genre": {
+              "chat": {
+                "kept": 466,
+                "plan_rows": 480,
+                "slot_missing": 14,
+                "slot_repeated": 0
+              },
+              "code": {
+                "kept": 396,
+                "plan_rows": 480,
+                "slot_missing": 78,
+                "slot_repeated": 6
+              },
+              "config_file": {
+                "kept": 391,
+                "plan_rows": 480,
+                "slot_missing": 89,
+                "slot_repeated": 0
+              },
+              "csv_line": {
+                "kept": 457,
+                "plan_rows": 480,
+                "slot_missing": 15,
+                "slot_repeated": 8
+              },
+              "email": {
+                "kept": 470,
+                "plan_rows": 480,
+                "slot_missing": 10,
+                "slot_repeated": 0
+              },
+              "form_dump": {
+                "kept": 431,
+                "plan_rows": 480,
+                "slot_missing": 49,
+                "slot_repeated": 0
+              },
+              "json_line": {
+                "kept": 429,
+                "plan_rows": 480,
+                "slot_missing": 51,
+                "slot_repeated": 0
+              },
+              "log_line": {
+                "kept": 467,
+                "plan_rows": 480,
+                "slot_missing": 13,
+                "slot_repeated": 0
+              },
+              "non_english": {
+                "kept": 453,
+                "plan_rows": 480,
+                "slot_missing": 26,
+                "slot_repeated": 1
+              },
+              "support_ticket": {
+                "kept": 470,
+                "plan_rows": 480,
+                "slot_missing": 9,
+                "slot_repeated": 1
+              }
+            },
+            "note": "353 of the 354 slot_missing carriers still hold the hex 70EB5D9B with a garbled word; under the slot-repair rule of 2026-11-27 such a carrier is kept (slot_garbled_repaired)"
+          }
+        ],
+        "record": "suite specs/ENH-010-weight-space-programming/PLAN_finish_2026-11-25.md, W4 sections (2026-11-27)"
+      }
+    }
+  }
+}

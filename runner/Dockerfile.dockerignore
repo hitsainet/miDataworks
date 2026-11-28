@@ -1,0 +1,17 @@
+# Dockerfile-specific ignore file (BuildKit reads <Dockerfile>.dockerignore beside the Dockerfile).
+# Built from the REPOSITORY ROOT because it copies the runner host and the contract package from
+# backend/src. An ALLOW-list (the designer/datajuicer pattern): only what runner/Dockerfile copies
+# enters the context, so no secret, test, data or .wasm can reach the image by accident.
+# backend/tests/unit/test_backend_image.py holds every COPY source to this list.
+*
+!runner/requirements.txt
+!runner/constraints.txt
+!runner/scripts/build_bundle.py
+!backend/src/__init__.py
+!backend/src/core/__init__.py
+!backend/src/core/canonical_json.py
+!backend/src/runner_contract/
+!backend/src/runner/
+!backend/src/schemas/__init__.py
+!backend/src/schemas/data/midataworks-runner-v1.json
+**/__pycache__

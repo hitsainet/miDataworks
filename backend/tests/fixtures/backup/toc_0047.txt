@@ -1,0 +1,936 @@
+;
+; Archive created at 2026-11-08 13:34:05 UTC
+;     dbname: midataworks_revp0_mig_test
+;     TOC Entries: 925
+;     Compression: -1
+;     Dump Version: 1.14-0
+;     Format: CUSTOM
+;     Integer: 4 bytes
+;     Offset: 8 bytes
+;     Dumped from database version: 15.19 (Debian 15.19-1.pgdg13+2)
+;     Dumped by pg_dump version: 15.19 (Debian 15.19-1.pgdg13+2)
+;
+;
+; Selected TOC Entries:
+;
+336; 1255 208973293 FUNCTION public dw_append_only() midataworks
+335; 1255 208973291 FUNCTION public dw_columns_unreserved(jsonb) midataworks
+362; 1255 208975590 FUNCTION public dw_config_versions_code_rule_head() midataworks
+360; 1255 208975481 FUNCTION public dw_config_versions_rule_set_head() midataworks
+340; 1255 208974173 FUNCTION public dw_datasets_target_type() midataworks
+345; 1255 208975009 FUNCTION public dw_detector_sends_frozen() midataworks
+346; 1255 208975182 FUNCTION public dw_generation_templates_immutable() midataworks
+341; 1255 208974378 FUNCTION public dw_insert_only() midataworks
+343; 1255 208974380 FUNCTION public dw_publish_check_runs_guard() midataworks
+342; 1255 208974379 FUNCTION public dw_publishes_guard() midataworks
+339; 1255 208974172 FUNCTION public dw_recipe_bodies_hash() midataworks
+347; 1255 208975265 FUNCTION public dw_reproduction_link_unused() midataworks
+361; 1255 208975539 FUNCTION public dw_rule_derivations_guard() midataworks
+359; 1255 208973292 FUNCTION public dw_sources_guard() midataworks
+344; 1255 208974796 FUNCTION public dw_version_reports_immutable() midataworks
+337; 1255 208974170 FUNCTION public dw_versions_immutable() midataworks
+338; 1255 208974171 FUNCTION public dw_versions_manifest_hash() midataworks
+214; 1259 208973235 TABLE public alembic_version midataworks
+267; 1259 208974180 TABLE public dw_agent_label_rows midataworks
+285; 1259 208974524 TABLE public dw_agent_requests midataworks
+302; 1259 208974888 TABLE public dw_agreement_reports midataworks
+216; 1259 208973256 TABLE public dw_app_settings midataworks
+218; 1259 208973278 TABLE public dw_approvals midataworks
+318; 1259 208975292 TABLE public dw_archive_events midataworks
+288; 1259 208974580 TABLE public dw_audits midataworks
+293; 1259 208974713 TABLE public dw_calibration_checks midataworks
+291; 1259 208974652 TABLE public dw_calibration_records midataworks
+294; 1259 208974726 TABLE public dw_calibration_set_labels midataworks
+289; 1259 208974604 TABLE public dw_calibration_sets midataworks
+286; 1259 208974534 TABLE public dw_calibration_targets midataworks
+295; 1259 208974747 TABLE public dw_calibration_verdicts midataworks
+331; 1259 208975593 TABLE public dw_code_rule_approvals midataworks
+330; 1259 208975592 SEQUENCE public dw_code_rule_approvals_id_seq midataworks
+333; 1259 208975613 TABLE public dw_code_rule_contract_runs midataworks
+332; 1259 208975612 SEQUENCE public dw_code_rule_contract_runs_id_seq midataworks
+334; 1259 208975628 TABLE public dw_code_rule_uses midataworks
+329; 1259 208975574 TABLE public dw_code_rules midataworks
+270; 1259 208974206 TABLE public dw_config_versions midataworks
+222; 1259 208973367 TABLE public dw_datasets midataworks
+277; 1259 208974386 TABLE public dw_decision_templates midataworks
+301; 1259 208974867 TABLE public dw_detector_results midataworks
+307; 1259 208974985 TABLE public dw_detector_send_steps midataworks
+300; 1259 208974835 TABLE public dw_detector_sends midataworks
+303; 1259 208974903 TABLE public dw_detector_set_roles midataworks
+299; 1259 208974821 TABLE public dw_detector_sets midataworks
+315; 1259 208975154 TABLE public dw_diversity_reports midataworks
+322; 1259 208975416 TABLE public dw_endpoint_role_keys midataworks
+217; 1259 208973266 TABLE public dw_endpoint_roles midataworks
+272; 1259 208974239 TABLE public dw_exports midataworks
+312; 1259 208975106 TABLE public dw_generation_chunks midataworks
+314; 1259 208975144 TABLE public dw_generation_pairs midataworks
+313; 1259 208975124 TABLE public dw_generation_records midataworks
+310; 1259 208975075 TABLE public dw_generation_run_jobs midataworks
+309; 1259 208975036 TABLE public dw_generation_runs midataworks
+308; 1259 208975016 TABLE public dw_generation_templates midataworks
+215; 1259 208973240 TABLE public dw_jobs midataworks
+282; 1259 208974475 TABLE public dw_label_run_chunks midataworks
+283; 1259 208974489 TABLE public dw_label_run_jobs midataworks
+281; 1259 208974441 TABLE public dw_label_runs midataworks
+284; 1259 208974506 TABLE public dw_labels midataworks
+304; 1259 208974927 TABLE public dw_length_profiles midataworks
+316; 1259 208975192 TABLE public dw_minimal_pair_chains midataworks
+305; 1259 208974942 TABLE public dw_mistudio_registrations midataworks
+280; 1259 208974430 TABLE public dw_model_lease_members midataworks
+278; 1259 208974403 TABLE public dw_model_leases midataworks
+271; 1259 208974226 TABLE public dw_model_terms_notes midataworks
+269; 1259 208974193 TABLE public dw_operator_allowlist midataworks
+268; 1259 208974192 SEQUENCE public dw_operator_allowlist_id_seq midataworks
+273; 1259 208974267 TABLE public dw_publish_builds midataworks
+274; 1259 208974289 TABLE public dw_publish_check_runs midataworks
+276; 1259 208974362 TABLE public dw_publish_files midataworks
+275; 1259 208974315 TABLE public dw_publishes midataworks
+319; 1259 208975305 TABLE public dw_purge_events midataworks
+223; 1259 208973382 TABLE public dw_recipe_bodies midataworks
+226; 1259 208973439 TABLE public dw_recipe_drafts midataworks
+225; 1259 208973406 TABLE public dw_recipe_revisions midataworks
+224; 1259 208973391 TABLE public dw_recipes midataworks
+317; 1259 208975236 TABLE public dw_reproduction_links midataworks
+292; 1259 208974681 TABLE public dw_review_decisions midataworks
+290; 1259 208974631 TABLE public dw_review_items midataworks
+287; 1259 208974553 TABLE public dw_review_queues midataworks
+306; 1259 208974966 TABLE public dw_reward_marks midataworks
+234; 1259 208973644 TABLE public dw_row_events midataworks
+235; 1259 208973657 TABLE public dw_row_events_p00 midataworks
+236; 1259 208973672 TABLE public dw_row_events_p01 midataworks
+237; 1259 208973687 TABLE public dw_row_events_p02 midataworks
+238; 1259 208973702 TABLE public dw_row_events_p03 midataworks
+239; 1259 208973717 TABLE public dw_row_events_p04 midataworks
+240; 1259 208973732 TABLE public dw_row_events_p05 midataworks
+241; 1259 208973747 TABLE public dw_row_events_p06 midataworks
+242; 1259 208973762 TABLE public dw_row_events_p07 midataworks
+243; 1259 208973777 TABLE public dw_row_events_p08 midataworks
+244; 1259 208973792 TABLE public dw_row_events_p09 midataworks
+245; 1259 208973807 TABLE public dw_row_events_p10 midataworks
+246; 1259 208973822 TABLE public dw_row_events_p11 midataworks
+247; 1259 208973837 TABLE public dw_row_events_p12 midataworks
+248; 1259 208973852 TABLE public dw_row_events_p13 midataworks
+249; 1259 208973867 TABLE public dw_row_events_p14 midataworks
+250; 1259 208973882 TABLE public dw_row_events_p15 midataworks
+251; 1259 208973897 TABLE public dw_row_events_p16 midataworks
+252; 1259 208973912 TABLE public dw_row_events_p17 midataworks
+253; 1259 208973927 TABLE public dw_row_events_p18 midataworks
+254; 1259 208973942 TABLE public dw_row_events_p19 midataworks
+255; 1259 208973957 TABLE public dw_row_events_p20 midataworks
+256; 1259 208973972 TABLE public dw_row_events_p21 midataworks
+257; 1259 208973987 TABLE public dw_row_events_p22 midataworks
+258; 1259 208974002 TABLE public dw_row_events_p23 midataworks
+259; 1259 208974017 TABLE public dw_row_events_p24 midataworks
+260; 1259 208974032 TABLE public dw_row_events_p25 midataworks
+261; 1259 208974047 TABLE public dw_row_events_p26 midataworks
+262; 1259 208974062 TABLE public dw_row_events_p27 midataworks
+263; 1259 208974077 TABLE public dw_row_events_p28 midataworks
+264; 1259 208974092 TABLE public dw_row_events_p29 midataworks
+265; 1259 208974107 TABLE public dw_row_events_p30 midataworks
+266; 1259 208974122 TABLE public dw_row_events_p31 midataworks
+279; 1259 208974414 TABLE public dw_rubrics midataworks
+328; 1259 208975514 TABLE public dw_rule_derivations midataworks
+327; 1259 208975485 TABLE public dw_rule_set_uses midataworks
+326; 1259 208975464 TABLE public dw_rule_sets midataworks
+321; 1259 208975403 TABLE public dw_setting_changes midataworks
+320; 1259 208975402 SEQUENCE public dw_setting_changes_id_seq midataworks
+324; 1259 208975431 TABLE public dw_settings_pin midataworks
+323; 1259 208975430 SEQUENCE public dw_settings_pin_id_seq midataworks
+5390; 0 0 SEQUENCE OWNED BY public dw_settings_pin_id_seq midataworks
+298; 1259 208974799 TABLE public dw_shortcut_levels midataworks
+297; 1259 208974798 SEQUENCE public dw_shortcut_levels_id_seq midataworks
+221; 1259 208973338 TABLE public dw_source_annotations midataworks
+220; 1259 208973320 TABLE public dw_source_files midataworks
+219; 1259 208973294 TABLE public dw_sources midataworks
+311; 1259 208975091 TABLE public dw_steering_snapshots midataworks
+227; 1259 208973460 TABLE public dw_step_executions midataworks
+325; 1259 208975449 TABLE public dw_text_separability midataworks
+229; 1259 208973529 TABLE public dw_version_builds midataworks
+230; 1259 208973564 TABLE public dw_version_comparisons midataworks
+231; 1259 208973582 TABLE public dw_version_inputs midataworks
+296; 1259 208974768 TABLE public dw_version_reports midataworks
+232; 1259 208973606 TABLE public dw_version_steps midataworks
+233; 1259 208973622 TABLE public dw_version_verifications midataworks
+228; 1259 208973479 TABLE public dw_versions midataworks
+3741; 0 0 TABLE ATTACH public dw_row_events_p00 midataworks
+3742; 0 0 TABLE ATTACH public dw_row_events_p01 midataworks
+3743; 0 0 TABLE ATTACH public dw_row_events_p02 midataworks
+3744; 0 0 TABLE ATTACH public dw_row_events_p03 midataworks
+3745; 0 0 TABLE ATTACH public dw_row_events_p04 midataworks
+3746; 0 0 TABLE ATTACH public dw_row_events_p05 midataworks
+3747; 0 0 TABLE ATTACH public dw_row_events_p06 midataworks
+3748; 0 0 TABLE ATTACH public dw_row_events_p07 midataworks
+3749; 0 0 TABLE ATTACH public dw_row_events_p08 midataworks
+3750; 0 0 TABLE ATTACH public dw_row_events_p09 midataworks
+3751; 0 0 TABLE ATTACH public dw_row_events_p10 midataworks
+3752; 0 0 TABLE ATTACH public dw_row_events_p11 midataworks
+3753; 0 0 TABLE ATTACH public dw_row_events_p12 midataworks
+3754; 0 0 TABLE ATTACH public dw_row_events_p13 midataworks
+3755; 0 0 TABLE ATTACH public dw_row_events_p14 midataworks
+3756; 0 0 TABLE ATTACH public dw_row_events_p15 midataworks
+3757; 0 0 TABLE ATTACH public dw_row_events_p16 midataworks
+3758; 0 0 TABLE ATTACH public dw_row_events_p17 midataworks
+3759; 0 0 TABLE ATTACH public dw_row_events_p18 midataworks
+3760; 0 0 TABLE ATTACH public dw_row_events_p19 midataworks
+3761; 0 0 TABLE ATTACH public dw_row_events_p20 midataworks
+3762; 0 0 TABLE ATTACH public dw_row_events_p21 midataworks
+3763; 0 0 TABLE ATTACH public dw_row_events_p22 midataworks
+3764; 0 0 TABLE ATTACH public dw_row_events_p23 midataworks
+3765; 0 0 TABLE ATTACH public dw_row_events_p24 midataworks
+3766; 0 0 TABLE ATTACH public dw_row_events_p25 midataworks
+3767; 0 0 TABLE ATTACH public dw_row_events_p26 midataworks
+3768; 0 0 TABLE ATTACH public dw_row_events_p27 midataworks
+3769; 0 0 TABLE ATTACH public dw_row_events_p28 midataworks
+3770; 0 0 TABLE ATTACH public dw_row_events_p29 midataworks
+3771; 0 0 TABLE ATTACH public dw_row_events_p30 midataworks
+3772; 0 0 TABLE ATTACH public dw_row_events_p31 midataworks
+3850; 2604 208975434 DEFAULT public dw_settings_pin id midataworks
+5264; 0 208973235 TABLE DATA public alembic_version midataworks
+5316; 0 208974180 TABLE DATA public dw_agent_label_rows midataworks
+5334; 0 208974524 TABLE DATA public dw_agent_requests midataworks
+5351; 0 208974888 TABLE DATA public dw_agreement_reports midataworks
+5266; 0 208973256 TABLE DATA public dw_app_settings midataworks
+5268; 0 208973278 TABLE DATA public dw_approvals midataworks
+5367; 0 208975292 TABLE DATA public dw_archive_events midataworks
+5337; 0 208974580 TABLE DATA public dw_audits midataworks
+5342; 0 208974713 TABLE DATA public dw_calibration_checks midataworks
+5340; 0 208974652 TABLE DATA public dw_calibration_records midataworks
+5343; 0 208974726 TABLE DATA public dw_calibration_set_labels midataworks
+5338; 0 208974604 TABLE DATA public dw_calibration_sets midataworks
+5335; 0 208974534 TABLE DATA public dw_calibration_targets midataworks
+5344; 0 208974747 TABLE DATA public dw_calibration_verdicts midataworks
+5380; 0 208975593 TABLE DATA public dw_code_rule_approvals midataworks
+5382; 0 208975613 TABLE DATA public dw_code_rule_contract_runs midataworks
+5383; 0 208975628 TABLE DATA public dw_code_rule_uses midataworks
+5378; 0 208975574 TABLE DATA public dw_code_rules midataworks
+5319; 0 208974206 TABLE DATA public dw_config_versions midataworks
+5272; 0 208973367 TABLE DATA public dw_datasets midataworks
+5326; 0 208974386 TABLE DATA public dw_decision_templates midataworks
+5350; 0 208974867 TABLE DATA public dw_detector_results midataworks
+5356; 0 208974985 TABLE DATA public dw_detector_send_steps midataworks
+5349; 0 208974835 TABLE DATA public dw_detector_sends midataworks
+5352; 0 208974903 TABLE DATA public dw_detector_set_roles midataworks
+5348; 0 208974821 TABLE DATA public dw_detector_sets midataworks
+5364; 0 208975154 TABLE DATA public dw_diversity_reports midataworks
+5371; 0 208975416 TABLE DATA public dw_endpoint_role_keys midataworks
+5267; 0 208973266 TABLE DATA public dw_endpoint_roles midataworks
+5321; 0 208974239 TABLE DATA public dw_exports midataworks
+5361; 0 208975106 TABLE DATA public dw_generation_chunks midataworks
+5363; 0 208975144 TABLE DATA public dw_generation_pairs midataworks
+5362; 0 208975124 TABLE DATA public dw_generation_records midataworks
+5359; 0 208975075 TABLE DATA public dw_generation_run_jobs midataworks
+5358; 0 208975036 TABLE DATA public dw_generation_runs midataworks
+5357; 0 208975016 TABLE DATA public dw_generation_templates midataworks
+5265; 0 208973240 TABLE DATA public dw_jobs midataworks
+5331; 0 208974475 TABLE DATA public dw_label_run_chunks midataworks
+5332; 0 208974489 TABLE DATA public dw_label_run_jobs midataworks
+5330; 0 208974441 TABLE DATA public dw_label_runs midataworks
+5333; 0 208974506 TABLE DATA public dw_labels midataworks
+5353; 0 208974927 TABLE DATA public dw_length_profiles midataworks
+5365; 0 208975192 TABLE DATA public dw_minimal_pair_chains midataworks
+5354; 0 208974942 TABLE DATA public dw_mistudio_registrations midataworks
+5329; 0 208974430 TABLE DATA public dw_model_lease_members midataworks
+5327; 0 208974403 TABLE DATA public dw_model_leases midataworks
+5320; 0 208974226 TABLE DATA public dw_model_terms_notes midataworks
+5318; 0 208974193 TABLE DATA public dw_operator_allowlist midataworks
+5322; 0 208974267 TABLE DATA public dw_publish_builds midataworks
+5323; 0 208974289 TABLE DATA public dw_publish_check_runs midataworks
+5325; 0 208974362 TABLE DATA public dw_publish_files midataworks
+5324; 0 208974315 TABLE DATA public dw_publishes midataworks
+5368; 0 208975305 TABLE DATA public dw_purge_events midataworks
+5273; 0 208973382 TABLE DATA public dw_recipe_bodies midataworks
+5276; 0 208973439 TABLE DATA public dw_recipe_drafts midataworks
+5275; 0 208973406 TABLE DATA public dw_recipe_revisions midataworks
+5274; 0 208973391 TABLE DATA public dw_recipes midataworks
+5366; 0 208975236 TABLE DATA public dw_reproduction_links midataworks
+5341; 0 208974681 TABLE DATA public dw_review_decisions midataworks
+5339; 0 208974631 TABLE DATA public dw_review_items midataworks
+5336; 0 208974553 TABLE DATA public dw_review_queues midataworks
+5355; 0 208974966 TABLE DATA public dw_reward_marks midataworks
+5284; 0 208973657 TABLE DATA public dw_row_events_p00 midataworks
+5285; 0 208973672 TABLE DATA public dw_row_events_p01 midataworks
+5286; 0 208973687 TABLE DATA public dw_row_events_p02 midataworks
+5287; 0 208973702 TABLE DATA public dw_row_events_p03 midataworks
+5288; 0 208973717 TABLE DATA public dw_row_events_p04 midataworks
+5289; 0 208973732 TABLE DATA public dw_row_events_p05 midataworks
+5290; 0 208973747 TABLE DATA public dw_row_events_p06 midataworks
+5291; 0 208973762 TABLE DATA public dw_row_events_p07 midataworks
+5292; 0 208973777 TABLE DATA public dw_row_events_p08 midataworks
+5293; 0 208973792 TABLE DATA public dw_row_events_p09 midataworks
+5294; 0 208973807 TABLE DATA public dw_row_events_p10 midataworks
+5295; 0 208973822 TABLE DATA public dw_row_events_p11 midataworks
+5296; 0 208973837 TABLE DATA public dw_row_events_p12 midataworks
+5297; 0 208973852 TABLE DATA public dw_row_events_p13 midataworks
+5298; 0 208973867 TABLE DATA public dw_row_events_p14 midataworks
+5299; 0 208973882 TABLE DATA public dw_row_events_p15 midataworks
+5300; 0 208973897 TABLE DATA public dw_row_events_p16 midataworks
+5301; 0 208973912 TABLE DATA public dw_row_events_p17 midataworks
+5302; 0 208973927 TABLE DATA public dw_row_events_p18 midataworks
+5303; 0 208973942 TABLE DATA public dw_row_events_p19 midataworks
+5304; 0 208973957 TABLE DATA public dw_row_events_p20 midataworks
+5305; 0 208973972 TABLE DATA public dw_row_events_p21 midataworks
+5306; 0 208973987 TABLE DATA public dw_row_events_p22 midataworks
+5307; 0 208974002 TABLE DATA public dw_row_events_p23 midataworks
+5308; 0 208974017 TABLE DATA public dw_row_events_p24 midataworks
+5309; 0 208974032 TABLE DATA public dw_row_events_p25 midataworks
+5310; 0 208974047 TABLE DATA public dw_row_events_p26 midataworks
+5311; 0 208974062 TABLE DATA public dw_row_events_p27 midataworks
+5312; 0 208974077 TABLE DATA public dw_row_events_p28 midataworks
+5313; 0 208974092 TABLE DATA public dw_row_events_p29 midataworks
+5314; 0 208974107 TABLE DATA public dw_row_events_p30 midataworks
+5315; 0 208974122 TABLE DATA public dw_row_events_p31 midataworks
+5328; 0 208974414 TABLE DATA public dw_rubrics midataworks
+5377; 0 208975514 TABLE DATA public dw_rule_derivations midataworks
+5376; 0 208975485 TABLE DATA public dw_rule_set_uses midataworks
+5375; 0 208975464 TABLE DATA public dw_rule_sets midataworks
+5370; 0 208975403 TABLE DATA public dw_setting_changes midataworks
+5373; 0 208975431 TABLE DATA public dw_settings_pin midataworks
+5347; 0 208974799 TABLE DATA public dw_shortcut_levels midataworks
+5271; 0 208973338 TABLE DATA public dw_source_annotations midataworks
+5270; 0 208973320 TABLE DATA public dw_source_files midataworks
+5269; 0 208973294 TABLE DATA public dw_sources midataworks
+5360; 0 208975091 TABLE DATA public dw_steering_snapshots midataworks
+5277; 0 208973460 TABLE DATA public dw_step_executions midataworks
+5374; 0 208975449 TABLE DATA public dw_text_separability midataworks
+5279; 0 208973529 TABLE DATA public dw_version_builds midataworks
+5280; 0 208973564 TABLE DATA public dw_version_comparisons midataworks
+5281; 0 208973582 TABLE DATA public dw_version_inputs midataworks
+5345; 0 208974768 TABLE DATA public dw_version_reports midataworks
+5282; 0 208973606 TABLE DATA public dw_version_steps midataworks
+5283; 0 208973622 TABLE DATA public dw_version_verifications midataworks
+5278; 0 208973479 TABLE DATA public dw_versions midataworks
+5391; 0 0 SEQUENCE SET public dw_code_rule_approvals_id_seq midataworks
+5392; 0 0 SEQUENCE SET public dw_code_rule_contract_runs_id_seq midataworks
+5393; 0 0 SEQUENCE SET public dw_operator_allowlist_id_seq midataworks
+5394; 0 0 SEQUENCE SET public dw_setting_changes_id_seq midataworks
+5395; 0 0 SEQUENCE SET public dw_settings_pin_id_seq midataworks
+5396; 0 0 SEQUENCE SET public dw_shortcut_levels_id_seq midataworks
+4358; 2606 208973239 CONSTRAINT public alembic_version alembic_version_pkc midataworks
+4433; 2606 208973653 CONSTRAINT public dw_row_events pk_dw_row_events midataworks
+4436; 2606 208973666 CONSTRAINT public dw_row_events_p00 dw_row_events_p00_pkey midataworks
+4441; 2606 208973681 CONSTRAINT public dw_row_events_p01 dw_row_events_p01_pkey midataworks
+4446; 2606 208973696 CONSTRAINT public dw_row_events_p02 dw_row_events_p02_pkey midataworks
+4451; 2606 208973711 CONSTRAINT public dw_row_events_p03 dw_row_events_p03_pkey midataworks
+4456; 2606 208973726 CONSTRAINT public dw_row_events_p04 dw_row_events_p04_pkey midataworks
+4461; 2606 208973741 CONSTRAINT public dw_row_events_p05 dw_row_events_p05_pkey midataworks
+4466; 2606 208973756 CONSTRAINT public dw_row_events_p06 dw_row_events_p06_pkey midataworks
+4471; 2606 208973771 CONSTRAINT public dw_row_events_p07 dw_row_events_p07_pkey midataworks
+4476; 2606 208973786 CONSTRAINT public dw_row_events_p08 dw_row_events_p08_pkey midataworks
+4481; 2606 208973801 CONSTRAINT public dw_row_events_p09 dw_row_events_p09_pkey midataworks
+4486; 2606 208973816 CONSTRAINT public dw_row_events_p10 dw_row_events_p10_pkey midataworks
+4491; 2606 208973831 CONSTRAINT public dw_row_events_p11 dw_row_events_p11_pkey midataworks
+4496; 2606 208973846 CONSTRAINT public dw_row_events_p12 dw_row_events_p12_pkey midataworks
+4501; 2606 208973861 CONSTRAINT public dw_row_events_p13 dw_row_events_p13_pkey midataworks
+4506; 2606 208973876 CONSTRAINT public dw_row_events_p14 dw_row_events_p14_pkey midataworks
+4511; 2606 208973891 CONSTRAINT public dw_row_events_p15 dw_row_events_p15_pkey midataworks
+4516; 2606 208973906 CONSTRAINT public dw_row_events_p16 dw_row_events_p16_pkey midataworks
+4521; 2606 208973921 CONSTRAINT public dw_row_events_p17 dw_row_events_p17_pkey midataworks
+4526; 2606 208973936 CONSTRAINT public dw_row_events_p18 dw_row_events_p18_pkey midataworks
+4531; 2606 208973951 CONSTRAINT public dw_row_events_p19 dw_row_events_p19_pkey midataworks
+4536; 2606 208973966 CONSTRAINT public dw_row_events_p20 dw_row_events_p20_pkey midataworks
+4541; 2606 208973981 CONSTRAINT public dw_row_events_p21 dw_row_events_p21_pkey midataworks
+4546; 2606 208973996 CONSTRAINT public dw_row_events_p22 dw_row_events_p22_pkey midataworks
+4551; 2606 208974011 CONSTRAINT public dw_row_events_p23 dw_row_events_p23_pkey midataworks
+4556; 2606 208974026 CONSTRAINT public dw_row_events_p24 dw_row_events_p24_pkey midataworks
+4561; 2606 208974041 CONSTRAINT public dw_row_events_p25 dw_row_events_p25_pkey midataworks
+4566; 2606 208974056 CONSTRAINT public dw_row_events_p26 dw_row_events_p26_pkey midataworks
+4571; 2606 208974071 CONSTRAINT public dw_row_events_p27 dw_row_events_p27_pkey midataworks
+4576; 2606 208974086 CONSTRAINT public dw_row_events_p28 dw_row_events_p28_pkey midataworks
+4581; 2606 208974101 CONSTRAINT public dw_row_events_p29 dw_row_events_p29_pkey midataworks
+4586; 2606 208974116 CONSTRAINT public dw_row_events_p30 dw_row_events_p30_pkey midataworks
+4591; 2606 208974131 CONSTRAINT public dw_row_events_p31 dw_row_events_p31_pkey midataworks
+4596; 2606 208974190 CONSTRAINT public dw_agent_label_rows pk_dw_agent_label_rows midataworks
+4660; 2606 208974532 CONSTRAINT public dw_agent_requests pk_dw_agent_requests midataworks
+4723; 2606 208974897 CONSTRAINT public dw_agreement_reports pk_dw_agreement_reports midataworks
+4366; 2606 208973264 CONSTRAINT public dw_app_settings pk_dw_app_settings midataworks
+4373; 2606 208973288 CONSTRAINT public dw_approvals pk_dw_approvals midataworks
+4779; 2606 208975302 CONSTRAINT public dw_archive_events pk_dw_archive_events midataworks
+4672; 2606 208974591 CONSTRAINT public dw_audits pk_dw_audits midataworks
+4696; 2606 208974720 CONSTRAINT public dw_calibration_checks pk_dw_calibration_checks midataworks
+4689; 2606 208974663 CONSTRAINT public dw_calibration_records pk_dw_calibration_records midataworks
+4698; 2606 208974734 CONSTRAINT public dw_calibration_set_labels pk_dw_calibration_set_labels midataworks
+4675; 2606 208974618 CONSTRAINT public dw_calibration_sets pk_dw_calibration_sets midataworks
+4663; 2606 208974546 CONSTRAINT public dw_calibration_targets pk_dw_calibration_targets midataworks
+4702; 2606 208974755 CONSTRAINT public dw_calibration_verdicts pk_dw_calibration_verdicts midataworks
+4807; 2606 208975605 CONSTRAINT public dw_code_rule_approvals pk_dw_code_rule_approvals midataworks
+4810; 2606 208975623 CONSTRAINT public dw_code_rule_contract_runs pk_dw_code_rule_contract_runs midataworks
+4814; 2606 208975639 CONSTRAINT public dw_code_rule_uses pk_dw_code_rule_uses midataworks
+4804; 2606 208975586 CONSTRAINT public dw_code_rules pk_dw_code_rules midataworks
+4601; 2606 208974218 CONSTRAINT public dw_config_versions pk_dw_config_versions midataworks
+4387; 2606 208973379 CONSTRAINT public dw_datasets pk_dw_datasets midataworks
+4626; 2606 208974398 CONSTRAINT public dw_decision_templates pk_dw_decision_templates midataworks
+4721; 2606 208974876 CONSTRAINT public dw_detector_results pk_dw_detector_results midataworks
+4740; 2606 208974993 CONSTRAINT public dw_detector_send_steps pk_dw_detector_send_steps midataworks
+4718; 2606 208974850 CONSTRAINT public dw_detector_sends pk_dw_detector_sends midataworks
+4726; 2606 208974914 CONSTRAINT public dw_detector_set_roles pk_dw_detector_set_roles midataworks
+4712; 2606 208974832 CONSTRAINT public dw_detector_sets pk_dw_detector_sets midataworks
+4765; 2606 208975163 CONSTRAINT public dw_diversity_reports pk_dw_diversity_reports midataworks
+4788; 2606 208975424 CONSTRAINT public dw_endpoint_role_keys pk_dw_endpoint_role_keys midataworks
+4368; 2606 208973277 CONSTRAINT public dw_endpoint_roles pk_dw_endpoint_roles midataworks
+4609; 2606 208974250 CONSTRAINT public dw_exports pk_dw_exports midataworks
+4756; 2606 208975113 CONSTRAINT public dw_generation_chunks pk_dw_generation_chunks midataworks
+4762; 2606 208975148 CONSTRAINT public dw_generation_pairs pk_dw_generation_pairs midataworks
+4760; 2606 208975136 CONSTRAINT public dw_generation_records pk_dw_generation_records midataworks
+4752; 2606 208975079 CONSTRAINT public dw_generation_run_jobs pk_dw_generation_run_jobs midataworks
+4749; 2606 208975053 CONSTRAINT public dw_generation_runs pk_dw_generation_runs midataworks
+4743; 2606 208975028 CONSTRAINT public dw_generation_templates pk_dw_generation_templates midataworks
+4363; 2606 208973252 CONSTRAINT public dw_jobs pk_dw_jobs midataworks
+4650; 2606 208974483 CONSTRAINT public dw_label_run_chunks pk_dw_label_run_chunks midataworks
+4652; 2606 208974493 CONSTRAINT public dw_label_run_jobs pk_dw_label_run_jobs midataworks
+4648; 2606 208974457 CONSTRAINT public dw_label_runs pk_dw_label_runs midataworks
+4657; 2606 208974517 CONSTRAINT public dw_labels pk_dw_labels midataworks
+4729; 2606 208974936 CONSTRAINT public dw_length_profiles pk_dw_length_profiles midataworks
+4771; 2606 208975208 CONSTRAINT public dw_minimal_pair_chains pk_dw_minimal_pair_chains midataworks
+4732; 2606 208974952 CONSTRAINT public dw_mistudio_registrations pk_dw_mistudio_registrations midataworks
+4642; 2606 208974435 CONSTRAINT public dw_model_lease_members pk_dw_model_lease_members midataworks
+4632; 2606 208974412 CONSTRAINT public dw_model_leases pk_dw_model_leases midataworks
+4606; 2606 208974237 CONSTRAINT public dw_model_terms_notes pk_dw_model_terms_notes midataworks
+4599; 2606 208974204 CONSTRAINT public dw_operator_allowlist pk_dw_operator_allowlist midataworks
+4612; 2606 208974276 CONSTRAINT public dw_publish_builds pk_dw_publish_builds midataworks
+4616; 2606 208974298 CONSTRAINT public dw_publish_check_runs pk_dw_publish_check_runs midataworks
+4624; 2606 208974372 CONSTRAINT public dw_publish_files pk_dw_publish_files midataworks
+4621; 2606 208974332 CONSTRAINT public dw_publishes pk_dw_publishes midataworks
+4782; 2606 208975315 CONSTRAINT public dw_purge_events pk_dw_purge_events midataworks
+4391; 2606 208973390 CONSTRAINT public dw_recipe_bodies pk_dw_recipe_bodies midataworks
+4402; 2606 208973449 CONSTRAINT public dw_recipe_drafts pk_dw_recipe_drafts midataworks
+4398; 2606 208973416 CONSTRAINT public dw_recipe_revisions pk_dw_recipe_revisions midataworks
+4394; 2606 208973403 CONSTRAINT public dw_recipes pk_dw_recipes midataworks
+4774; 2606 208975250 CONSTRAINT public dw_reproduction_links pk_dw_reproduction_links midataworks
+4694; 2606 208974694 CONSTRAINT public dw_review_decisions pk_dw_review_decisions midataworks
+4679; 2606 208974640 CONSTRAINT public dw_review_items pk_dw_review_items midataworks
+4669; 2606 208974568 CONSTRAINT public dw_review_queues pk_dw_review_queues midataworks
+4736; 2606 208974977 CONSTRAINT public dw_reward_marks pk_dw_reward_marks midataworks
+4636; 2606 208974425 CONSTRAINT public dw_rubrics pk_dw_rubrics midataworks
+4801; 2606 208975527 CONSTRAINT public dw_rule_derivations pk_dw_rule_derivations midataworks
+4798; 2606 208975495 CONSTRAINT public dw_rule_set_uses pk_dw_rule_set_uses midataworks
+4795; 2606 208975476 CONSTRAINT public dw_rule_sets pk_dw_rule_sets midataworks
+4786; 2606 208975412 CONSTRAINT public dw_setting_changes pk_dw_setting_changes midataworks
+4790; 2606 208975440 CONSTRAINT public dw_settings_pin pk_dw_settings_pin midataworks
+4709; 2606 208974814 CONSTRAINT public dw_shortcut_levels pk_dw_shortcut_levels midataworks
+4385; 2606 208973352 CONSTRAINT public dw_source_annotations pk_dw_source_annotations midataworks
+4380; 2606 208973330 CONSTRAINT public dw_source_files pk_dw_source_files midataworks
+4376; 2606 208973311 CONSTRAINT public dw_sources pk_dw_sources midataworks
+4754; 2606 208975100 CONSTRAINT public dw_steering_snapshots pk_dw_steering_snapshots midataworks
+4405; 2606 208973471 CONSTRAINT public dw_step_executions pk_dw_step_executions midataworks
+4792; 2606 208975458 CONSTRAINT public dw_text_separability pk_dw_text_separability midataworks
+4416; 2606 208973536 CONSTRAINT public dw_version_builds pk_dw_version_builds midataworks
+4418; 2606 208973571 CONSTRAINT public dw_version_comparisons pk_dw_version_comparisons midataworks
+4422; 2606 208973588 CONSTRAINT public dw_version_inputs pk_dw_version_inputs midataworks
+4705; 2606 208974783 CONSTRAINT public dw_version_reports pk_dw_version_reports midataworks
+4425; 2606 208973610 CONSTRAINT public dw_version_steps pk_dw_version_steps midataworks
+4428; 2606 208973632 CONSTRAINT public dw_version_verifications pk_dw_version_verifications midataworks
+4409; 2606 208973494 CONSTRAINT public dw_versions pk_dw_versions midataworks
+4700; 2606 208974736 CONSTRAINT public dw_calibration_set_labels uq_dw_calibration_set_labels_position midataworks
+4677; 2606 208974620 CONSTRAINT public dw_calibration_sets uq_dw_calibration_sets_identity midataworks
+4603; 2606 208974220 CONSTRAINT public dw_config_versions uq_dw_config_versions_kind_name_number midataworks
+4389; 2606 208973381 CONSTRAINT public dw_datasets uq_dw_datasets_name midataworks
+4628; 2606 208974400 CONSTRAINT public dw_decision_templates uq_dw_decision_templates_content_hash midataworks
+4630; 2606 208974402 CONSTRAINT public dw_decision_templates uq_dw_decision_templates_name_version midataworks
+4714; 2606 208974834 CONSTRAINT public dw_detector_sets uq_dw_detector_sets_name midataworks
+4767; 2606 208975165 CONSTRAINT public dw_diversity_reports uq_dw_diversity_reports_identity midataworks
+4745; 2606 208975030 CONSTRAINT public dw_generation_templates uq_dw_generation_templates_name_version midataworks
+4654; 2606 208974495 CONSTRAINT public dw_label_run_jobs uq_dw_label_run_jobs_job_id midataworks
+4400; 2606 208973418 CONSTRAINT public dw_recipe_revisions uq_dw_recipe_revisions_number midataworks
+4396; 2606 208973405 CONSTRAINT public dw_recipes uq_dw_recipes_name midataworks
+4776; 2606 208975252 CONSTRAINT public dw_reproduction_links uq_dw_reproduction_links_target midataworks
+4681; 2606 208974642 CONSTRAINT public dw_review_items uq_dw_review_items_queue_external_id midataworks
+4683; 2606 208974644 CONSTRAINT public dw_review_items uq_dw_review_items_queue_position midataworks
+4685; 2606 208974646 CONSTRAINT public dw_review_items uq_dw_review_items_queue_row_key midataworks
+4738; 2606 208974979 CONSTRAINT public dw_reward_marks uq_dw_reward_marks_probe midataworks
+4638; 2606 208974427 CONSTRAINT public dw_rubrics uq_dw_rubrics_content_hash midataworks
+4640; 2606 208974429 CONSTRAINT public dw_rubrics uq_dw_rubrics_name_version midataworks
+4382; 2606 208973332 CONSTRAINT public dw_source_files uq_dw_source_files_source_split midataworks
+4411; 2606 208973496 CONSTRAINT public dw_versions uq_dw_versions_dataset_number midataworks
+4430; 1259 208973655 INDEX public ix_dw_row_events_new_row_key midataworks
+4434; 1259 208973668 INDEX public dw_row_events_p00_new_row_key_idx midataworks
+4431; 1259 208973656 INDEX public ix_dw_row_events_row_key midataworks
+4437; 1259 208973669 INDEX public dw_row_events_p00_row_key_idx midataworks
+4429; 1259 208973654 INDEX public ix_dw_row_events_exec_kind_reason midataworks
+4438; 1259 208973667 INDEX public dw_row_events_p00_step_execution_id_kind_reason_code_idx midataworks
+4439; 1259 208973683 INDEX public dw_row_events_p01_new_row_key_idx midataworks
+4442; 1259 208973684 INDEX public dw_row_events_p01_row_key_idx midataworks
+4443; 1259 208973682 INDEX public dw_row_events_p01_step_execution_id_kind_reason_code_idx midataworks
+4444; 1259 208973698 INDEX public dw_row_events_p02_new_row_key_idx midataworks
+4447; 1259 208973699 INDEX public dw_row_events_p02_row_key_idx midataworks
+4448; 1259 208973697 INDEX public dw_row_events_p02_step_execution_id_kind_reason_code_idx midataworks
+4449; 1259 208973713 INDEX public dw_row_events_p03_new_row_key_idx midataworks
+4452; 1259 208973714 INDEX public dw_row_events_p03_row_key_idx midataworks
+4453; 1259 208973712 INDEX public dw_row_events_p03_step_execution_id_kind_reason_code_idx midataworks
+4454; 1259 208973728 INDEX public dw_row_events_p04_new_row_key_idx midataworks
+4457; 1259 208973729 INDEX public dw_row_events_p04_row_key_idx midataworks
+4458; 1259 208973727 INDEX public dw_row_events_p04_step_execution_id_kind_reason_code_idx midataworks
+4459; 1259 208973743 INDEX public dw_row_events_p05_new_row_key_idx midataworks
+4462; 1259 208973744 INDEX public dw_row_events_p05_row_key_idx midataworks
+4463; 1259 208973742 INDEX public dw_row_events_p05_step_execution_id_kind_reason_code_idx midataworks
+4464; 1259 208973758 INDEX public dw_row_events_p06_new_row_key_idx midataworks
+4467; 1259 208973759 INDEX public dw_row_events_p06_row_key_idx midataworks
+4468; 1259 208973757 INDEX public dw_row_events_p06_step_execution_id_kind_reason_code_idx midataworks
+4469; 1259 208973773 INDEX public dw_row_events_p07_new_row_key_idx midataworks
+4472; 1259 208973774 INDEX public dw_row_events_p07_row_key_idx midataworks
+4473; 1259 208973772 INDEX public dw_row_events_p07_step_execution_id_kind_reason_code_idx midataworks
+4474; 1259 208973788 INDEX public dw_row_events_p08_new_row_key_idx midataworks
+4477; 1259 208973789 INDEX public dw_row_events_p08_row_key_idx midataworks
+4478; 1259 208973787 INDEX public dw_row_events_p08_step_execution_id_kind_reason_code_idx midataworks
+4479; 1259 208973803 INDEX public dw_row_events_p09_new_row_key_idx midataworks
+4482; 1259 208973804 INDEX public dw_row_events_p09_row_key_idx midataworks
+4483; 1259 208973802 INDEX public dw_row_events_p09_step_execution_id_kind_reason_code_idx midataworks
+4484; 1259 208973818 INDEX public dw_row_events_p10_new_row_key_idx midataworks
+4487; 1259 208973819 INDEX public dw_row_events_p10_row_key_idx midataworks
+4488; 1259 208973817 INDEX public dw_row_events_p10_step_execution_id_kind_reason_code_idx midataworks
+4489; 1259 208973833 INDEX public dw_row_events_p11_new_row_key_idx midataworks
+4492; 1259 208973834 INDEX public dw_row_events_p11_row_key_idx midataworks
+4493; 1259 208973832 INDEX public dw_row_events_p11_step_execution_id_kind_reason_code_idx midataworks
+4494; 1259 208973848 INDEX public dw_row_events_p12_new_row_key_idx midataworks
+4497; 1259 208973849 INDEX public dw_row_events_p12_row_key_idx midataworks
+4498; 1259 208973847 INDEX public dw_row_events_p12_step_execution_id_kind_reason_code_idx midataworks
+4499; 1259 208973863 INDEX public dw_row_events_p13_new_row_key_idx midataworks
+4502; 1259 208973864 INDEX public dw_row_events_p13_row_key_idx midataworks
+4503; 1259 208973862 INDEX public dw_row_events_p13_step_execution_id_kind_reason_code_idx midataworks
+4504; 1259 208973878 INDEX public dw_row_events_p14_new_row_key_idx midataworks
+4507; 1259 208973879 INDEX public dw_row_events_p14_row_key_idx midataworks
+4508; 1259 208973877 INDEX public dw_row_events_p14_step_execution_id_kind_reason_code_idx midataworks
+4509; 1259 208973893 INDEX public dw_row_events_p15_new_row_key_idx midataworks
+4512; 1259 208973894 INDEX public dw_row_events_p15_row_key_idx midataworks
+4513; 1259 208973892 INDEX public dw_row_events_p15_step_execution_id_kind_reason_code_idx midataworks
+4514; 1259 208973908 INDEX public dw_row_events_p16_new_row_key_idx midataworks
+4517; 1259 208973909 INDEX public dw_row_events_p16_row_key_idx midataworks
+4518; 1259 208973907 INDEX public dw_row_events_p16_step_execution_id_kind_reason_code_idx midataworks
+4519; 1259 208973923 INDEX public dw_row_events_p17_new_row_key_idx midataworks
+4522; 1259 208973924 INDEX public dw_row_events_p17_row_key_idx midataworks
+4523; 1259 208973922 INDEX public dw_row_events_p17_step_execution_id_kind_reason_code_idx midataworks
+4524; 1259 208973938 INDEX public dw_row_events_p18_new_row_key_idx midataworks
+4527; 1259 208973939 INDEX public dw_row_events_p18_row_key_idx midataworks
+4528; 1259 208973937 INDEX public dw_row_events_p18_step_execution_id_kind_reason_code_idx midataworks
+4529; 1259 208973953 INDEX public dw_row_events_p19_new_row_key_idx midataworks
+4532; 1259 208973954 INDEX public dw_row_events_p19_row_key_idx midataworks
+4533; 1259 208973952 INDEX public dw_row_events_p19_step_execution_id_kind_reason_code_idx midataworks
+4534; 1259 208973968 INDEX public dw_row_events_p20_new_row_key_idx midataworks
+4537; 1259 208973969 INDEX public dw_row_events_p20_row_key_idx midataworks
+4538; 1259 208973967 INDEX public dw_row_events_p20_step_execution_id_kind_reason_code_idx midataworks
+4539; 1259 208973983 INDEX public dw_row_events_p21_new_row_key_idx midataworks
+4542; 1259 208973984 INDEX public dw_row_events_p21_row_key_idx midataworks
+4543; 1259 208973982 INDEX public dw_row_events_p21_step_execution_id_kind_reason_code_idx midataworks
+4544; 1259 208973998 INDEX public dw_row_events_p22_new_row_key_idx midataworks
+4547; 1259 208973999 INDEX public dw_row_events_p22_row_key_idx midataworks
+4548; 1259 208973997 INDEX public dw_row_events_p22_step_execution_id_kind_reason_code_idx midataworks
+4549; 1259 208974013 INDEX public dw_row_events_p23_new_row_key_idx midataworks
+4552; 1259 208974014 INDEX public dw_row_events_p23_row_key_idx midataworks
+4553; 1259 208974012 INDEX public dw_row_events_p23_step_execution_id_kind_reason_code_idx midataworks
+4554; 1259 208974028 INDEX public dw_row_events_p24_new_row_key_idx midataworks
+4557; 1259 208974029 INDEX public dw_row_events_p24_row_key_idx midataworks
+4558; 1259 208974027 INDEX public dw_row_events_p24_step_execution_id_kind_reason_code_idx midataworks
+4559; 1259 208974043 INDEX public dw_row_events_p25_new_row_key_idx midataworks
+4562; 1259 208974044 INDEX public dw_row_events_p25_row_key_idx midataworks
+4563; 1259 208974042 INDEX public dw_row_events_p25_step_execution_id_kind_reason_code_idx midataworks
+4564; 1259 208974058 INDEX public dw_row_events_p26_new_row_key_idx midataworks
+4567; 1259 208974059 INDEX public dw_row_events_p26_row_key_idx midataworks
+4568; 1259 208974057 INDEX public dw_row_events_p26_step_execution_id_kind_reason_code_idx midataworks
+4569; 1259 208974073 INDEX public dw_row_events_p27_new_row_key_idx midataworks
+4572; 1259 208974074 INDEX public dw_row_events_p27_row_key_idx midataworks
+4573; 1259 208974072 INDEX public dw_row_events_p27_step_execution_id_kind_reason_code_idx midataworks
+4574; 1259 208974088 INDEX public dw_row_events_p28_new_row_key_idx midataworks
+4577; 1259 208974089 INDEX public dw_row_events_p28_row_key_idx midataworks
+4578; 1259 208974087 INDEX public dw_row_events_p28_step_execution_id_kind_reason_code_idx midataworks
+4579; 1259 208974103 INDEX public dw_row_events_p29_new_row_key_idx midataworks
+4582; 1259 208974104 INDEX public dw_row_events_p29_row_key_idx midataworks
+4583; 1259 208974102 INDEX public dw_row_events_p29_step_execution_id_kind_reason_code_idx midataworks
+4584; 1259 208974118 INDEX public dw_row_events_p30_new_row_key_idx midataworks
+4587; 1259 208974119 INDEX public dw_row_events_p30_row_key_idx midataworks
+4588; 1259 208974117 INDEX public dw_row_events_p30_step_execution_id_kind_reason_code_idx midataworks
+4589; 1259 208974133 INDEX public dw_row_events_p31_new_row_key_idx midataworks
+4592; 1259 208974134 INDEX public dw_row_events_p31_row_key_idx midataworks
+4593; 1259 208974132 INDEX public dw_row_events_p31_step_execution_id_kind_reason_code_idx midataworks
+4594; 1259 208974191 INDEX public ix_dw_agent_label_rows_version_admitted midataworks
+4658; 1259 208974533 INDEX public ix_dw_agent_requests_created_at midataworks
+4364; 1259 208973265 INDEX public ix_dw_app_settings_category midataworks
+4369; 1259 208975670 INDEX public ix_dw_approvals_batch_id midataworks
+4370; 1259 208973289 INDEX public ix_dw_approvals_requested_by_created midataworks
+4371; 1259 208973290 INDEX public ix_dw_approvals_status_expires midataworks
+4777; 1259 208975303 INDEX public ix_dw_archive_events_entity midataworks
+4670; 1259 208974602 INDEX public ix_dw_audits_version_created midataworks
+4686; 1259 208974679 INDEX public ix_dw_calibration_records_fingerprint midataworks
+4687; 1259 208974680 INDEX public ix_dw_calibration_records_identity_created midataworks
+4661; 1259 208974552 INDEX public ix_dw_calibration_targets_question_created midataworks
+4805; 1259 208975611 INDEX public ix_dw_code_rule_approvals_sha_id midataworks
+4808; 1259 208975624 INDEX public ix_dw_code_rule_contract_runs_sha_contract midataworks
+4811; 1259 208975660 INDEX public ix_dw_code_rule_uses_code_version midataworks
+4812; 1259 208975661 INDEX public ix_dw_code_rule_uses_sha midataworks
+4802; 1259 208975587 INDEX public ix_dw_code_rules_behaviour_key midataworks
+4719; 1259 208974887 INDEX public ix_dw_detector_results_set midataworks
+4715; 1259 208975573 INDEX public ix_dw_detector_sends_send_group_id midataworks
+4716; 1259 208974866 INDEX public ix_dw_detector_sends_set midataworks
+4724; 1259 208974925 INDEX public ix_dw_detector_set_roles_version midataworks
+4710; 1259 208975442 INDEX public ix_dw_detector_sets_behaviour_key midataworks
+4763; 1259 208975181 INDEX public ix_dw_diversity_reports_version midataworks
+4607; 1259 208974266 INDEX public ix_dw_exports_version midataworks
+4757; 1259 208975143 INDEX public ix_dw_generation_records_row_key midataworks
+4758; 1259 208975142 INDEX public ix_dw_generation_records_run_outcome midataworks
+4750; 1259 208975090 INDEX public ix_dw_generation_run_jobs_job midataworks
+4746; 1259 208975548 INDEX public ix_dw_generation_runs_behaviour_key midataworks
+4747; 1259 208975074 INDEX public ix_dw_generation_runs_version_created midataworks
+4741; 1259 208975546 INDEX public ix_dw_generation_templates_behaviour_key midataworks
+4359; 1259 208973253 INDEX public ix_dw_jobs_kind midataworks
+4360; 1259 208973254 INDEX public ix_dw_jobs_required_model_id midataworks
+4361; 1259 208973255 INDEX public ix_dw_jobs_status_kind midataworks
+4643; 1259 208975550 INDEX public ix_dw_label_runs_behaviour_key midataworks
+4644; 1259 208975567 INDEX public ix_dw_label_runs_handoff_id midataworks
+4645; 1259 208974473 INDEX public ix_dw_label_runs_identity_hash midataworks
+4646; 1259 208974474 INDEX public ix_dw_label_runs_version_origin_created midataworks
+4655; 1259 208974523 INDEX public ix_dw_labels_fingerprint_row_key midataworks
+4768; 1259 208975234 INDEX public ix_dw_minimal_pair_chains_state midataworks
+4769; 1259 208975235 INDEX public ix_dw_minimal_pair_chains_version midataworks
+4730; 1259 208974963 INDEX public ix_dw_mistudio_registrations_probe_dataset midataworks
+4604; 1259 208974238 INDEX public ix_dw_model_terms_notes_model midataworks
+4597; 1259 208974205 INDEX public ix_dw_operator_allowlist_triple_created midataworks
+4610; 1259 208974287 INDEX public ix_dw_publish_builds_version midataworks
+4614; 1259 208974314 INDEX public ix_dw_publish_check_runs_version midataworks
+4617; 1259 208974358 INDEX public ix_dw_publishes_approval_digest midataworks
+4618; 1259 208974359 INDEX public ix_dw_publishes_repo_created midataworks
+4619; 1259 208974360 INDEX public ix_dw_publishes_version midataworks
+4780; 1259 208975316 INDEX public ix_dw_purge_events_entity midataworks
+4392; 1259 208975544 INDEX public ix_dw_recipes_behaviour_key midataworks
+4772; 1259 208975263 INDEX public ix_dw_reproduction_links_probe midataworks
+4690; 1259 208974710 INDEX public ix_dw_review_decisions_item_created midataworks
+4691; 1259 208974711 INDEX public ix_dw_review_decisions_queue_created midataworks
+4692; 1259 208974712 INDEX public ix_dw_review_decisions_row_key_question midataworks
+4664; 1259 208975552 INDEX public ix_dw_review_queues_behaviour_key midataworks
+4665; 1259 208974579 INDEX public ix_dw_review_queues_created_at midataworks
+4666; 1259 208975568 INDEX public ix_dw_review_queues_handoff_id midataworks
+4667; 1259 208975274 INDEX public ix_dw_review_queues_state midataworks
+4634; 1259 208975444 INDEX public ix_dw_rubrics_behaviour_key midataworks
+4799; 1259 208975538 INDEX public ix_dw_rule_derivations_source midataworks
+4796; 1259 208975506 INDEX public ix_dw_rule_set_uses_config_version midataworks
+4793; 1259 208975477 INDEX public ix_dw_rule_sets_behaviour_key midataworks
+4783; 1259 208975414 INDEX public ix_dw_setting_changes_changed_at midataworks
+4784; 1259 208975413 INDEX public ix_dw_setting_changes_key midataworks
+4707; 1259 208974820 INDEX public ix_dw_shortcut_levels_scope midataworks
+4383; 1259 208973363 INDEX public ix_dw_source_annotations_source_kind midataworks
+4374; 1259 208973317 INDEX public ix_dw_sources_state_created midataworks
+4403; 1259 208973477 INDEX public ix_dw_step_executions_job midataworks
+4413; 1259 208973562 INDEX public ix_dw_version_builds_digest midataworks
+4414; 1259 208973563 INDEX public ix_dw_version_builds_waiting midataworks
+4419; 1259 208973604 INDEX public ix_dw_version_inputs_input_version midataworks
+4420; 1259 208973605 INDEX public ix_dw_version_inputs_source midataworks
+4703; 1259 208974795 INDEX public ix_dw_version_reports_version_kind midataworks
+4423; 1259 208973621 INDEX public ix_dw_version_steps_execution midataworks
+4426; 1259 208973643 INDEX public ix_dw_version_verifications_version midataworks
+4407; 1259 208973527 INDEX public ix_dw_versions_parent midataworks
+4673; 1259 208974603 INDEX public uq_dw_audits_one_in_progress midataworks
+4727; 1259 208975672 INDEX public uq_dw_detector_set_roles_single midataworks
+4733; 1259 208974964 INDEX public uq_dw_mistudio_registrations_dataset midataworks
+4734; 1259 208975445 INDEX public uq_dw_mistudio_registrations_view midataworks
+4633; 1259 208974413 INDEX public uq_dw_model_leases_active_base_url midataworks
+4613; 1259 208974288 INDEX public uq_dw_publish_builds_completed midataworks
+4622; 1259 208974361 INDEX public uq_dw_publishes_active_repo midataworks
+4377; 1259 208975564 INDEX public uq_dw_sources_hf_identity midataworks
+4378; 1259 208973319 INDEX public uq_dw_sources_upload_identity midataworks
+4406; 1259 208975665 INDEX public uq_dw_step_executions_identity_live midataworks
+4706; 1259 208974794 INDEX public uq_dw_version_reports_completed midataworks
+4412; 1259 208973528 INDEX public uq_dw_versions_request_digest_completed midataworks
+4815; 0 0 INDEX ATTACH public dw_row_events_p00_new_row_key_idx midataworks
+4816; 0 0 INDEX ATTACH public dw_row_events_p00_pkey midataworks
+4817; 0 0 INDEX ATTACH public dw_row_events_p00_row_key_idx midataworks
+4818; 0 0 INDEX ATTACH public dw_row_events_p00_step_execution_id_kind_reason_code_idx midataworks
+4819; 0 0 INDEX ATTACH public dw_row_events_p01_new_row_key_idx midataworks
+4820; 0 0 INDEX ATTACH public dw_row_events_p01_pkey midataworks
+4821; 0 0 INDEX ATTACH public dw_row_events_p01_row_key_idx midataworks
+4822; 0 0 INDEX ATTACH public dw_row_events_p01_step_execution_id_kind_reason_code_idx midataworks
+4823; 0 0 INDEX ATTACH public dw_row_events_p02_new_row_key_idx midataworks
+4824; 0 0 INDEX ATTACH public dw_row_events_p02_pkey midataworks
+4825; 0 0 INDEX ATTACH public dw_row_events_p02_row_key_idx midataworks
+4826; 0 0 INDEX ATTACH public dw_row_events_p02_step_execution_id_kind_reason_code_idx midataworks
+4827; 0 0 INDEX ATTACH public dw_row_events_p03_new_row_key_idx midataworks
+4828; 0 0 INDEX ATTACH public dw_row_events_p03_pkey midataworks
+4829; 0 0 INDEX ATTACH public dw_row_events_p03_row_key_idx midataworks
+4830; 0 0 INDEX ATTACH public dw_row_events_p03_step_execution_id_kind_reason_code_idx midataworks
+4831; 0 0 INDEX ATTACH public dw_row_events_p04_new_row_key_idx midataworks
+4832; 0 0 INDEX ATTACH public dw_row_events_p04_pkey midataworks
+4833; 0 0 INDEX ATTACH public dw_row_events_p04_row_key_idx midataworks
+4834; 0 0 INDEX ATTACH public dw_row_events_p04_step_execution_id_kind_reason_code_idx midataworks
+4835; 0 0 INDEX ATTACH public dw_row_events_p05_new_row_key_idx midataworks
+4836; 0 0 INDEX ATTACH public dw_row_events_p05_pkey midataworks
+4837; 0 0 INDEX ATTACH public dw_row_events_p05_row_key_idx midataworks
+4838; 0 0 INDEX ATTACH public dw_row_events_p05_step_execution_id_kind_reason_code_idx midataworks
+4839; 0 0 INDEX ATTACH public dw_row_events_p06_new_row_key_idx midataworks
+4840; 0 0 INDEX ATTACH public dw_row_events_p06_pkey midataworks
+4841; 0 0 INDEX ATTACH public dw_row_events_p06_row_key_idx midataworks
+4842; 0 0 INDEX ATTACH public dw_row_events_p06_step_execution_id_kind_reason_code_idx midataworks
+4843; 0 0 INDEX ATTACH public dw_row_events_p07_new_row_key_idx midataworks
+4844; 0 0 INDEX ATTACH public dw_row_events_p07_pkey midataworks
+4845; 0 0 INDEX ATTACH public dw_row_events_p07_row_key_idx midataworks
+4846; 0 0 INDEX ATTACH public dw_row_events_p07_step_execution_id_kind_reason_code_idx midataworks
+4847; 0 0 INDEX ATTACH public dw_row_events_p08_new_row_key_idx midataworks
+4848; 0 0 INDEX ATTACH public dw_row_events_p08_pkey midataworks
+4849; 0 0 INDEX ATTACH public dw_row_events_p08_row_key_idx midataworks
+4850; 0 0 INDEX ATTACH public dw_row_events_p08_step_execution_id_kind_reason_code_idx midataworks
+4851; 0 0 INDEX ATTACH public dw_row_events_p09_new_row_key_idx midataworks
+4852; 0 0 INDEX ATTACH public dw_row_events_p09_pkey midataworks
+4853; 0 0 INDEX ATTACH public dw_row_events_p09_row_key_idx midataworks
+4854; 0 0 INDEX ATTACH public dw_row_events_p09_step_execution_id_kind_reason_code_idx midataworks
+4855; 0 0 INDEX ATTACH public dw_row_events_p10_new_row_key_idx midataworks
+4856; 0 0 INDEX ATTACH public dw_row_events_p10_pkey midataworks
+4857; 0 0 INDEX ATTACH public dw_row_events_p10_row_key_idx midataworks
+4858; 0 0 INDEX ATTACH public dw_row_events_p10_step_execution_id_kind_reason_code_idx midataworks
+4859; 0 0 INDEX ATTACH public dw_row_events_p11_new_row_key_idx midataworks
+4860; 0 0 INDEX ATTACH public dw_row_events_p11_pkey midataworks
+4861; 0 0 INDEX ATTACH public dw_row_events_p11_row_key_idx midataworks
+4862; 0 0 INDEX ATTACH public dw_row_events_p11_step_execution_id_kind_reason_code_idx midataworks
+4863; 0 0 INDEX ATTACH public dw_row_events_p12_new_row_key_idx midataworks
+4864; 0 0 INDEX ATTACH public dw_row_events_p12_pkey midataworks
+4865; 0 0 INDEX ATTACH public dw_row_events_p12_row_key_idx midataworks
+4866; 0 0 INDEX ATTACH public dw_row_events_p12_step_execution_id_kind_reason_code_idx midataworks
+4867; 0 0 INDEX ATTACH public dw_row_events_p13_new_row_key_idx midataworks
+4868; 0 0 INDEX ATTACH public dw_row_events_p13_pkey midataworks
+4869; 0 0 INDEX ATTACH public dw_row_events_p13_row_key_idx midataworks
+4870; 0 0 INDEX ATTACH public dw_row_events_p13_step_execution_id_kind_reason_code_idx midataworks
+4871; 0 0 INDEX ATTACH public dw_row_events_p14_new_row_key_idx midataworks
+4872; 0 0 INDEX ATTACH public dw_row_events_p14_pkey midataworks
+4873; 0 0 INDEX ATTACH public dw_row_events_p14_row_key_idx midataworks
+4874; 0 0 INDEX ATTACH public dw_row_events_p14_step_execution_id_kind_reason_code_idx midataworks
+4875; 0 0 INDEX ATTACH public dw_row_events_p15_new_row_key_idx midataworks
+4876; 0 0 INDEX ATTACH public dw_row_events_p15_pkey midataworks
+4877; 0 0 INDEX ATTACH public dw_row_events_p15_row_key_idx midataworks
+4878; 0 0 INDEX ATTACH public dw_row_events_p15_step_execution_id_kind_reason_code_idx midataworks
+4879; 0 0 INDEX ATTACH public dw_row_events_p16_new_row_key_idx midataworks
+4880; 0 0 INDEX ATTACH public dw_row_events_p16_pkey midataworks
+4881; 0 0 INDEX ATTACH public dw_row_events_p16_row_key_idx midataworks
+4882; 0 0 INDEX ATTACH public dw_row_events_p16_step_execution_id_kind_reason_code_idx midataworks
+4883; 0 0 INDEX ATTACH public dw_row_events_p17_new_row_key_idx midataworks
+4884; 0 0 INDEX ATTACH public dw_row_events_p17_pkey midataworks
+4885; 0 0 INDEX ATTACH public dw_row_events_p17_row_key_idx midataworks
+4886; 0 0 INDEX ATTACH public dw_row_events_p17_step_execution_id_kind_reason_code_idx midataworks
+4887; 0 0 INDEX ATTACH public dw_row_events_p18_new_row_key_idx midataworks
+4888; 0 0 INDEX ATTACH public dw_row_events_p18_pkey midataworks
+4889; 0 0 INDEX ATTACH public dw_row_events_p18_row_key_idx midataworks
+4890; 0 0 INDEX ATTACH public dw_row_events_p18_step_execution_id_kind_reason_code_idx midataworks
+4891; 0 0 INDEX ATTACH public dw_row_events_p19_new_row_key_idx midataworks
+4892; 0 0 INDEX ATTACH public dw_row_events_p19_pkey midataworks
+4893; 0 0 INDEX ATTACH public dw_row_events_p19_row_key_idx midataworks
+4894; 0 0 INDEX ATTACH public dw_row_events_p19_step_execution_id_kind_reason_code_idx midataworks
+4895; 0 0 INDEX ATTACH public dw_row_events_p20_new_row_key_idx midataworks
+4896; 0 0 INDEX ATTACH public dw_row_events_p20_pkey midataworks
+4897; 0 0 INDEX ATTACH public dw_row_events_p20_row_key_idx midataworks
+4898; 0 0 INDEX ATTACH public dw_row_events_p20_step_execution_id_kind_reason_code_idx midataworks
+4899; 0 0 INDEX ATTACH public dw_row_events_p21_new_row_key_idx midataworks
+4900; 0 0 INDEX ATTACH public dw_row_events_p21_pkey midataworks
+4901; 0 0 INDEX ATTACH public dw_row_events_p21_row_key_idx midataworks
+4902; 0 0 INDEX ATTACH public dw_row_events_p21_step_execution_id_kind_reason_code_idx midataworks
+4903; 0 0 INDEX ATTACH public dw_row_events_p22_new_row_key_idx midataworks
+4904; 0 0 INDEX ATTACH public dw_row_events_p22_pkey midataworks
+4905; 0 0 INDEX ATTACH public dw_row_events_p22_row_key_idx midataworks
+4906; 0 0 INDEX ATTACH public dw_row_events_p22_step_execution_id_kind_reason_code_idx midataworks
+4907; 0 0 INDEX ATTACH public dw_row_events_p23_new_row_key_idx midataworks
+4908; 0 0 INDEX ATTACH public dw_row_events_p23_pkey midataworks
+4909; 0 0 INDEX ATTACH public dw_row_events_p23_row_key_idx midataworks
+4910; 0 0 INDEX ATTACH public dw_row_events_p23_step_execution_id_kind_reason_code_idx midataworks
+4911; 0 0 INDEX ATTACH public dw_row_events_p24_new_row_key_idx midataworks
+4912; 0 0 INDEX ATTACH public dw_row_events_p24_pkey midataworks
+4913; 0 0 INDEX ATTACH public dw_row_events_p24_row_key_idx midataworks
+4914; 0 0 INDEX ATTACH public dw_row_events_p24_step_execution_id_kind_reason_code_idx midataworks
+4915; 0 0 INDEX ATTACH public dw_row_events_p25_new_row_key_idx midataworks
+4916; 0 0 INDEX ATTACH public dw_row_events_p25_pkey midataworks
+4917; 0 0 INDEX ATTACH public dw_row_events_p25_row_key_idx midataworks
+4918; 0 0 INDEX ATTACH public dw_row_events_p25_step_execution_id_kind_reason_code_idx midataworks
+4919; 0 0 INDEX ATTACH public dw_row_events_p26_new_row_key_idx midataworks
+4920; 0 0 INDEX ATTACH public dw_row_events_p26_pkey midataworks
+4921; 0 0 INDEX ATTACH public dw_row_events_p26_row_key_idx midataworks
+4922; 0 0 INDEX ATTACH public dw_row_events_p26_step_execution_id_kind_reason_code_idx midataworks
+4923; 0 0 INDEX ATTACH public dw_row_events_p27_new_row_key_idx midataworks
+4924; 0 0 INDEX ATTACH public dw_row_events_p27_pkey midataworks
+4925; 0 0 INDEX ATTACH public dw_row_events_p27_row_key_idx midataworks
+4926; 0 0 INDEX ATTACH public dw_row_events_p27_step_execution_id_kind_reason_code_idx midataworks
+4927; 0 0 INDEX ATTACH public dw_row_events_p28_new_row_key_idx midataworks
+4928; 0 0 INDEX ATTACH public dw_row_events_p28_pkey midataworks
+4929; 0 0 INDEX ATTACH public dw_row_events_p28_row_key_idx midataworks
+4930; 0 0 INDEX ATTACH public dw_row_events_p28_step_execution_id_kind_reason_code_idx midataworks
+4931; 0 0 INDEX ATTACH public dw_row_events_p29_new_row_key_idx midataworks
+4932; 0 0 INDEX ATTACH public dw_row_events_p29_pkey midataworks
+4933; 0 0 INDEX ATTACH public dw_row_events_p29_row_key_idx midataworks
+4934; 0 0 INDEX ATTACH public dw_row_events_p29_step_execution_id_kind_reason_code_idx midataworks
+4935; 0 0 INDEX ATTACH public dw_row_events_p30_new_row_key_idx midataworks
+4936; 0 0 INDEX ATTACH public dw_row_events_p30_pkey midataworks
+4937; 0 0 INDEX ATTACH public dw_row_events_p30_row_key_idx midataworks
+4938; 0 0 INDEX ATTACH public dw_row_events_p30_step_execution_id_kind_reason_code_idx midataworks
+4939; 0 0 INDEX ATTACH public dw_row_events_p31_new_row_key_idx midataworks
+4940; 0 0 INDEX ATTACH public dw_row_events_p31_pkey midataworks
+4941; 0 0 INDEX ATTACH public dw_row_events_p31_row_key_idx midataworks
+4942; 0 0 INDEX ATTACH public dw_row_events_p31_step_execution_id_kind_reason_code_idx midataworks
+5097; 2620 208975013 TRIGGER public dw_agreement_reports dw_agreement_reports_insert_only midataworks
+5112; 2620 208975304 TRIGGER public dw_archive_events dw_archive_events_append_only midataworks
+5091; 2620 208974767 TRIGGER public dw_calibration_records dw_calibration_records_append_only midataworks
+5118; 2620 208975625 TRIGGER public dw_code_rule_approvals dw_code_rule_approvals_insert_only midataworks
+5119; 2620 208975626 TRIGGER public dw_code_rule_contract_runs dw_code_rule_contract_runs_insert_only midataworks
+5120; 2620 208975662 TRIGGER public dw_code_rule_uses dw_code_rule_uses_insert_only midataworks
+5121; 2620 208975663 TRIGGER public dw_code_rule_uses dw_code_rule_uses_insert_only_delete midataworks
+5083; 2620 208975591 TRIGGER public dw_config_versions dw_config_versions_code_rule_head midataworks
+5084; 2620 208975483 TRIGGER public dw_config_versions dw_config_versions_insert_only midataworks
+5085; 2620 208975484 TRIGGER public dw_config_versions dw_config_versions_insert_only_delete midataworks
+5086; 2620 208975482 TRIGGER public dw_config_versions dw_config_versions_rule_set_head midataworks
+5072; 2620 208974179 TRIGGER public dw_datasets dw_datasets_target_type midataworks
+5096; 2620 208975011 TRIGGER public dw_detector_results dw_detector_results_insert_only midataworks
+5095; 2620 208975010 TRIGGER public dw_detector_sends dw_detector_sends_frozen midataworks
+5108; 2620 208975324 TRIGGER public dw_diversity_reports dw_diversity_reports_append_only midataworks
+5109; 2620 208975325 TRIGGER public dw_diversity_reports dw_diversity_reports_append_only_delete midataworks
+5106; 2620 208975326 TRIGGER public dw_generation_pairs dw_generation_pairs_append_only midataworks
+5107; 2620 208975327 TRIGGER public dw_generation_pairs dw_generation_pairs_append_only_delete midataworks
+5104; 2620 208975328 TRIGGER public dw_generation_records dw_generation_records_append_only midataworks
+5105; 2620 208975329 TRIGGER public dw_generation_records dw_generation_records_append_only_delete midataworks
+5101; 2620 208975183 TRIGGER public dw_generation_templates dw_generation_templates_immutable midataworks
+5098; 2620 208975322 TRIGGER public dw_length_profiles dw_length_profiles_insert_only midataworks
+5099; 2620 208975323 TRIGGER public dw_length_profiles dw_length_profiles_insert_only_delete midataworks
+5087; 2620 208974383 TRIGGER public dw_model_terms_notes dw_model_terms_notes_insert_only midataworks
+5088; 2620 208974385 TRIGGER public dw_publish_check_runs dw_publish_check_runs_guard midataworks
+5090; 2620 208974381 TRIGGER public dw_publish_files dw_publish_files_insert_only midataworks
+5089; 2620 208974384 TRIGGER public dw_publishes dw_publishes_guard midataworks
+5113; 2620 208975317 TRIGGER public dw_purge_events dw_purge_events_append_only midataworks
+5073; 2620 208974176 TRIGGER public dw_recipe_bodies dw_recipe_bodies_hash midataworks
+5074; 2620 208975400 TRIGGER public dw_recipe_bodies dw_recipe_bodies_insert_only midataworks
+5075; 2620 208975401 TRIGGER public dw_recipe_bodies dw_recipe_bodies_insert_only_delete midataworks
+5076; 2620 208975398 TRIGGER public dw_recipe_revisions dw_recipe_revisions_insert_only midataworks
+5077; 2620 208975399 TRIGGER public dw_recipe_revisions dw_recipe_revisions_insert_only_delete midataworks
+5110; 2620 208975264 TRIGGER public dw_reproduction_links dw_reproduction_links_frozen midataworks
+5111; 2620 208975266 TRIGGER public dw_reproduction_links dw_reproduction_links_unused midataworks
+5092; 2620 208974766 TRIGGER public dw_review_decisions dw_review_decisions_append_only midataworks
+5100; 2620 208975012 TRIGGER public dw_reward_marks dw_reward_marks_insert_only midataworks
+5081; 2620 208975332 TRIGGER public dw_row_events dw_row_events_append_only midataworks
+5082; 2620 208975365 TRIGGER public dw_row_events dw_row_events_append_only_delete midataworks
+5117; 2620 208975540 TRIGGER public dw_rule_derivations dw_rule_derivations_guard midataworks
+5115; 2620 208975507 TRIGGER public dw_rule_set_uses dw_rule_set_uses_insert_only midataworks
+5116; 2620 208975508 TRIGGER public dw_rule_set_uses dw_rule_set_uses_insert_only_delete midataworks
+5114; 2620 208975415 TRIGGER public dw_setting_changes dw_setting_changes_append_only midataworks
+5071; 2620 208973366 TRIGGER public dw_source_annotations dw_source_annotations_append_only midataworks
+5070; 2620 208973365 TRIGGER public dw_source_files dw_source_files_append_only midataworks
+5069; 2620 208973364 TRIGGER public dw_sources dw_sources_guard midataworks
+5102; 2620 208975330 TRIGGER public dw_steering_snapshots dw_steering_snapshots_append_only midataworks
+5103; 2620 208975331 TRIGGER public dw_steering_snapshots dw_steering_snapshots_append_only_delete midataworks
+5093; 2620 208975320 TRIGGER public dw_version_reports dw_version_reports_immutable midataworks
+5094; 2620 208975321 TRIGGER public dw_version_reports dw_version_reports_immutable_delete midataworks
+5078; 2620 208975318 TRIGGER public dw_versions dw_versions_immutable midataworks
+5079; 2620 208975319 TRIGGER public dw_versions dw_versions_immutable_delete midataworks
+5080; 2620 208974175 TRIGGER public dw_versions dw_versions_manifest_hash midataworks
+5026; 2606 208975275 FK CONSTRAINT public dw_agreement_reports fk_dw_agreement_reports_review_queue_id_dw_review_queues midataworks
+5027; 2606 208974898 FK CONSTRAINT public dw_agreement_reports fk_dw_agreement_reports_version_id_dw_versions midataworks
+5001; 2606 208974592 FK CONSTRAINT public dw_audits fk_dw_audits_queue_id_dw_review_queues midataworks
+5002; 2606 208974597 FK CONSTRAINT public dw_audits fk_dw_audits_version_id_dw_versions midataworks
+5012; 2606 208974721 FK CONSTRAINT public dw_calibration_checks fk_dw_calibration_checks_record_id_dw_calibration_records midataworks
+5006; 2606 208974664 FK CONSTRAINT public dw_calibration_records fk_dw_calibration_records_calibration_set_id_dw_calibra_102f midataworks
+5007; 2606 208974669 FK CONSTRAINT public dw_calibration_records fk_dw_calibration_records_job_id_dw_jobs midataworks
+5008; 2606 208974674 FK CONSTRAINT public dw_calibration_records fk_dw_calibration_records_label_run_id_dw_label_runs midataworks
+5013; 2606 208974737 FK CONSTRAINT public dw_calibration_set_labels fk_dw_calibration_set_labels_calibration_set_id_dw_cali_bfb9 midataworks
+5014; 2606 208974742 FK CONSTRAINT public dw_calibration_set_labels fk_dw_calibration_set_labels_decision_id_dw_review_decisions midataworks
+5003; 2606 208974621 FK CONSTRAINT public dw_calibration_sets fk_dw_calibration_sets_source_queue_id_dw_review_queues midataworks
+5004; 2606 208974626 FK CONSTRAINT public dw_calibration_sets fk_dw_calibration_sets_version_id_dw_versions midataworks
+4998; 2606 208974547 FK CONSTRAINT public dw_calibration_targets fk_dw_calibration_targets_approval_id_dw_approvals midataworks
+5015; 2606 208974756 FK CONSTRAINT public dw_calibration_verdicts fk_dw_calibration_verdicts_record_id_dw_calibration_records midataworks
+5016; 2606 208974761 FK CONSTRAINT public dw_calibration_verdicts fk_dw_calibration_verdicts_target_id_dw_calibration_targets midataworks
+5064; 2606 208975606 FK CONSTRAINT public dw_code_rule_approvals fk_dw_code_rule_approvals_approval_id_dw_approvals midataworks
+5065; 2606 208975655 FK CONSTRAINT public dw_code_rule_uses fk_dw_code_rule_uses_approval_row_id_dw_code_rule_approvals midataworks
+5066; 2606 208975650 FK CONSTRAINT public dw_code_rule_uses fk_dw_code_rule_uses_code_rule_config_version_id_dw_con_5f51 midataworks
+5067; 2606 208975645 FK CONSTRAINT public dw_code_rule_uses fk_dw_code_rule_uses_rule_set_config_version_id_dw_conf_cfdd midataworks
+5068; 2606 208975640 FK CONSTRAINT public dw_code_rule_uses fk_dw_code_rule_uses_step_execution_id_dw_step_executions midataworks
+4974; 2606 208974221 FK CONSTRAINT public dw_config_versions fk_dw_config_versions_parent_id_dw_config_versions midataworks
+5024; 2606 208974877 FK CONSTRAINT public dw_detector_results fk_dw_detector_results_send_id_dw_detector_sends midataworks
+5025; 2606 208974882 FK CONSTRAINT public dw_detector_results fk_dw_detector_results_set_id_dw_detector_sets midataworks
+5034; 2606 208974994 FK CONSTRAINT public dw_detector_send_steps fk_dw_detector_send_steps_publish_id_dw_publishes midataworks
+5035; 2606 208974999 FK CONSTRAINT public dw_detector_send_steps fk_dw_detector_send_steps_send_id_dw_detector_sends midataworks
+5021; 2606 208974851 FK CONSTRAINT public dw_detector_sends fk_dw_detector_sends_approval_id_dw_approvals midataworks
+5022; 2606 208974856 FK CONSTRAINT public dw_detector_sends fk_dw_detector_sends_job_id_dw_jobs midataworks
+5023; 2606 208974861 FK CONSTRAINT public dw_detector_sends fk_dw_detector_sends_set_id_dw_detector_sets midataworks
+5028; 2606 208974915 FK CONSTRAINT public dw_detector_set_roles fk_dw_detector_set_roles_set_id_dw_detector_sets midataworks
+5029; 2606 208974920 FK CONSTRAINT public dw_detector_set_roles fk_dw_detector_set_roles_version_id_dw_versions midataworks
+5020; 2606 208975673 FK CONSTRAINT public dw_detector_sets fk_dw_detector_sets_borrows_from_set_id_dw_detector_sets midataworks
+5048; 2606 208975176 FK CONSTRAINT public dw_diversity_reports fk_dw_diversity_reports_job_id_dw_jobs midataworks
+5049; 2606 208975171 FK CONSTRAINT public dw_diversity_reports fk_dw_diversity_reports_reference_version_id_dw_versions midataworks
+5050; 2606 208975166 FK CONSTRAINT public dw_diversity_reports fk_dw_diversity_reports_version_id_dw_versions midataworks
+5058; 2606 208975425 FK CONSTRAINT public dw_endpoint_role_keys fk_dw_endpoint_role_keys_role_dw_endpoint_roles midataworks
+4975; 2606 208974251 FK CONSTRAINT public dw_exports fk_dw_exports_config_version_id_dw_config_versions midataworks
+4976; 2606 208974256 FK CONSTRAINT public dw_exports fk_dw_exports_job_id_dw_jobs midataworks
+4977; 2606 208974261 FK CONSTRAINT public dw_exports fk_dw_exports_version_id_dw_versions midataworks
+5044; 2606 208975119 FK CONSTRAINT public dw_generation_chunks fk_dw_generation_chunks_job_id_dw_jobs midataworks
+5045; 2606 208975114 FK CONSTRAINT public dw_generation_chunks fk_dw_generation_chunks_run_id_dw_generation_runs midataworks
+5047; 2606 208975149 FK CONSTRAINT public dw_generation_pairs fk_dw_generation_pairs_run_id_dw_generation_runs midataworks
+5046; 2606 208975137 FK CONSTRAINT public dw_generation_records fk_dw_generation_records_run_id_dw_generation_runs midataworks
+5041; 2606 208975085 FK CONSTRAINT public dw_generation_run_jobs fk_dw_generation_run_jobs_job_id_dw_jobs midataworks
+5042; 2606 208975080 FK CONSTRAINT public dw_generation_run_jobs fk_dw_generation_run_jobs_run_id_dw_generation_runs midataworks
+5037; 2606 208975064 FK CONSTRAINT public dw_generation_runs fk_dw_generation_runs_expand_template_id_dw_generation__9c24 midataworks
+5038; 2606 208975059 FK CONSTRAINT public dw_generation_runs fk_dw_generation_runs_held_out_origin_version_id_dw_versions midataworks
+5039; 2606 208975054 FK CONSTRAINT public dw_generation_runs fk_dw_generation_runs_input_version_id_dw_versions midataworks
+5040; 2606 208975069 FK CONSTRAINT public dw_generation_runs fk_dw_generation_runs_respond_template_id_dw_generation_9d69 midataworks
+5036; 2606 208975031 FK CONSTRAINT public dw_generation_templates fk_dw_generation_templates_cloned_from_dw_generation_templates midataworks
+4994; 2606 208974484 FK CONSTRAINT public dw_label_run_chunks fk_dw_label_run_chunks_label_run_id_dw_label_runs midataworks
+4995; 2606 208974496 FK CONSTRAINT public dw_label_run_jobs fk_dw_label_run_jobs_job_id_dw_jobs midataworks
+4996; 2606 208974501 FK CONSTRAINT public dw_label_run_jobs fk_dw_label_run_jobs_label_run_id_dw_label_runs midataworks
+4991; 2606 208974458 FK CONSTRAINT public dw_label_runs fk_dw_label_runs_input_version_id_dw_versions midataworks
+4992; 2606 208974463 FK CONSTRAINT public dw_label_runs fk_dw_label_runs_rubric_id_dw_rubrics midataworks
+4993; 2606 208974468 FK CONSTRAINT public dw_label_runs fk_dw_label_runs_template_id_dw_decision_templates midataworks
+4997; 2606 208974518 FK CONSTRAINT public dw_labels fk_dw_labels_label_run_id_dw_label_runs midataworks
+5030; 2606 208974937 FK CONSTRAINT public dw_length_profiles fk_dw_length_profiles_version_id_dw_versions midataworks
+5051; 2606 208975214 FK CONSTRAINT public dw_minimal_pair_chains fk_dw_minimal_pair_chains_generation_run_id_dw_generation_runs midataworks
+5052; 2606 208975209 FK CONSTRAINT public dw_minimal_pair_chains fk_dw_minimal_pair_chains_input_version_id_dw_versions midataworks
+5053; 2606 208975224 FK CONSTRAINT public dw_minimal_pair_chains fk_dw_minimal_pair_chains_judge_run_id_dw_label_runs midataworks
+5054; 2606 208975229 FK CONSTRAINT public dw_minimal_pair_chains fk_dw_minimal_pair_chains_pair_version_id_dw_versions midataworks
+5055; 2606 208975219 FK CONSTRAINT public dw_minimal_pair_chains fk_dw_minimal_pair_chains_scope_version_id_dw_versions midataworks
+5031; 2606 208974953 FK CONSTRAINT public dw_mistudio_registrations fk_dw_mistudio_registrations_send_id_dw_detector_sends midataworks
+5032; 2606 208974958 FK CONSTRAINT public dw_mistudio_registrations fk_dw_mistudio_registrations_version_id_dw_versions midataworks
+4990; 2606 208974436 FK CONSTRAINT public dw_model_lease_members fk_dw_model_lease_members_lease_row_id_dw_model_leases midataworks
+4978; 2606 208974277 FK CONSTRAINT public dw_publish_builds fk_dw_publish_builds_job_id_dw_jobs midataworks
+4979; 2606 208974282 FK CONSTRAINT public dw_publish_builds fk_dw_publish_builds_version_id_dw_versions midataworks
+4980; 2606 208974299 FK CONSTRAINT public dw_publish_check_runs fk_dw_publish_check_runs_build_id_dw_publish_builds midataworks
+4981; 2606 208974304 FK CONSTRAINT public dw_publish_check_runs fk_dw_publish_check_runs_job_id_dw_jobs midataworks
+4982; 2606 208974309 FK CONSTRAINT public dw_publish_check_runs fk_dw_publish_check_runs_version_id_dw_versions midataworks
+4989; 2606 208974373 FK CONSTRAINT public dw_publish_files fk_dw_publish_files_publish_id_dw_publishes midataworks
+4983; 2606 208974333 FK CONSTRAINT public dw_publishes fk_dw_publishes_approval_id_dw_approvals midataworks
+4984; 2606 208974338 FK CONSTRAINT public dw_publishes fk_dw_publishes_build_id_dw_publish_builds midataworks
+4985; 2606 208974343 FK CONSTRAINT public dw_publishes fk_dw_publishes_job_id_dw_jobs midataworks
+4986; 2606 208974348 FK CONSTRAINT public dw_publishes fk_dw_publishes_parent_publish_id_dw_publishes midataworks
+4987; 2606 208975004 FK CONSTRAINT public dw_publishes fk_dw_publishes_send_id_dw_detector_sends midataworks
+4988; 2606 208974353 FK CONSTRAINT public dw_publishes fk_dw_publishes_version_id_dw_versions midataworks
+4951; 2606 208973450 FK CONSTRAINT public dw_recipe_drafts fk_dw_recipe_drafts_dataset_id_dw_datasets midataworks
+4952; 2606 208973455 FK CONSTRAINT public dw_recipe_drafts fk_dw_recipe_drafts_recipe_id_dw_recipes midataworks
+4948; 2606 208973419 FK CONSTRAINT public dw_recipe_revisions fk_dw_recipe_revisions_cloned_from_revision_id_dw_recip_18ec midataworks
+4949; 2606 208973424 FK CONSTRAINT public dw_recipe_revisions fk_dw_recipe_revisions_recipe_hash_dw_recipe_bodies midataworks
+4950; 2606 208973429 FK CONSTRAINT public dw_recipe_revisions fk_dw_recipe_revisions_recipe_id_dw_recipes midataworks
+4947; 2606 208973434 FK CONSTRAINT public dw_recipes fk_dw_recipes_head_revision_id_dw_recipe_revisions midataworks
+5056; 2606 208975258 FK CONSTRAINT public dw_reproduction_links fk_dw_reproduction_links_approval_id_dw_approvals midataworks
+5057; 2606 208975253 FK CONSTRAINT public dw_reproduction_links fk_dw_reproduction_links_version_id_dw_versions midataworks
+5009; 2606 208974695 FK CONSTRAINT public dw_review_decisions fk_dw_review_decisions_item_id_dw_review_items midataworks
+5010; 2606 208974700 FK CONSTRAINT public dw_review_decisions fk_dw_review_decisions_queue_id_dw_review_queues midataworks
+5011; 2606 208974705 FK CONSTRAINT public dw_review_decisions fk_dw_review_decisions_version_id_dw_versions midataworks
+5005; 2606 208974647 FK CONSTRAINT public dw_review_items fk_dw_review_items_queue_id_dw_review_queues midataworks
+4999; 2606 208974569 FK CONSTRAINT public dw_review_queues fk_dw_review_queues_label_run_id_dw_label_runs midataworks
+5000; 2606 208974574 FK CONSTRAINT public dw_review_queues fk_dw_review_queues_version_id_dw_versions midataworks
+5033; 2606 208974980 FK CONSTRAINT public dw_reward_marks fk_dw_reward_marks_export_id_dw_exports midataworks
+5062; 2606 208975528 FK CONSTRAINT public dw_rule_derivations fk_dw_rule_derivations_job_id_dw_jobs midataworks
+5063; 2606 208975533 FK CONSTRAINT public dw_rule_derivations fk_dw_rule_derivations_source_version_id_dw_versions midataworks
+5060; 2606 208975501 FK CONSTRAINT public dw_rule_set_uses fk_dw_rule_set_uses_config_version_id_dw_config_versions midataworks
+5061; 2606 208975496 FK CONSTRAINT public dw_rule_set_uses fk_dw_rule_set_uses_step_execution_id_dw_step_executions midataworks
+5019; 2606 208974815 FK CONSTRAINT public dw_shortcut_levels fk_dw_shortcut_levels_dataset_id_dw_datasets midataworks
+4945; 2606 208973353 FK CONSTRAINT public dw_source_annotations fk_dw_source_annotations_approval_id_dw_approvals midataworks
+4946; 2606 208973358 FK CONSTRAINT public dw_source_annotations fk_dw_source_annotations_source_id_dw_sources midataworks
+4944; 2606 208973333 FK CONSTRAINT public dw_source_files fk_dw_source_files_source_id_dw_sources midataworks
+4943; 2606 208973312 FK CONSTRAINT public dw_sources fk_dw_sources_import_job_id_dw_jobs midataworks
+5043; 2606 208975101 FK CONSTRAINT public dw_steering_snapshots fk_dw_steering_snapshots_run_id_dw_generation_runs midataworks
+4953; 2606 208973472 FK CONSTRAINT public dw_step_executions fk_dw_step_executions_job_id_dw_jobs midataworks
+5059; 2606 208975459 FK CONSTRAINT public dw_text_separability fk_dw_text_separability_version_id_dw_versions midataworks
+4960; 2606 208973537 FK CONSTRAINT public dw_version_builds fk_dw_version_builds_dataset_id_dw_datasets midataworks
+4961; 2606 208973542 FK CONSTRAINT public dw_version_builds fk_dw_version_builds_job_id_dw_jobs midataworks
+4962; 2606 208973547 FK CONSTRAINT public dw_version_builds fk_dw_version_builds_verify_version_id_dw_versions midataworks
+4963; 2606 208973552 FK CONSTRAINT public dw_version_builds fk_dw_version_builds_version_id_dw_versions midataworks
+4964; 2606 208973557 FK CONSTRAINT public dw_version_builds fk_dw_version_builds_waiting_execution_id_dw_step_executions midataworks
+4965; 2606 208973572 FK CONSTRAINT public dw_version_comparisons fk_dw_version_comparisons_version_a_dw_versions midataworks
+4966; 2606 208973577 FK CONSTRAINT public dw_version_comparisons fk_dw_version_comparisons_version_b_dw_versions midataworks
+4967; 2606 208973589 FK CONSTRAINT public dw_version_inputs fk_dw_version_inputs_input_version_id_dw_versions midataworks
+4968; 2606 208973594 FK CONSTRAINT public dw_version_inputs fk_dw_version_inputs_source_id_dw_sources midataworks
+4969; 2606 208973599 FK CONSTRAINT public dw_version_inputs fk_dw_version_inputs_version_id_dw_versions midataworks
+5017; 2606 208974789 FK CONSTRAINT public dw_version_reports fk_dw_version_reports_job_id_dw_jobs midataworks
+5018; 2606 208974784 FK CONSTRAINT public dw_version_reports fk_dw_version_reports_version_id_dw_versions midataworks
+4970; 2606 208973611 FK CONSTRAINT public dw_version_steps fk_dw_version_steps_step_execution_id_dw_step_executions midataworks
+4971; 2606 208973616 FK CONSTRAINT public dw_version_steps fk_dw_version_steps_version_id_dw_versions midataworks
+4972; 2606 208973633 FK CONSTRAINT public dw_version_verifications fk_dw_version_verifications_job_id_dw_jobs midataworks
+4973; 2606 208973638 FK CONSTRAINT public dw_version_verifications fk_dw_version_verifications_version_id_dw_versions midataworks
+4954; 2606 208973497 FK CONSTRAINT public dw_versions fk_dw_versions_build_job_id_dw_jobs midataworks
+4955; 2606 208973502 FK CONSTRAINT public dw_versions fk_dw_versions_dataset_id_dw_datasets midataworks
+4956; 2606 208973507 FK CONSTRAINT public dw_versions fk_dw_versions_held_out_origin_version_id_dw_versions midataworks
+4957; 2606 208973512 FK CONSTRAINT public dw_versions fk_dw_versions_parent_version_id_dw_versions midataworks
+4958; 2606 208973517 FK CONSTRAINT public dw_versions fk_dw_versions_recipe_hash_dw_recipe_bodies midataworks
+4959; 2606 208973522 FK CONSTRAINT public dw_versions fk_dw_versions_recipe_revision_id_dw_recipe_revisions midataworks

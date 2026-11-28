@@ -1,0 +1,7 @@
+{
+  "behaviour_key": "dlp-ssn-us",
+  "description": "Pilot behaviour pack (data only): a US Social Security number written in text. Its rule set is saved and validated through the agent tools; no code names it.",
+  "vocabulary": [
+    "taxpayer"
+  ]
+}

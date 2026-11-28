@@ -1,0 +1,27 @@
+{
+ "classifier_unpriced": {
+  "args": {},
+  "tool": "dataworks_list_endpoint_roles",
+  "why": "the operator enters the role's price per call in Settings, on the endpoint's card (Price per call)"
+ },
+ "decoy_not_declared": {
+  "args": {},
+  "tool": "dataworks_get_rule_set",
+  "why": "read what the pinned rule set declares (renderings, decoys, outputs)"
+ },
+ "held_out_not_disjoint": {
+  "args": {},
+  "tool": "dataworks_validate_recipe",
+  "why": "change the held-out values or the steps so no held-out value reaches training"
+ },
+ "screen_column_missing": {
+  "args": {},
+  "tool": "dataworks_validate_recipe",
+  "why": "fix the step's parameters, then validate the recipe again"
+ },
+ "vocabulary_invalid": {
+  "args": {},
+  "tool": "dataworks_validate_recipe",
+  "why": "fix the plan step's vocabulary or shares, then validate the recipe again"
+ }
+}

@@ -1,0 +1,48 @@
+# miDataworks UI: nginx-unprivileged serving the static build on 8080 (ADR-024).
+# Image tag/digest managed by ArgoCD Image Updater — do not hand-edit. Stateless: no volume, so
+# no node pin.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: midataworks-frontend
+  namespace: midataworks
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: midataworks-frontend
+  template:
+    metadata:
+      labels:
+        app: midataworks-frontend
+    spec:
+      securityContext:
+        runAsNonRoot: true
+      containers:
+        - name: frontend
+          image: hitsai/midataworks-frontend:latest
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 20m
+              memory: 32Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: midataworks-frontend
+  namespace: midataworks
+spec:
+  selector:
+    app: midataworks-frontend
+  ports:
+    - port: 80
+      targetPort: 8080

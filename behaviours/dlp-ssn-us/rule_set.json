@@ -1,0 +1,1883 @@
+{
+  "behaviour_key": "dlp-ssn-us",
+  "cases": [
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": true,
+          "ssn_hit": true,
+          "ssn_reason": "ok",
+          "ssn_spans": "[[17,28]]"
+        },
+        "vetoed": false
+      },
+      "id": "cued_valid",
+      "input": {
+        "text": "Social security: 078-05-1120."
+      },
+      "note": "the voided wallet-card number, cued",
+      "source": {
+        "citation": "Social Security Administration history page 'Social Security Numbers: Misused SSNs' (ssa.gov/history/ssn/misused.html): 078-05-1120, the voided wallet-card number; retrieval refused HTTP 403 on 2026-10-23, pending (OI-1)",
+        "kind": "published_test_value"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": true,
+          "ssn_reason": "ok",
+          "ssn_spans": "[[10,21]]"
+        },
+        "vetoed": false
+      },
+      "id": "uncued_valid",
+      "input": {
+        "text": "Reference 078-05-1120 was printed on the sample card."
+      },
+      "note": "valid, no cue word before it",
+      "source": {
+        "citation": "Social Security Administration history page 'Social Security Numbers: Misused SSNs' (ssa.gov/history/ssn/misused.html): 078-05-1120, the voided wallet-card number; retrieval refused HTTP 403 on 2026-10-23, pending (OI-1)",
+        "kind": "published_test_value"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": "bad_range",
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "bad_range",
+      "input": {
+        "text": "Taxpayer 923-45-6789 listed."
+      },
+      "note": "area 9xx is never issued: no hit",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": true
+      },
+      "id": "masked_vetoed",
+      "input": {
+        "text": "SSN XXX-XX-1120 on record."
+      },
+      "note": "the masked candidate is vetoed",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": true,
+          "ssn_hit": true,
+          "ssn_reason": "ok",
+          "ssn_spans": "[[26,37]]"
+        },
+        "vetoed": true
+      },
+      "id": "masked_plus_real",
+      "input": {
+        "text": "SSN XXX-XX-1120, then SSN 078-05-1120."
+      },
+      "note": "masked one vetoed, the real one still fires",
+      "source": {
+        "citation": "Social Security Administration history page 'Social Security Numbers: Misused SSNs' (ssa.gov/history/ssn/misused.html): 078-05-1120, the voided wallet-card number; retrieval refused HTTP 403 on 2026-10-23, pending (OI-1)",
+        "kind": "published_test_value"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "no_number",
+      "input": {
+        "text": "No number in this sentence."
+      },
+      "note": "nothing to read",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": "bad_range",
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "area_000",
+      "input": {
+        "text": "SSN 000-12-3456 on the intake form."
+      },
+      "note": "area 000 is never issued",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": "bad_range",
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "area_666",
+      "input": {
+        "text": "Social security: 666-12-3456."
+      },
+      "note": "area 666 is never issued",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": "bad_range",
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "area_9xx",
+      "input": {
+        "text": "ssn 950-12-3456 per the letter"
+      },
+      "note": "areas 900-999 are never issued",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": "bad_range",
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "advertising_range",
+      "input": {
+        "text": "Taxpayer 987-65-4321 shown in the brochure."
+      },
+      "note": "area 987 (the advertising range 987-65-4320 to 4329 lies in 900-999)",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": "bad_range",
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "group_00",
+      "input": {
+        "text": "SSN 123-00-4567 entered."
+      },
+      "note": "group 00 is never issued",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": "bad_range",
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "serial_0000",
+      "input": {
+        "text": "SSN 123-45-0000 entered."
+      },
+      "note": "serial 0000 is never issued",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": "bad_range",
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "dot_delimited_bad",
+      "input": {
+        "text": "id 950.12.3456 noted"
+      },
+      "note": "dot delimiters are read; area 9xx",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": "bad_range",
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "nine_in_a_row_bad",
+      "input": {
+        "text": "acct 950123456 closed"
+      },
+      "note": "nine digits in a row are read; area 9xx",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "wrong_length",
+      "input": {
+        "text": "SSN 950-12-345 typed short."
+      },
+      "note": "eight digits: the pattern does not read it",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "glued_letters",
+      "input": {
+        "text": "code A950-12-3456 printed"
+      },
+      "note": "a letter glued before the digits: no word boundary, not read",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": true
+      },
+      "id": "masked_star",
+      "input": {
+        "text": "SSN ***-**-1120 on record."
+      },
+      "note": "star mask is read and vetoed",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": true
+      },
+      "id": "masked_bullet",
+      "input": {
+        "text": "SSN •••-••-1120 on record."
+      },
+      "note": "bullet mask is read and vetoed",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": true
+      },
+      "id": "masked_hash",
+      "input": {
+        "text": "SSN ###-##-1120 on record."
+      },
+      "note": "hash mask is read and vetoed",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": true
+      },
+      "id": "masked_lower_x",
+      "input": {
+        "text": "SSN xxx-xx-1120 on record."
+      },
+      "note": "lower-case x mask is read and vetoed",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": true
+      },
+      "id": "masked_run",
+      "input": {
+        "text": "SSN XXXXX1120 on record."
+      },
+      "note": "a run of five mask characters then four digits",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "phone",
+      "input": {
+        "text": "Call (212) 555-0142 or 415-555-0187."
+      },
+      "note": "phone numbers, fictional 555-01xx block",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "date",
+      "input": {
+        "text": "Born 1987-06-15, renewed 06/15/1987."
+      },
+      "note": "dates",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "zip4",
+      "input": {
+        "text": "Ship to 99501-1234 and 96813-2201."
+      },
+      "note": "ZIP+4 codes",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "order_id",
+      "input": {
+        "text": "Order 112-4839201-7745123, ref ORD-2024-118734."
+      },
+      "note": "order identifiers",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "naming_no_value",
+      "input": {
+        "text": "Social security number: [redacted]."
+      },
+      "note": "named, no value",
+      "source": {
+        "kind": "constructed"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": true,
+          "ssn_hit": true,
+          "ssn_reason": "ok",
+          "ssn_spans": "[[17,28]]"
+        },
+        "vetoed": false
+      },
+      "id": "valid_dot",
+      "input": {
+        "text": "Social security: 078.05.1120."
+      },
+      "note": "dot delimiters, the voided wallet-card number",
+      "source": {
+        "citation": "Social Security Administration history page 'Social Security Numbers: Misused SSNs' (ssa.gov/history/ssn/misused.html): 078-05-1120, the voided wallet-card number; retrieval refused HTTP 403 on 2026-10-23, pending (OI-1)",
+        "kind": "published_test_value"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": true,
+          "ssn_hit": true,
+          "ssn_reason": "ok",
+          "ssn_spans": "[[4,15]]"
+        },
+        "vetoed": false
+      },
+      "id": "valid_space",
+      "input": {
+        "text": "SSN 078 05 1120 on the card."
+      },
+      "note": "space delimiters",
+      "source": {
+        "citation": "Social Security Administration history page 'Social Security Numbers: Misused SSNs' (ssa.gov/history/ssn/misused.html): 078-05-1120, the voided wallet-card number; retrieval refused HTTP 403 on 2026-10-23, pending (OI-1)",
+        "kind": "published_test_value"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": true,
+          "ssn_hit": true,
+          "ssn_reason": "ok",
+          "ssn_spans": "[[4,13]]"
+        },
+        "vetoed": false
+      },
+      "id": "valid_nine_in_a_row",
+      "input": {
+        "text": "SSN 078051120 on the card."
+      },
+      "note": "nine digits in a row",
+      "source": {
+        "citation": "Social Security Administration history page 'Social Security Numbers: Misused SSNs' (ssa.gov/history/ssn/misused.html): 078-05-1120, the voided wallet-card number; retrieval refused HTTP 403 on 2026-10-23, pending (OI-1)",
+        "kind": "published_test_value"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "rendered_spaced",
+      "input": {
+        "text": "SSN 0 7 8 0 5 1 1 2 0 on the card."
+      },
+      "note": "the spaced rendering of the voided wallet-card number: invisible to the pattern",
+      "source": {
+        "citation": "Social Security Administration history page 'Social Security Numbers: Misused SSNs' (ssa.gov/history/ssn/misused.html): 078-05-1120, the voided wallet-card number; retrieval refused HTTP 403 on 2026-10-23, pending (OI-1)",
+        "kind": "published_test_value"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "rendered_split_lines",
+      "input": {
+        "text": "SSN 0\n7\n8\n0\n5\n1\n1\n2\n0 on the card."
+      },
+      "note": "the split_lines rendering of the voided wallet-card number: invisible to the pattern",
+      "source": {
+        "citation": "Social Security Administration history page 'Social Security Numbers: Misused SSNs' (ssa.gov/history/ssn/misused.html): 078-05-1120, the voided wallet-card number; retrieval refused HTTP 403 on 2026-10-23, pending (OI-1)",
+        "kind": "published_test_value"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "rendered_spelled",
+      "input": {
+        "text": "SSN zero seven eight zero five one one two zero on the card."
+      },
+      "note": "the spelled rendering of the voided wallet-card number: invisible to the pattern",
+      "source": {
+        "citation": "Social Security Administration history page 'Social Security Numbers: Misused SSNs' (ssa.gov/history/ssn/misused.html): 078-05-1120, the voided wallet-card number; retrieval refused HTTP 403 on 2026-10-23, pending (OI-1)",
+        "kind": "published_test_value"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "rendered_mixed_words",
+      "input": {
+        "text": "SSN 0 seven8 0 fiveoneone2 0  on the card."
+      },
+      "note": "the mixed_words rendering of the voided wallet-card number: invisible to the pattern",
+      "source": {
+        "citation": "Social Security Administration history page 'Social Security Numbers: Misused SSNs' (ssa.gov/history/ssn/misused.html): 078-05-1120, the voided wallet-card number; retrieval refused HTTP 403 on 2026-10-23, pending (OI-1)",
+        "kind": "published_test_value"
+      }
+    },
+    {
+      "expect": {
+        "outputs": {
+          "ssn_cued": false,
+          "ssn_hit": false,
+          "ssn_reason": null,
+          "ssn_spans": "[]"
+        },
+        "vetoed": false
+      },
+      "id": "rendered_prose",
+      "input": {
+        "text": "SSN 078, then 05, then 1120 on the card."
+      },
+      "note": "the prose rendering of the voided wallet-card number: invisible to the pattern",
+      "source": {
+        "citation": "Social Security Administration history page 'Social Security Numbers: Misused SSNs' (ssa.gov/history/ssn/misused.html): 078-05-1120, the voided wallet-card number; retrieval refused HTTP 403 on 2026-10-23, pending (OI-1)",
+        "kind": "published_test_value"
+      }
+    }
+  ],
+  "decoys": [
+    {
+      "description": "Numbers shaped like the element and not it, drawn by backend/scripts/make_ssn_lookalikes.py (seed 128, ENH-006 D128): telephone numbers in the fictional 555-01xx block, dates, ZIP+4 codes in the 9xxxx range, order, invoice, tracking and account references, lock combinations, times, network addresses and version numbers, amounts, and product codes with letters. Every value is invalid for every identifier reader, and one with exactly nine digits is an SSN that cannot be issued. None may fire ssn_hit.",
+      "generator": {
+        "list": [
+          "555-0151",
+          "573.555.0117",
+          "+1 230 555 0119",
+          "+1 854 555 0169",
+          "555-0185",
+          "+1 931 555 0171",
+          "(269) 555-0199",
+          "231 555 0137",
+          "581 555 0115",
+          "935.555.0182",
+          "+1 565 555 0160",
+          "555-0141",
+          "1-557-555-0152",
+          "516-555-0132",
+          "780-555-0100",
+          "(777) 555-0119",
+          "278.555.0173",
+          "473 555 0157",
+          "+1 714 555 0148",
+          "955.555.0172",
+          "550 555 0105",
+          "613-555-0194",
+          "664.555.0100",
+          "+1 660 555 0167",
+          "525 555 0162",
+          "606 555 0198",
+          "767-555-0152",
+          "431-555-0154",
+          "890.555.0102",
+          "+1 316 555 0172",
+          "+1 249 555 0183",
+          "275 555 0169",
+          "392 555 0177",
+          "868-555-0167",
+          "555-0114",
+          "555-0166",
+          "277 555 0129",
+          "857.555.0136",
+          "(560) 555-0125",
+          "232 555 0197",
+          "811-555-0164",
+          "(574) 555-0122",
+          "867 555 0159",
+          "555-0167",
+          "902.555.0176",
+          "(932) 555-0133",
+          "(251) 555-0162",
+          "555-0102",
+          "311 555 0184",
+          "369.555.0150",
+          "292 555 0190",
+          "861.555.0191",
+          "1-688-555-0155",
+          "310.555.0189",
+          "+1 635 555 0187",
+          "555-0129",
+          "(443) 555-0175",
+          "+1 264 555 0119",
+          "690-555-0197",
+          "667.555.0190",
+          "360-555-0152",
+          "555-0128",
+          "561-555-0179",
+          "+1 478 555 0117",
+          "+1 224 555 0160",
+          "(934) 555-0120",
+          "371-555-0128",
+          "966 555 0185",
+          "555-0158",
+          "+1 297 555 0134",
+          "+1 902 555 0152",
+          "942.555.0103",
+          "1-894-555-0134",
+          "1-830-555-0118",
+          "422 555 0191",
+          "(817) 555-0116",
+          "282 555 0138",
+          "953 555 0121",
+          "753-555-0113",
+          "+1 687 555 0149",
+          "(241) 555-0134",
+          "+1 557 555 0160",
+          "+1 724 555 0158",
+          "+1 706 555 0154",
+          "539.555.0169",
+          "252-555-0180",
+          "537-555-0122",
+          "1-972-555-0115",
+          "621 555 0119",
+          "+1 580 555 0148",
+          "1-368-555-0124",
+          "693 555 0182",
+          "1-911-555-0176",
+          "281 555 0191",
+          "253.555.0131",
+          "491.555.0179",
+          "1-868-555-0188",
+          "555-0142",
+          "(882) 555-0166",
+          "555-0139",
+          "516.555.0161",
+          "1-343-555-0187",
+          "1-646-555-0166",
+          "677 555 0153",
+          "882-555-0143",
+          "(498) 555-0170",
+          "1-836-555-0137",
+          "751 555 0146",
+          "1-803-555-0106",
+          "+1 395 555 0161",
+          "430-555-0152",
+          "650-555-0152",
+          "912-555-0167",
+          "509 555 0174",
+          "758-555-0117",
+          "(725) 555-0127",
+          "914 555 0169",
+          "+1 350 555 0119",
+          "(435) 555-0103",
+          "+1 987 555 0151",
+          "1-333-555-0126",
+          "496 555 0170",
+          "448-555-0130",
+          "+1 537 555 0195",
+          "980.555.0159",
+          "905 555 0146",
+          "+1 928 555 0172",
+          "(607) 555-0185",
+          "603 555 0115",
+          "1-848-555-0143",
+          "+1 622 555 0145",
+          "(948) 555-0183",
+          "658.555.0122",
+          "920.555.0130",
+          "+1 764 555 0162",
+          "1-983-555-0108",
+          "444 555 0184",
+          "+1 721 555 0178",
+          "721.555.0158",
+          "555-0112",
+          "(829) 555-0181",
+          "216.555.0181",
+          "1-321-555-0159",
+          "(894) 555-0106",
+          "(208) 555-0147",
+          "+1 578 555 0189",
+          "450-555-0144",
+          "(661) 555-0123",
+          "+1 836 555 0136",
+          "624 555 0196",
+          "555-0131",
+          "555-0130",
+          "(851) 555-0177",
+          "540 555 0104",
+          "555-0145",
+          "917 555 0159",
+          "+1 601 555 0152",
+          "1-626-555-0146",
+          "333 555 0199",
+          "767.555.0145",
+          "555-0170",
+          "223.555.0166",
+          "555-0174",
+          "555-0187",
+          "983.555.0132",
+          "913 555 0164",
+          "1-229-555-0116",
+          "+1 424 555 0150",
+          "555-0136",
+          "360 555 0197",
+          "1-748-555-0156",
+          "334-555-0126",
+          "421 555 0197",
+          "1-932-555-0101",
+          "1-660-555-0198",
+          "555-0163",
+          "559.555.0104",
+          "+1 837 555 0126",
+          "(474) 555-0184",
+          "642-555-0161",
+          "19700515",
+          "03/21/1971",
+          "10/24/59",
+          "7/7/46",
+          "02/03/1985",
+          "06/27/2023",
+          "5/20/46",
+          "January 10, 1948",
+          "6/9/31",
+          "1982-03-09",
+          "10/6/04",
+          "4/23/74",
+          "03/09/1954",
+          "01.07.1963",
+          "15 Apr 1987",
+          "20 Apr 2023",
+          "1997-02-20",
+          "October 27, 1954",
+          "2019-08-14",
+          "10/6/05",
+          "19540514",
+          "July 5, 1964",
+          "10/4/83",
+          "April 12, 1978",
+          "3/5/77",
+          "8/5/51",
+          "2023-06-12",
+          "16 Feb 1960",
+          "05/27/1957",
+          "06/19/1945",
+          "13.07.1954",
+          "February 23, 2007",
+          "8/13/47",
+          "October 13, 1982",
+          "19881212",
+          "November 22, 1955",
+          "20201219",
+          "12/8/00",
+          "3 Apr 1943",
+          "April 7, 1939",
+          "September 26, 1997",
+          "10 Feb 1965",
+          "07.06.1988",
+          "1985-03-20",
+          "September 6, 2011",
+          "22.02.1938",
+          "12 Dec 1959",
+          "17.11.2017",
+          "May 2, 2016",
+          "January 4, 1992",
+          "2006-08-06",
+          "January 21, 2020",
+          "12 May 1989",
+          "19570526",
+          "24.10.1976",
+          "07.04.2010",
+          "08/15/1940",
+          "04/12/2023",
+          "01.05.2000",
+          "20080203",
+          "19921012",
+          "December 19, 1940",
+          "1999-09-13",
+          "2018-11-26",
+          "4/26/76",
+          "11/23/1994",
+          "October 12, 1955",
+          "2015-09-11",
+          "08/05/2022",
+          "1988-05-09",
+          "05.05.1942",
+          "24 Jan 2006",
+          "24 Dec 1946",
+          "1941-01-07",
+          "2028-12-24",
+          "06/10/1957",
+          "August 20, 1954",
+          "19440826",
+          "October 13, 2016",
+          "19690411",
+          "14.06.1989",
+          "March 21, 1968",
+          "16 Jun 1947",
+          "05.03.1960",
+          "June 20, 1972",
+          "10/22/2004",
+          "10/20/1938",
+          "6 Nov 1950",
+          "17.11.2031",
+          "02/27/1965",
+          "12/7/69",
+          "1961-06-10",
+          "5/16/01",
+          "11/10/2004",
+          "15 Jan 1964",
+          "7/23/02",
+          "October 16, 1938",
+          "1947-07-06",
+          "2 May 1948",
+          "October 19, 1965",
+          "07/18/1943",
+          "19800221",
+          "19690110",
+          "19780807",
+          "05/08/2014",
+          "20001105",
+          "2/7/28",
+          "December 5, 1965",
+          "9 Oct 2011",
+          "08/20/2012",
+          "13.12.1960",
+          "15 Apr 1959",
+          "1/2/52",
+          "20110310",
+          "17.11.2022",
+          "10.08.1975",
+          "19560813",
+          "05.10.1991",
+          "18.02.1973",
+          "23.12.2001",
+          "May 28, 1965",
+          "19770102",
+          "20220607",
+          "04.07.2004",
+          "July 15, 1996",
+          "7/8/50",
+          "26 Sep 1946",
+          "August 23, 2026",
+          "19540515",
+          "22 Mar 1978",
+          "19850327",
+          "07/03/1958",
+          "3/14/89",
+          "16.02.1973",
+          "19820506",
+          "05/28/1974",
+          "14 Jul 1991",
+          "2004-10-18",
+          "8/3/47",
+          "19530619",
+          "7 Jan 1961",
+          "12.05.1999",
+          "3/8/97",
+          "19771016",
+          "1/2/70",
+          "23 Jun 1959",
+          "01.09.1948",
+          "10.09.2031",
+          "22 Mar 1975",
+          "4/24/60",
+          "94427-0437",
+          "95838-6093",
+          "93492-0516",
+          "93195-4974",
+          "97385-1735",
+          "98213-4296",
+          "97192-4045",
+          "93650-1052",
+          "99384-7209",
+          "90161-8700",
+          "94054-9511",
+          "95386-4814",
+          "93465-4655",
+          "92238-7414",
+          "95491-7795",
+          "92862-3934",
+          "95515-3808",
+          "97268-6838",
+          "98462-4880",
+          "95947-2481",
+          "98140-2151",
+          "94288-3094",
+          "90479-1884",
+          "94040-7559",
+          "98862-5463",
+          "92828-3890",
+          "91662-6147",
+          "95623-9117",
+          "96257-5834",
+          "98397-0887",
+          "92765-1194",
+          "96101-1834",
+          "94804-1698",
+          "96341-3031",
+          "94250-8161",
+          "96328-8426",
+          "92881-2816",
+          "98864-4143",
+          "98107-5383",
+          "90610-0390",
+          "91353-5538",
+          "98483-6624",
+          "96620-1273",
+          "95177-4409",
+          "94781-4755",
+          "92378-7638",
+          "98078-4915",
+          "95486-3812",
+          "93742-6347",
+          "91285-5574",
+          "91050-8261",
+          "97745-3043",
+          "92367-3112",
+          "91349-1342",
+          "93878-2601",
+          "93552-3004",
+          "90056-3176",
+          "93144-4957",
+          "90745-6450",
+          "98787-6634",
+          "99027-9297",
+          "97219-0209",
+          "98704-6028",
+          "95309-9300",
+          "93456-4483",
+          "91552-0836",
+          "90077-9277",
+          "91267-6499",
+          "90938-7484",
+          "91097-1600",
+          "96828-3764",
+          "93616-3573",
+          "90087-3515",
+          "90687-9345",
+          "94925-7844",
+          "97609-1359",
+          "94220-7689",
+          "90325-6415",
+          "96086-4397",
+          "99795-4614",
+          "94197-7215",
+          "90399-4993",
+          "94009-0835",
+          "92778-7469",
+          "92473-4376",
+          "91770-9747",
+          "93841-4017",
+          "91898-9915",
+          "95864-2692",
+          "92340-9111",
+          "94873-9940",
+          "97798-3028",
+          "95295-7036",
+          "99361-1182",
+          "92524-6419",
+          "95336-0255",
+          "91932-9552",
+          "98083-6481",
+          "94383-9743",
+          "90544-8287",
+          "Acct 7751-644",
+          "INV-9179-0190",
+          "ORD-2031-638685",
+          "#R9B-84601",
+          "REF49498728",
+          "ORD-2024-344587",
+          "INV-0005-2796",
+          "PO 5690-14-E",
+          "ORD-2019-387493",
+          "Ticket #9474955",
+          "Case 81-62124",
+          "Acct 3794-398",
+          "Acct 4025-862",
+          "REF41344653",
+          "#L2Y-96949",
+          "PO 8911-87-E",
+          "ORD-2019-769784",
+          "INV-4906-6507",
+          "ORD-2031-613409",
+          "REF60426218",
+          "Ticket #1143971",
+          "#M6Q-14524",
+          "Case 51-75927",
+          "Ticket #7780197",
+          "INV-2265-2500",
+          "REF17029189",
+          "PO 4600-30-H",
+          "Acct 8110-414",
+          "Case 82-85241",
+          "270-3640638-6497236",
+          "ORD-2027-135700",
+          "Acct 6143-657",
+          "REF16076479",
+          "ORD-2020-356075",
+          "#B6V-37355",
+          "Acct 5096-482",
+          "Ticket #3350471",
+          "ORD-2031-824335",
+          "ORD-2024-302985",
+          "Case 72-81844",
+          "REF77801824",
+          "624-7687906-7589782",
+          "REF38529762",
+          "#K6Y-92292",
+          "ORD-2024-413700",
+          "INV-8586-2669",
+          "Case 23-75241",
+          "Ticket #1427604",
+          "INV-8935-0041",
+          "REF79168390",
+          "Acct 8661-561",
+          "REF58997101",
+          "Acct 1874-128",
+          "Ticket #4079367",
+          "Ticket #809995",
+          "REF50429036",
+          "ORD-2026-934844",
+          "INV-8910-7566",
+          "ORD-2025-912327",
+          "REF67158172",
+          "ORD-2022-389994",
+          "INV-0775-3145",
+          "Case 67-77987",
+          "Ticket #9078656",
+          "Case 98-86909",
+          "332-4364283-8579042",
+          "ORD-2029-909147",
+          "Acct 5795-445",
+          "ORD-2024-276021",
+          "PO 2819-11-F",
+          "PO 4407-11-A",
+          "Case 89-81669",
+          "936-7925155-6578458",
+          "ORD-2026-192791",
+          "REF21749913",
+          "REF89123417",
+          "INV-3106-0994",
+          "Case 92-56851",
+          "INV-7074-5036",
+          "ORD-2020-417390",
+          "PO 2991-69-A",
+          "Ticket #5767369",
+          "Ticket #3432880",
+          "Case 27-28522",
+          "Acct 2699-224",
+          "Case 85-97719",
+          "Case 37-95263",
+          "Case 85-55654",
+          "PO 8981-56-H",
+          "REF44990219",
+          "Ticket #2070821",
+          "INV-5150-7647",
+          "Ticket #3313644",
+          "Ticket #9503482",
+          "Case 10-87986",
+          "ORD-2023-205083",
+          "PO 4003-43-B",
+          "REF16930305",
+          "Ticket #2584252",
+          "Ticket #5299665",
+          "#U7X-89597",
+          "PO 8888-34-A",
+          "ORD-2025-114950",
+          "REF72508559",
+          "INV-2318-1799",
+          "PO 6912-69-H",
+          "ORD-2030-401916",
+          "739-9268246-5719725",
+          "#F7N-16992",
+          "REF24348328",
+          "968-1270109-5087630",
+          "INV-2062-4343",
+          "ORD-2029-104219",
+          "Ticket #4991241",
+          "REF85395360",
+          "Acct 7011-793",
+          "Acct 8888-612",
+          "Case 71-29487",
+          "Ticket #8635251",
+          "PO 2205-78-D",
+          "Acct 5095-271",
+          "PO 6250-50-G",
+          "PO 9224-21-G",
+          "#W7S-77017",
+          "ORD-2030-582293",
+          "#Y7V-74228",
+          "Ticket #783614",
+          "Case 25-24672",
+          "157-8774400-9513810",
+          "Ticket #5121252",
+          "INV-8148-9088",
+          "Ticket #391188",
+          "Case 60-81215",
+          "ORD-2019-497178",
+          "INV-6371-8071",
+          "144-6292289-4182125",
+          "#R1N-56517",
+          "ORD-2019-720030",
+          "139-8261594-3650736",
+          "ORD-2030-526502",
+          "INV-9883-8250",
+          "#N3V-54932",
+          "INV-9230-5459",
+          "INV-1017-0843",
+          "ORD-2029-343801",
+          "Acct 7689-942",
+          "PO 2179-42-D",
+          "PO 9995-54-E",
+          "PO 3388-11-G",
+          "Acct 4626-777",
+          "Ticket #8430019",
+          "ORD-2025-358606",
+          "Case 43-76170",
+          "381-8461671-4282288",
+          "INV-2483-6330",
+          "INV-9693-3356",
+          "#U1A-67641",
+          "INV-4136-9425",
+          "REF14029341",
+          "Acct 5524-693",
+          "#E7A-49483",
+          "INV-1050-0630",
+          "Ticket #4604830",
+          "863-9313258-9913575",
+          "Ticket #228023",
+          "#P6T-59143",
+          "ORD-2021-954259",
+          "REF87935246",
+          "Ticket #3654098",
+          "Ticket #1973889",
+          "INV-2429-4903",
+          "REF75584177",
+          "Ticket #2568903",
+          "Acct 4402-660",
+          "#F9F-93494",
+          "INV-1165-1488",
+          "#G9M-68082",
+          "Acct 5330-681",
+          "INV-3818-2806",
+          "PO 9530-53-A",
+          "4 49 45",
+          "24-07-10",
+          "24-6-2",
+          "18-52-36",
+          "8 27 34",
+          "49-48-19",
+          "32-11-5",
+          "1-21-10",
+          "46-24-30",
+          "39 49 52",
+          "53-34-50",
+          "26 2 32",
+          "36-29-01",
+          "34 45 31",
+          "13-29-41",
+          "26-50-11",
+          "59 9 41",
+          "13-29-42",
+          "52-01-29",
+          "43-11-54",
+          "32 58 6",
+          "6 23 13",
+          "5 26 33",
+          "50-54-43",
+          "30-26-10",
+          "37-36-41",
+          "49 57 35",
+          "35-36-59",
+          "31-18-22",
+          "53-20-49",
+          "9 44 3",
+          "50 2 11",
+          "42-42-48",
+          "21-15-32",
+          "03-56-07",
+          "21 53 58",
+          "57-2-23",
+          "19-54-52",
+          "6 46 29",
+          "14-04-35",
+          "28-04-39",
+          "49 28 33",
+          "31-47-46",
+          "59-26-17",
+          "43-32-09",
+          "0 30 8",
+          "48 5 32",
+          "46 11 3",
+          "30-13-20",
+          "8 3 33",
+          "41-01-47",
+          "0-6-19",
+          "44 36 53",
+          "17-53-4",
+          "30-01-38",
+          "53 51 24",
+          "23-47-22",
+          "10-59-42",
+          "55 35 11",
+          "33-44-56",
+          "9h 37m 48s",
+          "0h 56m 55s",
+          "0h 14m 2s",
+          "01:50",
+          "14h 55m 8s",
+          "14:56",
+          "13h 18m 36s",
+          "4h 34m 33s",
+          "22:01",
+          "17:18:24",
+          "7h 11m 46s",
+          "14h 27m 45s",
+          "00:50",
+          "2h 54m 55s",
+          "05:46:03",
+          "2h 58m 16s",
+          "17:39",
+          "01:55:07",
+          "04:11",
+          "12:10",
+          "10:51",
+          "22:29:36",
+          "21:02",
+          "01:00",
+          "17h 0m 9s",
+          "13h 43m 21s",
+          "06:07",
+          "17:29:35",
+          "01:34:10",
+          "2h 20m 12s",
+          "07:34:38",
+          "13:26:25",
+          "05:24",
+          "09:27:49",
+          "12:56:59",
+          "14:29:31",
+          "00:40:32",
+          "16:14:29",
+          "10h 57m 4s",
+          "16:35",
+          "07:58:52",
+          "8h 23m 1s",
+          "15:47:39",
+          "7h 57m 1s",
+          "04:14:06",
+          "17h 27m 25s",
+          "23h 26m 20s",
+          "10h 33m 16s",
+          "14:35:40",
+          "13:36:34",
+          "192.168.228.18",
+          "172.16.101.208",
+          "10.246.21.135",
+          "172.28.74.107",
+          "172.20.164.195",
+          "10.103.214.58",
+          "10.73.212.113",
+          "v10.14.65",
+          "172.16.138.145",
+          "192.168.231.128",
+          "6.19.128",
+          "7.67.766",
+          "192.168.4.174",
+          "2.14.469",
+          "192.168.233.64",
+          "192.168.188.201",
+          "v4.23.80",
+          "v4.15.27",
+          "10.251.153.201",
+          "6.97.382",
+          "v3.25.70",
+          "192.168.91.178",
+          "172.23.225.89",
+          "9.21.479",
+          "10.114.171.159",
+          "v10.3.85",
+          "v7.4.48",
+          "192.168.206.185",
+          "192.168.108.86",
+          "172.21.25.161",
+          "10.199.103.64",
+          "192.168.177.106",
+          "172.27.150.196",
+          "172.31.142.108",
+          "192.168.97.79",
+          "3.98.906",
+          "v11.21.81",
+          "192.168.100.167",
+          "192.168.149.107",
+          "10.247.181.84",
+          "192.168.169.6",
+          "172.31.151.105",
+          "v10.8.23",
+          "172.27.82.203",
+          "172.27.177.130",
+          "172.26.243.225",
+          "v7.28.14",
+          "v9.10.97",
+          "v12.16.21",
+          "192.168.120.227",
+          "10.226.146.218",
+          "2.63.258",
+          "4.38.615",
+          "v1.10.28",
+          "10.145.112.44",
+          "192.168.106.169",
+          "192.168.218.214",
+          "v5.1.58",
+          "192.168.241.200",
+          "192.168.184.79",
+          "172.30.245.123",
+          "172.18.143.130",
+          "172.22.98.215",
+          "172.22.150.59",
+          "8.53.698",
+          "192.168.251.221",
+          "10.104.120.102",
+          "192.168.69.229",
+          "v1.33.64",
+          "172.19.107.228",
+          "10.236.44.240",
+          "v4.11.13",
+          "4.86.8",
+          "172.25.184.63",
+          "172.19.107.159",
+          "10.131.234.138",
+          "172.20.202.233",
+          "10.73.219.248",
+          "10.77.84.77",
+          "192.168.1.202",
+          "EUR 47.896,04",
+          "$7639.55",
+          "EUR 68.083,27",
+          "EUR 11.352,53",
+          "73,256 units",
+          "2,772 units",
+          "EUR 1.114,98",
+          "510.9 kg",
+          "EUR 1.131,36",
+          "$500,611.83",
+          "632.5 kg",
+          "EUR 40.094,19",
+          "1,580 units",
+          "$554,698.67",
+          "11,864 units",
+          "EUR 72.730,71",
+          "EUR 13.937,36",
+          "EUR 57.837,06",
+          "$4784.83",
+          "392.7 kg",
+          "EUR 96.555,36",
+          "EUR 9.676,80",
+          "140.2 kg",
+          "$1026.25",
+          "73,276 units",
+          "$1915.99",
+          "5,267 units",
+          "383.6 kg",
+          "217.7 kg",
+          "$2164.73",
+          "825.2 kg",
+          "$4111.81",
+          "630.7 kg",
+          "$586,595.54",
+          "860.4 kg",
+          "$5442.09",
+          "$4317.13",
+          "$4833.19",
+          "$6402.07",
+          "$6641.10",
+          "EUR 71.512,80",
+          "59,261 units",
+          "504.8 kg",
+          "EUR 86.315,34",
+          "16,543 units",
+          "443.0 kg",
+          "$195.88",
+          "EUR 38.133,87",
+          "$419,046.86",
+          "EUR 14.653,85",
+          "17,326 units",
+          "651.1 kg",
+          "$2631.38",
+          "89.4 kg",
+          "$97,249.17",
+          "82,514 units",
+          "$6501.82",
+          "EUR 75.473,23",
+          "$134,972.73",
+          "$7179.87",
+          "$8274.45",
+          "41,316 units",
+          "383.8 kg",
+          "EUR 60.004,80",
+          "137.2 kg",
+          "96,587 units",
+          "$467,158.88",
+          "$155,186.92",
+          "30,969 units",
+          "EUR 10.220,94",
+          "$274,783.20",
+          "EUR 38.268,36",
+          "EUR 52.312,38",
+          "$7914.00",
+          "$4600.34",
+          "EUR 25.250,96",
+          "$5929.62",
+          "60,379 units",
+          "$900,512.50",
+          "EUR 32.966,56",
+          "SN-U5UT-83511",
+          "Model TK-5706",
+          "G2-68884-E",
+          "Model MG-3870",
+          "Part 960-1498P",
+          "Model RC-1674",
+          "Model PP-1978",
+          "Model ZP-8442",
+          "SN-Y6MZ-60966",
+          "U8-67362-D",
+          "Part 524-5435D",
+          "Part 511-9504K",
+          "Model TY-6931",
+          "SN-Q7NY-94406",
+          "R8-44298-N",
+          "S5-39559-P",
+          "Model VN-8237",
+          "Part 675-5652W",
+          "SN-N8MD-76209",
+          "Model EQ-5014",
+          "SKU46345B",
+          "SKU52684G",
+          "SKU96559P",
+          "L8-12649-B",
+          "Model BN-594",
+          "SN-C6EH-73206",
+          "Part 467-5044F",
+          "Part 486-6781C",
+          "Part 323-9574Y",
+          "SKU46060V",
+          "SN-F6FL-41251",
+          "SN-Z1UU-99076",
+          "SN-G4FY-17489",
+          "Z1-99405-K",
+          "Part 535-6072Q",
+          "SN-C6WM-89203",
+          "U2-10252-P",
+          "Part 638-6308T",
+          "SKU51586H",
+          "A4-32765-F",
+          "Part 103-6168S",
+          "J8-48156-H",
+          "Model WY-4885",
+          "SN-F3RS-97803",
+          "C7-28775-N",
+          "Q6-57404-Z",
+          "Part 354-4277Z",
+          "SKU81487K",
+          "SKU83945Z",
+          "SKU63937P",
+          "Model KD-7002",
+          "SN-X9QL-22404",
+          "Model YB-9615",
+          "SKU12847X",
+          "SKU29209L",
+          "N6-12528-G",
+          "SKU92560F",
+          "Part 935-8489D",
+          "SKU25962V",
+          "Model ZE-6256",
+          "Model XR-8557",
+          "Part 111-2433C",
+          "Part 742-4140Q",
+          "Model MV-4810",
+          "Q8-61986-F",
+          "Model PF-7386",
+          "Model AC-8337",
+          "Part 425-3698R",
+          "Model HE-8166",
+          "SN-K1SB-91030",
+          "SKU35145L",
+          "SN-Y7WF-45159",
+          "SKU42072G",
+          "Part 825-9712F",
+          "Model UX-4976",
+          "SN-H7VV-14164",
+          "Q3-40334-X",
+          "SN-Q3JF-86357",
+          "F2-91276-D",
+          "SN-D1RZ-59723",
+          "SN-W2SN-54481",
+          "SN-Y8MM-90649",
+          "Model XB-4771",
+          "L3-79832-N",
+          "A9-53992-U",
+          "SN-G1EQ-95140",
+          "SN-T6LM-81930",
+          "Model NU-1965",
+          "Model NG-6646",
+          "Model WR-5067",
+          "SKU29999L",
+          "Part 961-1899B",
+          "SKU25892E",
+          "SKU82559H",
+          "SN-K8QH-53137",
+          "G2-48615-A",
+          "Part 563-1913W",
+          "Model MK-9912",
+          "Model RB-7448",
+          "Part 242-1882C",
+          "Q9-63403-K",
+          "SKU11957W",
+          "SN-H1TT-26456",
+          "Model KQ-1553",
+          "SKU69909U",
+          "Part 777-3423J",
+          "Z4-97661-N",
+          "SKU81236T",
+          "SN-J4GZ-55849",
+          "SN-F7NP-31923",
+          "Part 203-3856X",
+          "U7-71046-U",
+          "Model VN-8854",
+          "SKU70855B",
+          "J2-28885-C",
+          "Model MT-276",
+          "SKU60569C",
+          "SN-H7FC-18655",
+          "SN-S9KL-24760",
+          "L3-87890-M"
+        ]
+      },
+      "id": "lookalike",
+      "must_not_fire": [
+        "ssn_hit"
+      ]
+    },
+    {
+      "description": "The field is named but no value is given (a placeholder stands where the number would be). None may fire ssn_hit.",
+      "generator": {
+        "list": [
+          "[redacted]",
+          "on file",
+          "(withheld)",
+          "provided separately",
+          "available on request",
+          "see the attached form",
+          "not provided",
+          "[REMOVED]"
+        ]
+      },
+      "id": "naming_no_value",
+      "must_not_fire": [
+        "ssn_hit"
+      ]
+    }
+  ],
+  "description": "Pilot: a US Social Security number that checks out under the issuance rules (area not 000, 666 or 900-999; group not 00; serial not 0000), cued by a nearby word; masked values vetoed per candidate. Number shapes read: three-two-four with dash, space or dot delimiters, and nine in a row; mask characters X, x, *, the bullet and #. Renderings a pattern cannot see are declared with their normalisers; decoys are look-alike numbers and named-but-absent values.",
+  "expressions": {
+    "cued": {
+      "signal": "cue"
+    },
+    "is_masked": {
+      "signal": "masked"
+    },
+    "valid_ssn": {
+      "signal": "ssn"
+    }
+  },
+  "format": "midataworks.rule-set/v1",
+  "name": "dlp-ssn-us-elements",
+  "outputs": [
+    {
+      "column": "ssn_hit",
+      "type": "bool",
+      "value": {
+        "fired": "valid_ssn"
+      }
+    },
+    {
+      "column": "ssn_cued",
+      "type": "bool",
+      "value": {
+        "fired": "cued"
+      }
+    },
+    {
+      "column": "ssn_reason",
+      "type": "string",
+      "value": {
+        "field": [
+          "ssn",
+          "reason"
+        ]
+      }
+    },
+    {
+      "column": "ssn_spans",
+      "type": "string",
+      "value": {
+        "spans": "valid_ssn"
+      }
+    }
+  ],
+  "renderings": [
+    {
+      "invisible_to": [
+        "num",
+        "ssn"
+      ],
+      "normaliser": {
+        "builtin": "strip_delimiters"
+      },
+      "render": {
+        "builtin": "spaced"
+      },
+      "rendering": "spaced"
+    },
+    {
+      "invisible_to": [
+        "num",
+        "ssn"
+      ],
+      "normaliser": {
+        "builtin": "strip_delimiters"
+      },
+      "render": {
+        "builtin": "split_lines"
+      },
+      "rendering": "split_lines"
+    },
+    {
+      "invisible_to": [
+        "num",
+        "ssn"
+      ],
+      "normaliser": {
+        "builtin": "words_to_digits"
+      },
+      "render": {
+        "builtin": "spelled_out_digits"
+      },
+      "rendering": "spelled"
+    },
+    {
+      "invisible_to": [
+        "num",
+        "ssn"
+      ],
+      "normaliser": {
+        "mapping_inverse": true
+      },
+      "render": {
+        "mapping": {
+          "0": "0 ",
+          "1": "one",
+          "2": "2 ",
+          "3": "three",
+          "4": "4 ",
+          "5": "five",
+          "6": "6 ",
+          "7": "seven",
+          "8": "8 ",
+          "9": "nine"
+        }
+      },
+      "rendering": "mixed_words"
+    },
+    {
+      "invisible_to": [
+        "num",
+        "ssn"
+      ],
+      "normaliser": {
+        "mapping_inverse": true
+      },
+      "render": {
+        "mapping": {
+          "-": ", then "
+        }
+      },
+      "rendering": "prose"
+    }
+  ],
+  "signals": [
+    {
+      "fold_fullwidth_ascii": false,
+      "id": "num",
+      "ignore_case": false,
+      "kind": "pattern",
+      "pattern": "(?:\\b[0-9Xx]{3}|[*•#]{3})[- .][0-9Xx*•#]{2}[- .][0-9]{4}\\b|(?:\\b[0-9Xx]{5}|[*•#]{5})[0-9]{4}\\b",
+      "reads": "text"
+    },
+    {
+      "candidates": {
+        "span_of": "num"
+      },
+      "id": "masked",
+      "kind": "validator",
+      "params": {
+        "format": "ssn_us"
+      },
+      "validator": {
+        "id": "masked",
+        "version": 1
+      }
+    },
+    {
+      "candidates": {
+        "span_of": "num"
+      },
+      "id": "ssn",
+      "kind": "validator",
+      "params": {},
+      "validator": {
+        "id": "ssn_us",
+        "version": 1
+      }
+    },
+    {
+      "anchor": "ssn",
+      "fold_fullwidth_ascii": false,
+      "id": "cue",
+      "ignore_case": true,
+      "kind": "proximity",
+      "max_distance": 24,
+      "phrases": [
+        "social security",
+        "ssn",
+        "taxpayer"
+      ],
+      "side": "before",
+      "unit": "code_points",
+      "word_boundary": true
+    }
+  ],
+  "vetoes": [
+    {
+      "id": "masked_value",
+      "removes": [
+        "num",
+        "ssn"
+      ],
+      "when": "is_masked"
+    }
+  ]
+}

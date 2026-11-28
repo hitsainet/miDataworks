@@ -1,0 +1,62 @@
+{"dictionary": "cc", "example": "491-6710478214413", "p0": "Note: ", "p1": " (end)", "triggers": 1, "want": "low"}
+{"dictionary": "cc", "example": "491-67...104782 14413", "p0": "Note: ", "p1": " (end)", "triggers": 1, "want": "low"}
+{"dictionary": "cc", "example": "47 1697--47625799...21", "p0": "Note: ", "p1": " (end)", "triggers": 1, "want": "low"}
+{"dictionary": "cc", "example": "36839-32 9773518", "p0": "Note: ", "p1": " (end)", "triggers": 1, "want": "low"}
+{"dictionary": "cc", "example": "53721 653983--86508", "p0": "Note: ", "p1": " (end)", "triggers": 1, "want": "low"}
+{"dictionary": "cc", "example": "4716 7361 13842732", "p0": "Note: ", "p1": " (end)", "triggers": 1, "want": "low"}
+{"dictionary": "cc", "example": "aa5269946762375011aa", "p0": "Note: ", "p1": " (end)", "triggers": 0, "want": "low"}
+{"dictionary": "cc", "example": "4716 7361 1384 2731", "p0": "Note: ", "p1": " (end)", "triggers": 0, "want": "low"}
+{"dictionary": "cc", "example": "4716-9747-6257-9921", "p0": "Note: ", "p1": " (end)", "triggers": 1, "want": "medium"}
+{"dictionary": "cc", "example": "5372165398386508", "p0": "Note: ", "p1": " (end)", "triggers": 1, "want": "medium"}
+{"dictionary": "cc", "example": "4716 7361 1384 2732", "p0": "Note: ", "p1": " (end)", "triggers": 1, "want": "medium"}
+{"dictionary": "cc", "example": "4916:7104-7821 4413", "p0": "Note: ", "p1": " (end)", "triggers": 0, "want": "medium"}
+{"dictionary": "cc", "example": "49167-104-7821-4413", "p0": "Note: ", "p1": " (end)", "triggers": 0, "want": "medium"}
+{"dictionary": "cc", "example": "a3683:9329:773-518a", "p0": "Note: ", "p1": " (end)", "triggers": 0, "want": "medium"}
+{"dictionary": "cc", "example": "4716-9747-6257-9921", "p0": "credit card number: ", "p1": " (end)", "triggers": 1, "want": "high"}
+{"dictionary": "cc", "example": "5269:9467:6237:5011", "p0": "credit card number: ", "p1": " (end)", "triggers": 1, "want": "high"}
+{"dictionary": "cc", "example": "5372165398386508", "p0": "credit card number: ", "p1": " (end)", "triggers": 1, "want": "high"}
+{"dictionary": "cc", "example": "4716 7361 1384 2732", "p0": "credit card number: ", "p1": " (end)", "triggers": 1, "want": "high"}
+{"dictionary": "cc", "example": "a3683:9329:773-518a", "p0": "credit card number: ", "p1": " (end)", "triggers": 0, "want": "high"}
+{"dictionary": "ssn", "example": "SA_332831997@@##", "p0": "Note: ", "p1": " (end)", "triggers": 1, "want": "low"}
+{"dictionary": "ssn", "example": "SA408456050@", "p0": "Note: ", "p1": " (end)", "triggers": 1, "want": "low"}
+{"dictionary": "ssn", "example": "15...21----587---44", "p0": "Note: ", "p1": " (end)", "triggers": 1, "want": "low"}
+{"dictionary": "ssn", "example": "---23527 1165", "p0": "Note: ", "p1": " (end)", "triggers": 1, "want": "low"}
+{"dictionary": "ssn", "example": "...688781663...", "p0": "Note: ", "p1": " (end)", "triggers": 1, "want": "low"}
+{"dictionary": "ssn", "example": "SA_332831997@@", "p0": "Note: ", "p1": " (end)", "triggers": 1, "want": "medium"}
+{"dictionary": "ssn", "example": "SA@408456050@", "p0": "Note: ", "p1": " (end)", "triggers": 1, "want": "medium"}
+{"dictionary": "ssn", "example": "...688781663...", "p0": "Note: ", "p1": " (end)", "triggers": 1, "want": "medium"}
+{"dictionary": "ssn", "example": "??292108209//", "p0": "Note: ", "p1": " (end)", "triggers": 1, "want": "medium"}
+{"dictionary": "ssn", "example": "269865658", "p0": "Note: ", "p1": " (end)", "triggers": 1, "want": "medium"}
+{"dictionary": "ssn", "example": "15...21----587---44", "p0": "Note: ", "p1": " (end)", "triggers": 0, "want": "medium"}
+{"dictionary": "ssn", "example": "---23527 1165", "p0": "Note: ", "p1": " (end)", "triggers": 0, "want": "medium"}
+{"dictionary": "ssn", "example": "SA_332831997@@", "p0": "social security number: ", "p1": " (end)", "triggers": 1, "want": "high"}
+{"dictionary": "ssn", "example": "408456050", "p0": "social security number: ", "p1": " (end)", "triggers": 1, "want": "high"}
+{"dictionary": "ssn", "example": "292108209//", "p0": "social security number: ", "p1": " (end)", "triggers": 1, "want": "high"}
+{"dictionary": "ssn", "example": "269865658", "p0": "social security number: ", "p1": " (end)", "triggers": 1, "want": "high"}
+{"dictionary": "ssn", "example": "15...21----587---44", "p0": "social security number: ", "p1": " (end)", "triggers": 0, "want": "high"}
+{"dictionary": "ssn", "example": "---23527 1165", "p0": "social security number: ", "p1": " (end)", "triggers": 0, "want": "high"}
+{"dictionary": "aba", "example": "021---302---567", "p0": "Note: ", "p1": " (end)", "triggers": 1, "want": "low"}
+{"dictionary": "aba", "example": "053 9021 97", "p0": "Note: ", "p1": " (end)", "triggers": 1, "want": "low"}
+{"dictionary": "aba", "example": "QQ036001808//", "p0": "Note: ", "p1": " (end)", "triggers": 1, "want": "low"}
+{"dictionary": "aba", "example": "011...600...033", "p0": "Note: ", "p1": " (end)", "triggers": 1, "want": "low"}
+{"dictionary": "aba", "example": "50dd86d97067", "p0": "Note: ", "p1": " (end)", "triggers": 0, "want": "low"}
+{"dictionary": "aba", "example": "aa8543210bb74", "p0": "Note: ", "p1": " (end)", "triggers": 0, "want": "low"}
+{"dictionary": "aba", "example": "053902197", "p0": "Note: ", "p1": " (end)", "triggers": 1, "want": "medium"}
+{"dictionary": "aba", "example": "036001808", "p0": "Note: ", "p1": " (end)", "triggers": 1, "want": "medium"}
+{"dictionary": "aba", "example": "011600033", "p0": "Note: ", "p1": " (end)", "triggers": 1, "want": "medium"}
+{"dictionary": "aba", "example": "021---302---567", "p0": "Note: ", "p1": " (end)", "triggers": 0, "want": "medium"}
+{"dictionary": "aba", "example": "50dd86d97067", "p0": "Note: ", "p1": " (end)", "triggers": 0, "want": "medium"}
+{"dictionary": "aba", "example": "aa8543210bb74", "p0": "Note: ", "p1": " (end)", "triggers": 0, "want": "medium"}
+{"dictionary": "aba", "example": "021302567", "p0": "bank routing number: ", "p1": " (end)", "triggers": 1, "want": "high"}
+{"dictionary": "aba", "example": "053902197", "p0": "bank routing number: ", "p1": " (end)", "triggers": 1, "want": "high"}
+{"dictionary": "aba", "example": "036001808", "p0": "bank routing number: ", "p1": " (end)", "triggers": 1, "want": "high"}
+{"dictionary": "aba", "example": "011600033", "p0": "bank routing number: ", "p1": " (end)", "triggers": 1, "want": "high"}
+{"dictionary": "aba", "example": "50dd86d97067", "p0": "bank routing number: ", "p1": " (end)", "triggers": 0, "want": "high"}
+{"dictionary": "aba", "example": "aa8543210bb74", "p0": "bank routing number: ", "p1": " (end)", "triggers": 0, "want": "high"}
+{"dictionary": "iban", "example": "AD14000800010012345 67890", "p0": "Note: ", "p1": " (end)", "triggers": 1, "want": "medium"}
+{"dictionary": "iban", "example": "AT48320000001234586 4", "p0": "Note: ", "p1": " (end)", "triggers": 1, "want": "medium"}
+{"dictionary": "iban", "example": "AD14000800010012345 67890", "p0": "Note: ", "p1": " (end)", "triggers": 0, "want": "high"}
+{"dictionary": "iban", "example": "AD14000800010012345 67890", "p0": "IBAN ", "p1": " (end)", "triggers": 1, "want": "high"}
+{"dictionary": "iban", "example": "AT48320000001234586 4", "p0": "IBAN ", "p1": " (end)", "triggers": 1, "want": "high"}
+{"dictionary": "iban", "example": "AD14000800010012345 67890", "p0": "Andorra ", "p1": " (end)", "triggers": 1, "want": "high"}
+{"dictionary": "iban", "example": "AT48320000001234586 4", "p0": "Austria ", "p1": " (end)", "triggers": 1, "want": "high"}

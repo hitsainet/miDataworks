@@ -1,0 +1,40 @@
+# Local development and test services for miDataworks (ADR-026 §2.5, Foundation task 2.4).
+#
+# Only PostgreSQL 15 and Redis 7 run here. The API, workers, Beat and the Vite dev server run
+# from source; images are built in CI on the mirror, never locally (ADR-024).
+#
+# Host ports are deliberately NOT the defaults (5432, 6379): other suite apps on a shared
+# workstation already hold them. Override with MIDATAWORKS_PG_PORT / MIDATAWORKS_REDIS_PORT.
+name: midataworks-dev
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: midataworks-dev-postgres
+    environment:
+      POSTGRES_USER: midataworks
+      POSTGRES_PASSWORD: ${MIDATAWORKS_PG_PASSWORD:-midataworks-dev}
+      POSTGRES_DB: midataworks
+    ports:
+      - "127.0.0.1:${MIDATAWORKS_PG_PORT:-55433}:5432"
+    volumes:
+      - midataworks-dev-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U midataworks -d midataworks"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7
+    container_name: midataworks-dev-redis
+    ports:
+      - "127.0.0.1:${MIDATAWORKS_REDIS_PORT:-56380}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  midataworks-dev-pgdata:

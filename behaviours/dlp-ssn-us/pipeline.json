@@ -1,0 +1,1430 @@
+{
+  "description": "The SSN dry run end to end, as data (ENH-006, 2026-11-01). RUNBOOK.md reads it stage by stage. Recipes here are what ran, with each run's identifiers replaced by {{placeholders}}; a stage's output fills a later stage's placeholder. Nothing here names the behaviour outside this pack.",
+  "placeholders": {
+    "definition": "the record dataworks_resolve_behaviour returns",
+    "generation_run_id": "this pass 1's carrier run",
+    "label_run_id": "the second-opinion run on merged pass 1",
+    "slot_hex_alternatives": "every carrier run's slot marker hex, joined with |: read the distinct [[SLOT-XXXXXXXX]] values of the `slot` column of each pass 1 version",
+    "pass1_versions": "the pass 1 version of each carrier run",
+    "merged_version": "the merged pass 1 version",
+    "pass2_version": "the pass 2 version (or its repair)",
+    "negatives_version": "the calibration negatives version",
+    "plan_version": "a plan's role-column version",
+    "calibration_set": "the set built from the labelled queue",
+    "train_version": "the training version a probe compared on this set was fitted on; add one exclude_versions entry per such version",
+    "owns": "a stack probe's `owns` condition",
+    "split_fractions": "a re-split probe's [1 - id_test_share, id_test_share, 0, 0, 0], as a JSON list",
+    "everyday_version": "the everyday-numbers version (stage everyday_negatives)",
+    "stack_negatives_version": "the stack_negatives version",
+    "resplit_version": "a re-split probe's own-positives version"
+  },
+  "stages": [
+    {
+      "id": "rule_set",
+      "tool": "dataworks_save_rule_set",
+      "from": "rule_set.json"
+    },
+    {
+      "id": "templates",
+      "tool": "dataworks_save_generation_template",
+      "from": "templates.json"
+    },
+    {
+      "id": "index_sources",
+      "tool": "dataworks_create_index_source",
+      "from": "sizes.json plans (rows, index_start)"
+    },
+    {
+      "id": "plans",
+      "tool": "dataworks_build_version",
+      "from": "plan.json with sizes.json plans (rows, templated_share, genre_shares, plan_seed)",
+      "step": "carrier_plan@1.1.0",
+      "note": "@1.1.0 is required: its carrier ids name the plan, so two plans cannot share one whatever their index ranges."
+    },
+    {
+      "id": "role_column",
+      "tool": "dataworks_build_version",
+      "recipe": {
+        "format": "dw.recipe/v1",
+        "steps": [
+          {
+            "operator": "rule_label",
+            "params": {
+              "output_column": "role",
+              "rules": [
+                "'the writer’s own US Social Security number. The writer clearly says it is their own Social Security number, so a reader is certain of it' if framing == own_identifier",
+                "'the US Social Security number of a named other person (a customer, patient, employee or relative). The text clearly says it is that person’s Social Security number, so a reader is certain of it' if framing == someones_identifier",
+                "'an example in a general discussion of Social Security numbers (rules, formats, fraud or policy). It belongs to nobody: never put it in a record, form, field or account, and never say it is anyone’s number' if framing == discussed_in_general",
+                "'a note in a Social Security number field saying the number is missing, withheld or kept elsewhere' if framing == naming_no_value",
+                "'a different kind of identifier (an employee, account, licence or member number). Never call it a Social Security number and never mention Social Security numbers anywhere in the text' if framing == other_type",
+                "'an ordinary number (a reference, a quantity or a code) with no identifier meaning. Never mention Social Security numbers anywhere in the text' if framing == other_number"
+              ]
+            },
+            "version": "1"
+          }
+        ]
+      },
+      "note": "A plan and its role column are two builds: the recipe check cannot see carrier_plan's output columns."
+    },
+    {
+      "id": "generation",
+      "tool": "dataworks_start_generation",
+      "approval": "millm_model_load",
+      "args": {
+        "mode": "carrier_slot",
+        "input_version_id": "{{plan_version}}",
+        "prompt_column": "text",
+        "seed_splits": [
+          "train"
+        ],
+        "target_type": "detector",
+        "behaviour_key": "dlp-ssn-us",
+        "rule_sets": "the pin of recipe.json",
+        "template_map": "templates.json template_map",
+        "generator_model_id": "sizes.json plans",
+        "seed": "sizes.json plans generation_seed"
+      },
+      "per": "plan",
+      "note": "One resident model at a time. A deploy of miLLM unloads the model and kills the run: check for running work before any push."
+    },
+    {
+      "id": "pass1",
+      "tool": "dataworks_build_version",
+      "per": "generation run",
+      "recipe": {
+        "format": "dw.recipe/v1",
+        "steps": [
+          {
+            "operator": "dw_generated_rows",
+            "params": {
+              "generation_run_id": "{{generation_run_id}}",
+              "target_type": "detector"
+            },
+            "version": "1"
+          },
+          {
+            "operator": "synth_identifier",
+            "params": {
+              "delimiters": [
+                "none"
+              ],
+              "output_prefix": "e_pos_none_",
+              "scheme": "ssn_us",
+              "seed": 1701,
+              "valid_share": 1
+            },
+            "version": "1"
+          },
+          {
+            "operator": "synth_identifier",
+            "params": {
+              "delimiters": [
+                "dash"
+              ],
+              "output_prefix": "e_pos_dash_",
+              "scheme": "ssn_us",
+              "seed": 1701,
+              "valid_share": 1
+            },
+            "version": "1"
+          },
+          {
+            "operator": "synth_identifier",
+            "params": {
+              "delimiters": [
+                "space"
+              ],
+              "output_prefix": "e_pos_space_",
+              "scheme": "ssn_us",
+              "seed": 1701,
+              "valid_share": 1
+            },
+            "version": "1"
+          },
+          {
+            "operator": "synth_identifier",
+            "params": {
+              "delimiters": [
+                "dot"
+              ],
+              "output_prefix": "e_pos_dot_",
+              "scheme": "ssn_us",
+              "seed": 1701,
+              "valid_share": 1
+            },
+            "version": "1"
+          },
+          {
+            "operator": "synth_identifier",
+            "params": {
+              "delimiters": [
+                "none"
+              ],
+              "output_prefix": "e_masked_none_",
+              "perturbations": [
+                "masked"
+              ],
+              "scheme": "ssn_us",
+              "seed": 1702,
+              "valid_share": 0
+            },
+            "version": "1"
+          },
+          {
+            "operator": "synth_identifier",
+            "params": {
+              "delimiters": [
+                "dash"
+              ],
+              "output_prefix": "e_masked_dash_",
+              "perturbations": [
+                "masked"
+              ],
+              "scheme": "ssn_us",
+              "seed": 1702,
+              "valid_share": 0
+            },
+            "version": "1"
+          },
+          {
+            "operator": "synth_identifier",
+            "params": {
+              "delimiters": [
+                "space"
+              ],
+              "output_prefix": "e_masked_space_",
+              "perturbations": [
+                "masked"
+              ],
+              "scheme": "ssn_us",
+              "seed": 1702,
+              "valid_share": 0
+            },
+            "version": "1"
+          },
+          {
+            "operator": "synth_identifier",
+            "params": {
+              "delimiters": [
+                "dot"
+              ],
+              "output_prefix": "e_masked_dot_",
+              "perturbations": [
+                "masked"
+              ],
+              "scheme": "ssn_us",
+              "seed": 1702,
+              "valid_share": 0
+            },
+            "version": "1"
+          },
+          {
+            "operator": "synth_identifier",
+            "params": {
+              "delimiters": [
+                "none"
+              ],
+              "output_prefix": "e_wrong_length_none_",
+              "perturbations": [
+                "wrong_length"
+              ],
+              "scheme": "ssn_us",
+              "seed": 1703,
+              "valid_share": 0,
+              "wrong_length_layout": "style"
+            },
+            "version": "1.1.0"
+          },
+          {
+            "operator": "synth_identifier",
+            "params": {
+              "delimiters": [
+                "dash"
+              ],
+              "output_prefix": "e_wrong_length_dash_",
+              "perturbations": [
+                "wrong_length"
+              ],
+              "scheme": "ssn_us",
+              "seed": 1703,
+              "valid_share": 0,
+              "wrong_length_layout": "style"
+            },
+            "version": "1.1.0"
+          },
+          {
+            "operator": "synth_identifier",
+            "params": {
+              "delimiters": [
+                "space"
+              ],
+              "output_prefix": "e_wrong_length_space_",
+              "perturbations": [
+                "wrong_length"
+              ],
+              "scheme": "ssn_us",
+              "seed": 1703,
+              "valid_share": 0,
+              "wrong_length_layout": "style"
+            },
+            "version": "1.1.0"
+          },
+          {
+            "operator": "synth_identifier",
+            "params": {
+              "delimiters": [
+                "dot"
+              ],
+              "output_prefix": "e_wrong_length_dot_",
+              "perturbations": [
+                "wrong_length"
+              ],
+              "scheme": "ssn_us",
+              "seed": 1703,
+              "valid_share": 0,
+              "wrong_length_layout": "style"
+            },
+            "version": "1.1.0"
+          },
+          {
+            "operator": "synth_identifier",
+            "params": {
+              "delimiters": [
+                "none"
+              ],
+              "output_prefix": "e_bad_check_none_",
+              "perturbations": [
+                "bad_range"
+              ],
+              "scheme": "ssn_us",
+              "seed": 1704,
+              "valid_share": 0
+            },
+            "version": "1"
+          },
+          {
+            "operator": "synth_identifier",
+            "params": {
+              "delimiters": [
+                "dash"
+              ],
+              "output_prefix": "e_bad_check_dash_",
+              "perturbations": [
+                "bad_range"
+              ],
+              "scheme": "ssn_us",
+              "seed": 1704,
+              "valid_share": 0
+            },
+            "version": "1"
+          },
+          {
+            "operator": "synth_identifier",
+            "params": {
+              "delimiters": [
+                "space"
+              ],
+              "output_prefix": "e_bad_check_space_",
+              "perturbations": [
+                "bad_range"
+              ],
+              "scheme": "ssn_us",
+              "seed": 1704,
+              "valid_share": 0
+            },
+            "version": "1"
+          },
+          {
+            "operator": "synth_identifier",
+            "params": {
+              "delimiters": [
+                "dot"
+              ],
+              "output_prefix": "e_bad_check_dot_",
+              "perturbations": [
+                "bad_range"
+              ],
+              "scheme": "ssn_us",
+              "seed": 1704,
+              "valid_share": 0
+            },
+            "version": "1"
+          },
+          {
+            "operator": "synth_identifier",
+            "params": {
+              "delimiters": [
+                "none"
+              ],
+              "output_prefix": "e_glued_letters_none_",
+              "perturbations": [
+                "adjacent_letters"
+              ],
+              "scheme": "ssn_us",
+              "seed": 1705,
+              "valid_share": 0
+            },
+            "version": "1"
+          },
+          {
+            "operator": "synth_identifier",
+            "params": {
+              "delimiters": [
+                "dash"
+              ],
+              "output_prefix": "e_glued_letters_dash_",
+              "perturbations": [
+                "adjacent_letters"
+              ],
+              "scheme": "ssn_us",
+              "seed": 1705,
+              "valid_share": 0
+            },
+            "version": "1"
+          },
+          {
+            "operator": "synth_identifier",
+            "params": {
+              "delimiters": [
+                "space"
+              ],
+              "output_prefix": "e_glued_letters_space_",
+              "perturbations": [
+                "adjacent_letters"
+              ],
+              "scheme": "ssn_us",
+              "seed": 1705,
+              "valid_share": 0
+            },
+            "version": "1"
+          },
+          {
+            "operator": "synth_identifier",
+            "params": {
+              "delimiters": [
+                "dot"
+              ],
+              "output_prefix": "e_glued_letters_dot_",
+              "perturbations": [
+                "adjacent_letters"
+              ],
+              "scheme": "ssn_us",
+              "seed": 1705,
+              "valid_share": 0
+            },
+            "version": "1"
+          },
+          {
+            "operator": "rule_label",
+            "params": {
+              "output_column": "e_masked_sibling",
+              "rules": [
+                "@e_masked_none_value if kind == pos and form in [digits, spaced, spelled, split_lines, mixed_words]",
+                "@e_masked_dash_value if kind == pos and form in [digits_dash, prose]",
+                "@e_masked_space_value if kind == pos and form in [digits_space]",
+                "@e_masked_dot_value if kind == pos and form in [digits_dot]"
+              ]
+            },
+            "version": "1"
+          },
+          {
+            "operator": "rule_label",
+            "params": {
+              "output_column": "element",
+              "rules": [
+                "@e_pos_none_value if kind == pos and form in [digits, spaced, spelled, split_lines, mixed_words]",
+                "@e_pos_dash_value if kind == pos and form in [digits_dash, prose]",
+                "@e_pos_space_value if kind == pos and form in [digits_space]",
+                "@e_pos_dot_value if kind == pos and form in [digits_dot]",
+                "@e_masked_none_value if kind == masked and form in [digits, spaced, spelled, split_lines, mixed_words]",
+                "@e_masked_dash_value if kind == masked and form in [digits_dash, prose]",
+                "@e_masked_space_value if kind == masked and form in [digits_space]",
+                "@e_masked_dot_value if kind == masked and form in [digits_dot]",
+                "@e_wrong_length_none_value if kind == wrong_length and form in [digits, spaced, spelled, split_lines, mixed_words]",
+                "@e_wrong_length_dash_value if kind == wrong_length and form in [digits_dash, prose]",
+                "@e_wrong_length_space_value if kind == wrong_length and form in [digits_space]",
+                "@e_wrong_length_dot_value if kind == wrong_length and form in [digits_dot]",
+                "@e_bad_check_none_value if kind == bad_check and form in [digits, spaced, spelled, split_lines, mixed_words]",
+                "@e_bad_check_dash_value if kind == bad_check and form in [digits_dash, prose]",
+                "@e_bad_check_space_value if kind == bad_check and form in [digits_space]",
+                "@e_bad_check_dot_value if kind == bad_check and form in [digits_dot]",
+                "@e_glued_letters_none_value if kind == glued_letters and form in [digits, spaced, spelled, split_lines, mixed_words]",
+                "@e_glued_letters_dash_value if kind == glued_letters and form in [digits_dash, prose]",
+                "@e_glued_letters_space_value if kind == glued_letters and form in [digits_space]",
+                "@e_glued_letters_dot_value if kind == glued_letters and form in [digits_dot]"
+              ]
+            },
+            "version": "1"
+          },
+          {
+            "operator": "insert_element",
+            "params": {
+              "element_column": "element",
+              "framing_phrase_share": 0,
+              "rule_set_name": "dlp-ssn-us-elements",
+              "rule_set_sha256": "73bd179f96a88518cf84bb94d1e7a54f2d2325cb071c7bc7d1bedaaaa0cccfa5",
+              "rule_set_version": 2,
+              "vocabulary": "@input"
+            },
+            "version": "1.0.0"
+          },
+          {
+            "operator": "regex_match",
+            "params": {
+              "column": "text",
+              "fold_fullwidth_ascii": false,
+              "ignore_case": true,
+              "max_spans": 10,
+              "output_prefix": "e_leak_",
+              "pattern": "own_identifier|someones_identifier|discussed_in_general|naming_no_value|other_type|other_number|\\[\\[SLOT|\\bSLOT[-_: ]?[0-9a-f]{8}\\b|the marker|test corpus|most\\s*imp|important\\s*rule|six roles|only the one above|^\\s*(here is|here.s|sure\\b)"
+            },
+            "version": "2"
+          }
+        ]
+      },
+      "bindings": [
+        {
+          "kind": "generation_run",
+          "id": "{{generation_run_id}}"
+        }
+      ],
+      "inputs": [
+        {
+          "kind": "version",
+          "version_id": "{{plan_version}}"
+        }
+      ]
+    },
+    {
+      "id": "merged_pass1",
+      "tool": "dataworks_build_version",
+      "recipe": {
+        "format": "dw.recipe/v1",
+        "steps": [
+          {
+            "operator": "empty_content",
+            "params": {},
+            "version": "1.0.0"
+          },
+          {
+            "operator": "check_carrier_ids",
+            "version": "1.0.0",
+            "params": {}
+          }
+        ]
+      },
+      "seed": 1714,
+      "inputs": "{{pass1_versions}}",
+      "note": "check_carrier_ids refuses here, before the second opinion is paid for, if two runs' rows share a carrier id they were not planned to share."
+    },
+    {
+      "id": "second_opinion",
+      "tool": "dataworks_start_label_run",
+      "approval": "paid_classifier_run",
+      "args": {
+        "input_version_id": "{{merged_version}}",
+        "role": "classifier",
+        "transport": "single",
+        "chunk_size": 200,
+        "handoff_id": "ssn-merged-pass1",
+        "behaviour_key": "dlp-ssn-us",
+        "field_map": {
+          "text": "text"
+        },
+        "positive_label": "yes",
+        "negative_label": "no",
+        "threshold_positive": 0.5,
+        "threshold_negative": 0.49,
+        "question": "second_opinion.json questions, the presented question"
+      }
+    },
+    {
+      "id": "calibration_labels",
+      "tool": "dataworks_create_review_queue",
+      "human": true,
+      "args": {
+        "kind": "calibration_labeling",
+        "version_id": "{{merged_version}}",
+        "question": "the second_opinion question, exactly",
+        "label_set": [
+          "yes",
+          "no"
+        ],
+        "size": 300,
+        "label_run_id": "{{label_run_id}}",
+        "behaviour_key": "dlp-ssn-us"
+      },
+      "note": "On the merged pass 1, so rows the filter later removes are in the sample: sampling the filtered version would be circular. Only the operator's decisions become human labels. Then dataworks_build_calibration_set and dataworks_compute_calibration; D-7 refuses a send until a record passes."
+    },
+    {
+      "id": "pass2",
+      "tool": "dataworks_build_version",
+      "recipe": {
+        "format": "dw.recipe/v1",
+        "steps": [
+          {
+            "operator": "threshold_labeler",
+            "params": {
+              "label_run_id": "{{label_run_id}}",
+              "threshold_negative": 0.49,
+              "threshold_positive": 0.5
+            },
+            "version": "1"
+          },
+          {
+            "operator": "regex_match",
+            "params": {
+              "column": "text",
+              "fold_fullwidth_ascii": false,
+              "ignore_case": true,
+              "max_spans": 10,
+              "output_prefix": "e_slot_",
+              "pattern": "{{slot_hex_alternatives}}"
+            },
+            "version": "2"
+          },
+          {
+            "operator": "rule_label",
+            "params": {
+              "output_column": "e_drop",
+              "rules": [
+                "leak if e_slot_matched == true",
+                "leak if e_leak_matched == true",
+                "framing if element_recovered == true and kind != naming_no_value and framing in [own_identifier, someones_identifier] and label == negative",
+                "framing if element_recovered == true and kind != naming_no_value and framing in [other_number, naming_no_value] and label == positive"
+              ]
+            },
+            "version": "1"
+          },
+          {
+            "operator": "metadata_value_filter",
+            "params": {
+              "column": "e_drop",
+              "values": [
+                "leak",
+                "framing"
+              ]
+            },
+            "version": "1.0.0"
+          },
+          {
+            "operator": "drop_columns",
+            "params": {
+              "patterns": [
+                "label",
+                "label_probability"
+              ]
+            },
+            "version": "1"
+          },
+          {
+            "operator": "slot_siblings",
+            "params": {
+              "element_column": "element",
+              "kinds": [
+                "pos"
+              ],
+              "rule_set_name": "dlp-ssn-us-elements",
+              "rule_set_sha256": "73bd179f96a88518cf84bb94d1e7a54f2d2325cb071c7bc7d1bedaaaa0cccfa5",
+              "rule_set_version": 2,
+              "text_column": "text",
+              "variants": "[{\"kind\": \"empty\"}, {\"kind\": \"decoy\", \"ref\": \"lookalike\"}, {\"kind\": \"decoy\", \"ref\": \"naming_no_value\"}, {\"kind\": \"vetoed\", \"ref\": \"masked_value\", \"column\": \"e_masked_sibling\", \"as_kind\": \"masked\"}]",
+              "vocabulary": "@input"
+            },
+            "version": "1.1.0"
+          },
+          {
+            "operator": "rule_label",
+            "params": {
+              "output_column": "e_sibling_held_out",
+              "rules": [
+                "drop if sibling_variant is not null and genre in [voice_transcript, ocr_scan]",
+                "drop if sibling_variant is not null and generator in [Qwen2.5-7B-Instruct]"
+              ]
+            },
+            "version": "1"
+          },
+          {
+            "operator": "metadata_value_filter",
+            "params": {
+              "column": "e_sibling_held_out",
+              "values": [
+                "drop"
+              ]
+            },
+            "version": "1.0.0"
+          },
+          {
+            "operator": "drop_columns",
+            "params": {
+              "patterns": [
+                "e_*"
+              ]
+            },
+            "version": "1"
+          },
+          {
+            "operator": "rule_set",
+            "params": {
+              "output_prefix": "r_",
+              "rule_set_name": "dlp-ssn-us-elements",
+              "rule_set_sha256": "73bd179f96a88518cf84bb94d1e7a54f2d2325cb071c7bc7d1bedaaaa0cccfa5",
+              "rule_set_version": 2,
+              "text_column": "text",
+              "use": "label"
+            },
+            "version": "1"
+          },
+          {
+            "operator": "regex_match",
+            "params": {
+              "column": "kind",
+              "fold_fullwidth_ascii": false,
+              "ignore_case": false,
+              "max_spans": 1,
+              "output_prefix": "e_plan_vetoed_",
+              "pattern": "^(masked|wrong_length|bad_check)$"
+            },
+            "version": "2"
+          },
+          {
+            "operator": "derive_labels",
+            "params": {
+              "label_column": "disclosure",
+              "output_prefix": "r_",
+              "rule_set_name": "dlp-ssn-us-elements",
+              "rule_set_sha256": "73bd179f96a88518cf84bb94d1e7a54f2d2325cb071c7bc7d1bedaaaa0cccfa5",
+              "rule_set_version": 2,
+              "scan_column": "r_ssn_spans",
+              "target_checks": "[]",
+              "truth_tables": "{\"label\": {\"inputs\": [\"kind\", \"framing\", \"element_recovered\"], \"rows\": [{\"when\": {\"element_recovered\": false}, \"value\": false}, {\"when\": {\"kind\": \"lookalike\"}, \"value\": false}, {\"when\": {\"kind\": \"naming_no_value\"}, \"value\": false}, {\"when\": {\"framing\": \"own_identifier\"}, \"value\": true}, {\"when\": {\"framing\": \"someones_identifier\"}, \"value\": true}, {\"when\": {\"framing\": \"discussed_in_general\"}, \"value\": true}, {\"when\": {}, \"value\": false}]}, \"sub_questions\": {\"id_shape\": {\"inputs\": [\"kind\", \"element_recovered\"], \"rows\": [{\"when\": {\"element_recovered\": false}, \"value\": \"no\"}, {\"when\": {\"kind\": \"pos\"}, \"value\": \"yes\"}, {\"when\": {\"kind\": \"bad_check\"}, \"value\": \"yes\"}, {\"when\": {\"kind\": \"glued_letters\"}, \"value\": \"yes\"}, {\"when\": {\"kind\": \"masked\"}, \"value\": \"yes\"}, {\"when\": {}, \"value\": \"no\"}]}, \"presented\": {\"inputs\": [\"kind\", \"framing\", \"element_recovered\"], \"rows\": [{\"when\": {\"kind\": \"naming_no_value\"}, \"value\": \"no\"}, {\"when\": {\"kind\": \"lookalike\", \"framing\": \"own_identifier\"}, \"value\": \"yes\"}, {\"when\": {\"kind\": \"lookalike\", \"framing\": \"someones_identifier\"}, \"value\": \"yes\"}, {\"when\": {\"element_recovered\": false}, \"value\": \"no\"}, {\"when\": {\"framing\": \"own_identifier\"}, \"value\": \"yes\"}, {\"when\": {\"framing\": \"someones_identifier\"}, \"value\": \"yes\"}, {\"when\": {}, \"value\": \"no\"}]}, \"masked\": {\"inputs\": [\"kind\", \"element_recovered\"], \"rows\": [{\"when\": {\"kind\": \"masked\", \"element_recovered\": true}, \"value\": \"yes\"}, {\"when\": {}, \"value\": \"no\"}]}}}",
+              "vetoed_column": "e_plan_vetoed_matched",
+              "vocabulary": "@input"
+            },
+            "version": "1.0.0"
+          },
+          {
+            "operator": "rule_label",
+            "params": {
+              "output_column": "e_invented",
+              "rules": [
+                "drop if label_conflict_reason == extra_candidate and deployed_truth == false",
+                "drop if deployed_truth == false and r_ssn_reason in [bad_range, illegal_character] and kind != bad_check"
+              ]
+            },
+            "version": "1"
+          },
+          {
+            "operator": "metadata_value_filter",
+            "params": {
+              "column": "e_invented",
+              "values": [
+                "drop"
+              ]
+            },
+            "version": "1.0.0"
+          },
+          {
+            "operator": "drop_columns",
+            "params": {
+              "patterns": [
+                "e_*",
+                "role"
+              ]
+            },
+            "version": "1"
+          },
+          {
+            "operator": "split",
+            "params": {
+              "directing_columns": [
+                "genre",
+                "generator"
+              ],
+              "group_columns": [
+                "carrier_id",
+                "pair_id"
+              ],
+              "held_out": [
+                "test_unseen_genre",
+                "test_unseen_generator",
+                "test_unseen_both"
+              ],
+              "held_out_split_names": [
+                "test_unseen_genre",
+                "test_unseen_generator",
+                "test_unseen_both"
+              ],
+              "held_out_value_columns": [
+                "genre",
+                "genre",
+                "generator"
+              ],
+              "held_out_values": [
+                "voice_transcript",
+                "ocr_scan",
+                "Qwen2.5-7B-Instruct"
+              ],
+              "identity_columns": [
+                "generator"
+              ],
+              "mode": "reassign",
+              "split_fractions": [
+                0.95,
+                0.05,
+                0,
+                0,
+                0
+              ],
+              "split_names": [
+                "train",
+                "id_test",
+                "test_unseen_genre",
+                "test_unseen_generator",
+                "test_unseen_both"
+              ],
+              "stratify_by": [
+                "kind",
+                "framing"
+              ]
+            },
+            "version": "1.1.0"
+          }
+        ]
+      },
+      "seed": 1714,
+      "bindings": [
+        {
+          "kind": "label_run",
+          "id": "{{label_run_id}}"
+        }
+      ],
+      "inputs": [
+        {
+          "kind": "version",
+          "version_id": "{{merged_version}}"
+        }
+      ]
+    },
+    {
+      "id": "negatives_sources",
+      "tool": "dataworks_import_hf_dataset",
+      "from": "benchmarks.json real_text"
+    },
+    {
+      "id": "negatives",
+      "tool": "dataworks_build_version",
+      "recipe": {
+        "format": "dw.recipe/v1",
+        "steps": [
+          {
+            "operator": "rule_set",
+            "params": {
+              "output_prefix": "s_",
+              "rule_set_name": "dlp-ssn-us-elements",
+              "rule_set_sha256": "73bd179f96a88518cf84bb94d1e7a54f2d2325cb071c7bc7d1bedaaaa0cccfa5",
+              "rule_set_version": 2,
+              "text_column": "text",
+              "use": "screen"
+            },
+            "version": "1"
+          },
+          {
+            "operator": "screen_filter",
+            "params": {
+              "flag_columns": [
+                "s_ssn_hit",
+                "s_ssn_cued"
+              ]
+            },
+            "version": "1.0.0"
+          },
+          {
+            "operator": "length_band",
+            "params": {
+              "column": "text",
+              "max_length": 1500,
+              "min_length": 30,
+              "unit": "characters"
+            },
+            "version": "1.0.0"
+          },
+          {
+            "operator": "sample",
+            "params": {
+              "mode": "stratified",
+              "per_stratum": 2500,
+              "strata": [
+                "language"
+              ]
+            },
+            "version": "1.1.0"
+          }
+        ]
+      },
+      "seed": 1715,
+      "inputs": "the three real-text sources",
+      "column_roles": {
+        "text": "content",
+        "url": "metadata",
+        "timestamp": "metadata",
+        "id": "metadata",
+        "dump": "metadata",
+        "date": "metadata",
+        "file_path": "metadata",
+        "language": "metadata",
+        "language_score": "metadata",
+        "language_script": "metadata",
+        "minhash_cluster_size": "metadata",
+        "top_langs": "metadata"
+      }
+    },
+    {
+      "id": "everyday_sources",
+      "tool": "dataworks_import_hf_dataset",
+      "from": "benchmarks.json everyday_text"
+    },
+    {
+      "id": "everyday_negatives",
+      "tool": "dataworks_build_version",
+      "recipe": {
+        "format": "dw.recipe/v1",
+        "steps": [
+          {
+            "operator": "rule_set",
+            "params": {
+              "output_prefix": "s_",
+              "rule_set_name": "dlp-ssn-us-elements",
+              "rule_set_sha256": "73bd179f96a88518cf84bb94d1e7a54f2d2325cb071c7bc7d1bedaaaa0cccfa5",
+              "rule_set_version": 2,
+              "text_column": "text",
+              "use": "screen"
+            },
+            "version": "1"
+          },
+          {
+            "operator": "screen_filter",
+            "params": {
+              "flag_columns": [
+                "s_ssn_hit",
+                "s_ssn_cued"
+              ]
+            },
+            "version": "1.0.0"
+          },
+          {
+            "operator": "length_band",
+            "params": {
+              "column": "text",
+              "max_length": 1500,
+              "min_length": 30,
+              "unit": "characters"
+            },
+            "version": "1.0.0"
+          },
+          {
+            "operator": "regex_match",
+            "params": {
+              "column": "text",
+              "fold_fullwidth_ascii": false,
+              "ignore_case": true,
+              "max_spans": 1,
+              "output_prefix": "e_num_",
+              "pattern": "[0-9]{3,}|[0-9]+[-./:,][0-9]+|\\b(?:zero|one|two|three|four|five|six|seven|eight|nine)\\b[\\s,-]+\\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|hundred|thousand)\\b"
+            },
+            "version": "2"
+          },
+          {
+            "operator": "rule_label",
+            "params": {
+              "output_column": "e_keep",
+              "rules": [
+                "drop if e_num_matched == false"
+              ]
+            },
+            "version": "1"
+          },
+          {
+            "operator": "metadata_value_filter",
+            "params": {
+              "column": "e_keep",
+              "values": [
+                "drop"
+              ]
+            },
+            "version": "1.0.0"
+          },
+          {
+            "operator": "drop_columns",
+            "params": {
+              "patterns": [
+                "e_*"
+              ]
+            },
+            "version": "1"
+          },
+          {
+            "operator": "sample",
+            "params": {
+              "mode": "stratified",
+              "per_stratum": 2000,
+              "strata": [
+                "language"
+              ]
+            },
+            "version": "1.1.0"
+          }
+        ]
+      },
+      "seed": 1716,
+      "inputs": "the three everyday-text sources",
+      "column_roles": {
+        "text": "content",
+        "url": "metadata",
+        "timestamp": "metadata",
+        "id": "metadata",
+        "dump": "metadata",
+        "date": "metadata",
+        "file_path": "metadata",
+        "language": "metadata",
+        "language_score": "metadata",
+        "language_script": "metadata",
+        "minhash_cluster_size": "metadata",
+        "top_langs": "metadata"
+      }
+    },
+    {
+      "id": "main_set",
+      "tool": "dataworks_create_detector_set",
+      "args": {
+        "name": "dlp-ssn-us-main",
+        "behaviour_key": "dlp-ssn-us",
+        "roles": [
+          {
+            "role": "train",
+            "version_id": "{{pass2_version}}",
+            "split": "train",
+            "input_column": "text",
+            "label_column": "deployed_truth",
+            "label_mapping": {
+              "true": "positive",
+              "false": "negative"
+            },
+            "display_name": "ssn-train",
+            "pair_column": "pair_id",
+            "label_source_columns": [
+              "kind",
+              "framing",
+              "element_recovered",
+              "disclosure",
+              "planned_id_shape",
+              "planned_masked",
+              "planned_presented",
+              "sq_id_shape",
+              "sq_masked",
+              "sq_presented",
+              "sibling_variant",
+              "decoy_id",
+              "element",
+              "element_inserted",
+              "element_present",
+              "label_conflict",
+              "label_conflict_reason",
+              "r_ssn_hit",
+              "r_ssn_reason",
+              "r_ssn_spans"
+            ]
+          },
+          {
+            "role": "id_test",
+            "version_id": "{{pass2_version}}",
+            "split": "id_test",
+            "input_column": "text",
+            "label_column": "deployed_truth",
+            "label_mapping": {
+              "true": "positive",
+              "false": "negative"
+            },
+            "display_name": "ssn-id-test",
+            "pair_column": "pair_id"
+          },
+          {
+            "role": "ood_eval",
+            "version_id": "{{pass2_version}}",
+            "split": "test_unseen_genre",
+            "input_column": "text",
+            "label_column": "deployed_truth",
+            "label_mapping": {
+              "true": "positive",
+              "false": "negative"
+            },
+            "display_name": "ssn-unseen-genre"
+          },
+          {
+            "role": "ood_eval",
+            "version_id": "{{pass2_version}}",
+            "split": "test_unseen_generator",
+            "input_column": "text",
+            "label_column": "deployed_truth",
+            "label_mapping": {
+              "true": "positive",
+              "false": "negative"
+            },
+            "display_name": "ssn-unseen-generator"
+          },
+          {
+            "role": "ood_eval",
+            "version_id": "{{pass2_version}}",
+            "split": "test_unseen_both",
+            "input_column": "text",
+            "label_column": "deployed_truth",
+            "label_mapping": {
+              "true": "positive",
+              "false": "negative"
+            },
+            "display_name": "ssn-unseen-both"
+          },
+          {
+            "role": "calibration_negatives",
+            "version_id": "{{negatives_version}}",
+            "split": "train",
+            "input_column": "text",
+            "label_column": "s_ssn_hit",
+            "label_mapping": {
+              "false": "negative"
+            },
+            "display_name": "ssn-calibration-negatives",
+            "negatives_basis": {
+              "kind": "assumed_negative",
+              "rule": "real text; a row on which the behaviour's rule set fired or cued left at the screen",
+              "screen": [
+                {
+                  "name": "dlp-ssn-us-elements",
+                  "version": 2,
+                  "sha256": "73bd179f96a88518cf84bb94d1e7a54f2d2325cb071c7bc7d1bedaaaa0cccfa5"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "label_source_reasons": {
+        "plan": "kind, framing and element_recovered are the label table's inputs; disclosure, planned_* and sq_* are their direct answers; sibling_variant, decoy_id, element, element_inserted and element_present are how a sibling changes the plan's kind",
+        "conflict": "label_conflict* are read by the filter that removes negatives",
+        "rules": "r_ssn_hit, r_ssn_reason and r_ssn_spans are the behaviour's own rule reading the same text; pass 2 selects rows on the first two and derive_labels scans the third (its scan_column). Only the first two flagged when the rest were audited (D110); r_ssn_spans flagged at 0.632 once D125 vetoed impossible values, because the rule checks the same validity the label now requires (2026-11-04). Do not add columns the label does not come from: the audit skips what is listed."
+      }
+    },
+    {
+      "id": "check",
+      "tool": "dataworks_check_detector_set",
+      "note": "D-4 refusal: dataworks_plan_leakage_repair, save and build its recipe on the pass 2 version, bind that version, check again."
+    },
+    {
+      "id": "stack_negatives",
+      "tool": "dataworks_build_version",
+      "note": "ENH-006 D128: the repaired pass 2 version's non-disclosure rows, every split as built. A probe whose in-distribution test is re-split joins this, so only its own positives change split.",
+      "recipe": {
+        "format": "dw.recipe/v1",
+        "steps": [
+          {
+            "operator": "rule_label",
+            "version": "1",
+            "params": {
+              "output_column": "e_keep",
+              "default": "drop",
+              "rules": [
+                "keep if deployed_truth == false"
+              ]
+            }
+          },
+          {
+            "operator": "metadata_value_filter",
+            "version": "1.0.0",
+            "params": {
+              "column": "e_keep",
+              "values": [
+                "drop"
+              ]
+            }
+          },
+          {
+            "operator": "drop_columns",
+            "version": "1",
+            "params": {
+              "patterns": [
+                "e_*"
+              ]
+            }
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "kind": "version",
+          "version_id": "{{pass2_version}}"
+        }
+      ],
+      "seed": 1714
+    },
+    {
+      "id": "stack",
+      "tool": "dataworks_build_version",
+      "note": "ENH-006 D128 (operator, 2026-11-06): one probe per form, additive; the stack's verdict is that any probe fires. Each probe trains on its own form's disclosures and every non-disclosure row of every form, plus the everyday rows (train only); other forms' disclosures are left out of every split. Render a probe by putting its `owns` in place of {{owns}} and, where `id_test_share` is set, its fractions in place of \"{{split_fractions}}\" (a JSON list, not a string). A probe with no `id_test_share` builds `probe_recipe` on [{{pass2_version}}, {{everyday_version}}]. One with a share builds `resplit_recipe` on [{{pass2_version}}] (its own positives only, redrawn so the in-distribution test holds 20 or more: miStudio refuses a view under 20 of a class), then `probe_recipe` on [{{resplit_version}}, {{stack_negatives_version}}, {{everyday_version}}]; the moved positives' training siblings then cross into id_test, so check and repair (D-4) before binding.",
+      "probes": [
+        {
+          "id": "digits",
+          "owns": "kind == pos and form in [digits, digits_dash, digits_dot, digits_space]",
+          "id_test_share": null,
+          "label_source_extra": [
+            "r_ssn_cued"
+          ],
+          "label_source_extra_reason": "r_ssn_cued is the rule's own reading (a valid digit-form number with a cue word before it; cued implies r_ssn_hit, a declared source). Once the positives are the digit forms alone it tracks the label by construction: D-3 read it at 0.687 on version 56 (operator, 2026-11-06)."
+        },
+        {
+          "id": "spelled",
+          "owns": "kind == pos and form == spelled",
+          "id_test_share": 0.06
+        },
+        {
+          "id": "split-parts",
+          "owns": "kind == pos and form == prose",
+          "id_test_share": null
+        },
+        {
+          "id": "spaced",
+          "owns": "kind == pos and form == spaced",
+          "id_test_share": 0.07
+        },
+        {
+          "id": "mixed-words",
+          "owns": "kind == pos and form == mixed_words",
+          "id_test_share": 0.08
+        },
+        {
+          "id": "split-lines",
+          "owns": "kind == pos and form == split_lines",
+          "id_test_share": 0.12
+        },
+        {
+          "id": "glued-letters",
+          "owns": "kind == glued_letters",
+          "id_test_share": null
+        }
+      ],
+      "probe_recipe": {
+        "format": "dw.recipe/v1",
+        "steps": [
+          {
+            "operator": "rule_label",
+            "version": "1",
+            "params": {
+              "output_column": "e_probe_keep",
+              "default": "drop",
+              "rules": [
+                "keep if url is not null",
+                "keep if deployed_truth == false",
+                "keep if deployed_truth == true and {{owns}}"
+              ]
+            }
+          },
+          {
+            "operator": "metadata_value_filter",
+            "version": "1.0.0",
+            "params": {
+              "column": "e_probe_keep",
+              "values": [
+                "drop"
+              ]
+            }
+          },
+          {
+            "operator": "rule_label",
+            "version": "1",
+            "params": {
+              "output_column": "probe_truth",
+              "default": "unlabelled",
+              "rules": [
+                "true if deployed_truth == true",
+                "false if deployed_truth == false",
+                "false if url is not null"
+              ]
+            }
+          },
+          {
+            "operator": "drop_columns",
+            "version": "1",
+            "params": {
+              "patterns": [
+                "e_*",
+                "s_*",
+                "url",
+                "timestamp",
+                "id",
+                "dump",
+                "date",
+                "file_path",
+                "language",
+                "language_score",
+                "language_script",
+                "minhash_cluster_size",
+                "top_langs"
+              ]
+            }
+          }
+        ]
+      },
+      "resplit_recipe": {
+        "format": "dw.recipe/v1",
+        "steps": [
+          {
+            "operator": "rule_label",
+            "version": "1",
+            "params": {
+              "output_column": "e_keep",
+              "default": "drop",
+              "rules": [
+                "keep if deployed_truth == true and {{owns}}"
+              ]
+            }
+          },
+          {
+            "operator": "metadata_value_filter",
+            "version": "1.0.0",
+            "params": {
+              "column": "e_keep",
+              "values": [
+                "drop"
+              ]
+            }
+          },
+          {
+            "operator": "drop_columns",
+            "version": "1",
+            "params": {
+              "patterns": [
+                "e_*"
+              ]
+            }
+          },
+          {
+            "operator": "split",
+            "version": "1.1.0",
+            "params": {
+              "directing_columns": [
+                "genre",
+                "generator"
+              ],
+              "group_columns": [
+                "carrier_id",
+                "pair_id"
+              ],
+              "held_out": [
+                "test_unseen_genre",
+                "test_unseen_generator",
+                "test_unseen_both"
+              ],
+              "held_out_split_names": [
+                "test_unseen_genre",
+                "test_unseen_generator",
+                "test_unseen_both"
+              ],
+              "held_out_value_columns": [
+                "genre",
+                "genre",
+                "generator"
+              ],
+              "held_out_values": [
+                "voice_transcript",
+                "ocr_scan",
+                "Qwen2.5-7B-Instruct"
+              ],
+              "identity_columns": [
+                "generator"
+              ],
+              "mode": "reassign",
+              "split_fractions": "{{split_fractions}}",
+              "split_names": [
+                "train",
+                "id_test",
+                "test_unseen_genre",
+                "test_unseen_generator",
+                "test_unseen_both"
+              ],
+              "stratify_by": [
+                "kind",
+                "framing"
+              ]
+            }
+          }
+        ]
+      },
+      "seed": 1714,
+      "set": {
+        "note": "One set per probe: main_set's roles bound to the probe's version, label_column probe_truth mapped True positive and False negative (rule_label writes str(True)), label_source_columns main_set's plus deployed_truth and form (the probe label is computed from both) plus the probe's label_source_extra.",
+        "label_column": "probe_truth",
+        "label_mapping": {
+          "True": "positive",
+          "False": "negative"
+        },
+        "label_source_add": [
+          "deployed_truth",
+          "form"
+        ]
+      }
+    },
+    {
+      "id": "send",
+      "tool": "dataworks_send_detector_sets",
+      "approval": "hub_push",
+      "note": "ENH-006 D128: send the stack's sets together, under one approval (dataworks_send_detector_sets). It writes one version's publish files per call: call again until it returns the approval."
+    },
+    {
+      "id": "human_eval",
+      "tool": "dataworks_build_version",
+      "inputs": [
+        {
+          "kind": "version",
+          "version_id": "{{merged_version}}"
+        }
+      ],
+      "note": "The human-graded test set, ENH-006 D115, D116 G6. It reads the calibration set by row key, so the recipe carries no carrier ids, and the set is immutable, so a build reproduces. Bind it as an extra_eval role, or register it by hand: it judges the plan's labels and never counts toward rung 2.",
+      "recipe": {
+        "format": "dw.recipe/v1",
+        "steps": [
+          {
+            "operator": "calibration_labels",
+            "version": "1.0.0",
+            "params": {
+              "calibration_set_id": "{{calibration_set}}",
+              "output_column": "human_label",
+              "exclude_versions": "[{\"version_id\": \"{{train_version}}\", \"split\": \"train\"}]"
+            }
+          },
+          {
+            "operator": "rule_label",
+            "version": "1",
+            "params": {
+              "output_column": "human_label_ex_masked",
+              "rules": [
+                "excluded if kind == masked"
+              ],
+              "default": "@human_label"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "train",
+      "tool": "start_probe_training_run",
+      "approval": "miStudio GPU",
+      "note": "Not yet run on this data: this stage is filled in when the dry run reaches it."
+    },
+    {
+      "id": "evaluate",
+      "tool": "evaluate_probe_monitor",
+      "approval": "miStudio GPU",
+      "note": "Not yet run on this data. Rung 2 needs every out-of-distribution set, an everyday-text view and a nonsense-text view."
+    }
+  ]
+}

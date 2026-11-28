@@ -1,0 +1,2555 @@
+{
+  "server": "midataworks",
+  "tools": {
+    "dataworks_aggregate_judges": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/label-runs/aggregate"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Aggregate judges"
+    },
+    "dataworks_annotate_source": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/sources/{source_id}/annotations"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Annotate source"
+    },
+    "dataworks_archive_approval": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/approvals/{approval_id}/archive"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Archive approval"
+    },
+    "dataworks_archive_code_rule": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/code-rules/{name}/archive"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Archive code rule"
+    },
+    "dataworks_archive_dataset": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/datasets/{dataset_id}/archive"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Archive dataset"
+    },
+    "dataworks_archive_detector_set": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/detector-sets/{set_id}/archive"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Archive detector set"
+    },
+    "dataworks_archive_generation_run": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/generation-runs/{run_id}/archive"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Archive generation run"
+    },
+    "dataworks_archive_label_run": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/label-runs/{run_id}/archive"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Archive label run"
+    },
+    "dataworks_archive_recipe": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/recipes/{recipe_id}/archive"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Archive recipe"
+    },
+    "dataworks_archive_rule_set": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/rule-sets/{name}/archive"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Archive rule set"
+    },
+    "dataworks_build_calibration_set": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/calibration-sets/from-review"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Build calibration set"
+    },
+    "dataworks_build_generation_candidate": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/generation-runs/{run_id}/candidate-build"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Build generation candidate"
+    },
+    "dataworks_build_version": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/versions"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Build version"
+    },
+    "dataworks_build_version_files": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/versions/{version_id}/publish-builds"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Build version files"
+    },
+    "dataworks_cancel_job": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/jobs/{job_id}/cancel"
+        }
+      ],
+      "destructiveHint": true,
+      "readOnlyHint": false,
+      "title": "Cancel job"
+    },
+    "dataworks_cancel_minimal_pair_chain": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/minimal-pair-chains/{chain_id}/cancel"
+        }
+      ],
+      "destructiveHint": true,
+      "readOnlyHint": false,
+      "title": "Cancel minimal pair chain"
+    },
+    "dataworks_check_detector_set": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/detector-sets/{set_id}/checks"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Check detector set"
+    },
+    "dataworks_check_judge_independence": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/generation-runs/independence-check"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Check judge independence"
+    },
+    "dataworks_clone_generation_template": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/generation-templates/{template_id}/clone"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Clone generation template"
+    },
+    "dataworks_clone_recipe": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/recipes/{recipe_id}/clone"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Clone recipe"
+    },
+    "dataworks_clone_rubric": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/rubrics/{rubric_id}/clone"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Clone rubric"
+    },
+    "dataworks_clone_rule_set": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/rule-sets/{name}/clone"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Clone rule set"
+    },
+    "dataworks_clone_template": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/decision-templates/{template_id}/clone"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Clone template"
+    },
+    "dataworks_close_review_queue": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/review-queues/{queue_id}/close"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Close review queue"
+    },
+    "dataworks_compare_steering_settings": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/steering-settings/compare"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Compare steering settings"
+    },
+    "dataworks_compare_versions": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/versions/{version_id}/compare"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Compare versions"
+    },
+    "dataworks_compute_calibration": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/calibration-records"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Compute calibration"
+    },
+    "dataworks_create_agreement_report": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/agreement-reports"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Create agreement report"
+    },
+    "dataworks_create_dataset": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/datasets"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Create dataset"
+    },
+    "dataworks_create_detector_set": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/detector-sets"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Create detector set"
+    },
+    "dataworks_create_index_source": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/sources/index"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Create index source"
+    },
+    "dataworks_create_reproduction_link": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/reproduction-links"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Create reproduction link"
+    },
+    "dataworks_create_review_queue": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/review-queues"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Create review queue"
+    },
+    "dataworks_delete_setting": {
+      "calls": [
+        {
+          "method": "DELETE",
+          "path": "/api/v1/settings/{key}"
+        }
+      ],
+      "destructiveHint": true,
+      "readOnlyHint": false,
+      "title": "Delete setting"
+    },
+    "dataworks_delete_source": {
+      "calls": [
+        {
+          "method": "DELETE",
+          "path": "/api/v1/sources/{source_id}"
+        }
+      ],
+      "destructiveHint": true,
+      "readOnlyHint": false,
+      "title": "Delete source"
+    },
+    "dataworks_delete_version": {
+      "calls": [
+        {
+          "method": "DELETE",
+          "path": "/api/v1/versions/{version_id}"
+        }
+      ],
+      "destructiveHint": true,
+      "readOnlyHint": false,
+      "title": "Delete version"
+    },
+    "dataworks_derive_rule_set": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/rule-derivations"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Derive rule set"
+    },
+    "dataworks_draw_audit": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/versions/{version_id}/audit"
+        }
+      ],
+      "destructiveHint": true,
+      "readOnlyHint": false,
+      "title": "Draw audit"
+    },
+    "dataworks_explain_row": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/versions/{version_id}/rows/history"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Explain row"
+    },
+    "dataworks_export_miforge_set": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/exports"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Export miForge set"
+    },
+    "dataworks_export_reward_bundle": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/exports"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Export reward bundle"
+    },
+    "dataworks_export_trl": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/exports"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Export TRL"
+    },
+    "dataworks_fetch_models": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/endpoint-roles/{role}/models"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Fetch models"
+    },
+    "dataworks_get_agreement_report": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/agreement-reports/{report_id}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get agreement report"
+    },
+    "dataworks_get_allowlist": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/operators/allowlist"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get allowlist"
+    },
+    "dataworks_get_approval_status": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/approvals/{approval_id}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get approval status"
+    },
+    "dataworks_get_audit_status": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/versions/{version_id}/audit"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get audit status"
+    },
+    "dataworks_get_behaviour_status": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/behaviours/{key}/status"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get behaviour status"
+    },
+    "dataworks_get_build_manifest": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/versions/{version_id}/manifest"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get build manifest"
+    },
+    "dataworks_get_calibration": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/calibration-records/{record_id}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get calibration"
+    },
+    "dataworks_get_calibration_label_agreement": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/calibration-sets/{set_id}/label-agreement"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get calibration label agreement"
+    },
+    "dataworks_get_calibration_set": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/calibration-sets/{set_id}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get calibration set"
+    },
+    "dataworks_get_calibration_targets": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/calibration-targets"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get calibration targets"
+    },
+    "dataworks_get_card_draft": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/versions/{version_id}/card-draft"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get card draft"
+    },
+    "dataworks_get_clone_difference": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/differences"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get clone difference"
+    },
+    "dataworks_get_code_rule": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/code-rules/{name}/versions/{version}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get code rule"
+    },
+    "dataworks_get_config_version": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/config-versions/{config_id}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get config version"
+    },
+    "dataworks_get_contamination": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/versions/{version_id}/contamination"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get contamination"
+    },
+    "dataworks_get_dataset": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/datasets/{dataset_id}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get dataset"
+    },
+    "dataworks_get_dataset_meta": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/datasets/meta"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get dataset meta"
+    },
+    "dataworks_get_dataset_warning_level": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/datasets/{dataset_id}/shortcut-level"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get dataset warning level"
+    },
+    "dataworks_get_detector_send": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/detector-sends/{send_id}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get detector send"
+    },
+    "dataworks_get_detector_set": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/detector-sets/{set_id}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get detector set"
+    },
+    "dataworks_get_diversity": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/versions/{version_id}/diversity"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get diversity"
+    },
+    "dataworks_get_drop_log": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/versions/{version_id}/drop-log"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get drop log"
+    },
+    "dataworks_get_environment": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/settings/environment"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get environment"
+    },
+    "dataworks_get_export": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/exports/{export_id}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get export"
+    },
+    "dataworks_get_gate_verdict": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/calibration-status"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get gate verdict"
+    },
+    "dataworks_get_generation_pairs": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/generation-runs/{run_id}/pairs"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get generation pairs"
+    },
+    "dataworks_get_generation_records": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/generation-runs/{run_id}/records"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get generation records"
+    },
+    "dataworks_get_generation_run": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/generation-runs/{run_id}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get generation run"
+    },
+    "dataworks_get_generation_template": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/generation-templates/{template_id}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get generation template"
+    },
+    "dataworks_get_keep_share": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/labeling/keep-share/{job_id}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get keep share"
+    },
+    "dataworks_get_label_run": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/label-runs/{run_id}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get label run"
+    },
+    "dataworks_get_label_run_agreement": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/label-runs/{run_id}/agreement"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get label run agreement"
+    },
+    "dataworks_get_label_run_labels": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/label-runs/{run_id}/labels"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get label run labels"
+    },
+    "dataworks_get_leakage_pairs": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/versions/{version_id}/leakage/pairs"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get leakage pairs"
+    },
+    "dataworks_get_leakage_report": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/versions/{version_id}/leakage"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get leakage report"
+    },
+    "dataworks_get_licence_table": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/licence-table"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get licence table"
+    },
+    "dataworks_get_lineage": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/versions/{version_id}/lineage"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get lineage"
+    },
+    "dataworks_get_minimal_pair_chain": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/minimal-pair-chains/{chain_id}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get minimal pair chain"
+    },
+    "dataworks_get_model_terms": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/model-terms/{model_id}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get model terms"
+    },
+    "dataworks_get_operator": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/operators/{name}/{version}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get operator"
+    },
+    "dataworks_get_operator_preview": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/operators/previews/{preview_id}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get operator preview"
+    },
+    "dataworks_get_probe_results": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/detector-sets/{set_id}/results"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get probe results"
+    },
+    "dataworks_get_profile": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/versions/{version_id}/profile"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get profile"
+    },
+    "dataworks_get_publish": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/publishes/{publish_id}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get publish"
+    },
+    "dataworks_get_publish_build": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/publish-builds/{build_id}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get publish build"
+    },
+    "dataworks_get_publish_checks": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/publish-check-runs/{check_run_id}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get publish checks"
+    },
+    "dataworks_get_recipe": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/recipes/{recipe_id}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get recipe"
+    },
+    "dataworks_get_reproduction_link": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/reproduction-links/{link_id}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get reproduction link"
+    },
+    "dataworks_get_result_download_url": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/results/{kind}/{object_id}/download-url"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get result download URL"
+    },
+    "dataworks_get_result_page": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/results/{kind}/{object_id}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get result page"
+    },
+    "dataworks_get_review_decisions": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/review-items/{item_id}/decisions"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get review decisions"
+    },
+    "dataworks_get_review_queue": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/review-queues/{queue_id}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get review queue"
+    },
+    "dataworks_get_review_rows": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/review-queues/{queue_id}/items"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get review rows"
+    },
+    "dataworks_get_rubric": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/rubrics/{rubric_id}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get rubric"
+    },
+    "dataworks_get_rule_derivation": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/rule-derivations/{derivation_id}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get rule derivation"
+    },
+    "dataworks_get_rule_set": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/rule-sets/{name}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get rule set"
+    },
+    "dataworks_get_rule_set_difference": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/rule-sets/difference"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get rule set difference"
+    },
+    "dataworks_get_runner_contract": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/runner/contract"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get runner contract"
+    },
+    "dataworks_get_settings": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/settings"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get settings"
+    },
+    "dataworks_get_shortcut_audit": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/versions/{version_id}/shortcut-audit"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get shortcut audit"
+    },
+    "dataworks_get_shortcut_cells": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/versions/{version_id}/shortcut-audit/cells"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get shortcut cells"
+    },
+    "dataworks_get_source": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/sources/{source_id}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get source"
+    },
+    "dataworks_get_source_meta": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/sources/meta"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get source meta"
+    },
+    "dataworks_get_source_rows": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/sources/{source_id}/rows"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get source rows"
+    },
+    "dataworks_get_split_download_url": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/versions/{version_id}/splits/{split}/download-url"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get split download URL"
+    },
+    "dataworks_get_template": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/decision-templates/{template_id}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get template"
+    },
+    "dataworks_get_upload_url": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/sources/upload-url"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Get upload URL"
+    },
+    "dataworks_get_validator": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/validators/{validator_id}/versions/{version}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get validator"
+    },
+    "dataworks_get_version": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/versions/{version_id}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get version"
+    },
+    "dataworks_get_version_crosstab": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/versions/{version_id}/crosstab"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get version crosstab"
+    },
+    "dataworks_get_version_manifest": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/publish-builds/{build_id}"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/versions/{version_id}/handoff-manifest"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/versions/{version_id}/publish-builds"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Get version manifest"
+    },
+    "dataworks_get_version_rows": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/versions/{version_id}/rows"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get version rows"
+    },
+    "dataworks_get_warning_levels": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/settings/shortcut-level"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get warning levels"
+    },
+    "dataworks_get_wsp_partitions": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/versions/{version_id}/wsp-partitions"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Get WSP partitions"
+    },
+    "dataworks_health": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/health"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Health"
+    },
+    "dataworks_howto": {
+      "calls": [],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "How-to"
+    },
+    "dataworks_import_calibration_set": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/calibration-sets/import"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Import calibration set"
+    },
+    "dataworks_import_hf_dataset": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/sources/hf"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Import HF dataset"
+    },
+    "dataworks_job_status": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/jobs/{job_id}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Job status"
+    },
+    "dataworks_label_sample": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/labeling/sample"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Label sample"
+    },
+    "dataworks_list_approvals": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/approvals"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "List approvals"
+    },
+    "dataworks_list_benchmarks": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/curation/benchmarks"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "List benchmarks"
+    },
+    "dataworks_list_calibration_records": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/calibration-records"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "List calibration records"
+    },
+    "dataworks_list_calibration_sets": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/calibration-sets"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "List calibration sets"
+    },
+    "dataworks_list_code_rules": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/code-rules"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "List code rules"
+    },
+    "dataworks_list_config_versions": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/config-versions"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "List config versions"
+    },
+    "dataworks_list_datasets": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/datasets"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "List datasets"
+    },
+    "dataworks_list_detector_sends": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/detector-sends"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "List detector sends"
+    },
+    "dataworks_list_detector_sets": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/detector-sets"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "List detector sets"
+    },
+    "dataworks_list_endpoint_roles": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/endpoint-roles"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "List endpoint roles"
+    },
+    "dataworks_list_exports": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/exports"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "List exports"
+    },
+    "dataworks_list_generation_runs": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/generation-runs"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "List generation runs"
+    },
+    "dataworks_list_generation_templates": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/generation-templates"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "List generation templates"
+    },
+    "dataworks_list_jobs": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/jobs"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "List jobs"
+    },
+    "dataworks_list_label_runs": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/label-runs"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "List label runs"
+    },
+    "dataworks_list_minimal_pair_chains": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/minimal-pair-chains"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "List minimal pair chains"
+    },
+    "dataworks_list_miserver_probes": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/labeling/probes"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "List miServer probes"
+    },
+    "dataworks_list_operator_versions": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/operators/{name}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "List operator versions"
+    },
+    "dataworks_list_operators": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/operators"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "List operators"
+    },
+    "dataworks_list_publishes": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/publishes"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "List publishes"
+    },
+    "dataworks_list_recipes": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/recipes"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "List recipes"
+    },
+    "dataworks_list_reproduction_links": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/reproduction-links"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "List reproduction links"
+    },
+    "dataworks_list_review_queues": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/review-queues"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "List review queues"
+    },
+    "dataworks_list_reward_marks": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/reward-marks"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "List reward marks"
+    },
+    "dataworks_list_row_events": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/versions/{version_id}/events"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "List row events"
+    },
+    "dataworks_list_rubrics": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/rubrics"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "List rubrics"
+    },
+    "dataworks_list_rule_sets": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/rule-sets"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "List rule sets"
+    },
+    "dataworks_list_sources": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/sources"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "List sources"
+    },
+    "dataworks_list_templates": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/decision-templates"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "List templates"
+    },
+    "dataworks_list_validators": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/validators"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "List validators"
+    },
+    "dataworks_list_versions": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/versions"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "List versions"
+    },
+    "dataworks_mark_reward_probe": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/reward-marks"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Mark reward probe"
+    },
+    "dataworks_plan_build": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/versions/plan"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Plan build"
+    },
+    "dataworks_plan_generation": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/generation-runs/plan"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Plan generation"
+    },
+    "dataworks_plan_label_run": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/label-runs/plan"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Plan label run"
+    },
+    "dataworks_plan_leakage_repair": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/detector-sets/{set_id}/leakage-repair/plan"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Plan leakage repair"
+    },
+    "dataworks_plan_minimal_pairs": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/minimal-pair-chains/plan"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Plan minimal pairs"
+    },
+    "dataworks_plan_recipe_upgrade": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/operators/upgrade-plan"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Plan recipe upgrade"
+    },
+    "dataworks_preview_band": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/labeling/keep-share"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Preview band"
+    },
+    "dataworks_preview_calibration_mapping": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/calibration-sets/preview"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Preview calibration mapping"
+    },
+    "dataworks_preview_generation": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/generation-runs/preview"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Preview generation"
+    },
+    "dataworks_preview_hf_dataset": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/sources/hf/preview"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Preview HF dataset"
+    },
+    "dataworks_preview_operator": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/operators/{name}/{version}/preview"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Preview operator"
+    },
+    "dataworks_preview_rule_set": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/rule-sets/preview"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Preview rule set"
+    },
+    "dataworks_preview_threshold": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/operators/{name}/{version}/statistics"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Preview threshold"
+    },
+    "dataworks_profile_source": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/sources/{source_id}/profile"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Profile source"
+    },
+    "dataworks_propose_endpoint_role": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/endpoint-roles/{role}"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/v1/endpoint-roles/{role}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Propose endpoint role"
+    },
+    "dataworks_publish_version": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/publishes"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Publish version"
+    },
+    "dataworks_push_card": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/publishes/{publish_id}/card"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Push card"
+    },
+    "dataworks_rederive_label_run": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/label-runs/{run_id}/rederive"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Rederive label run"
+    },
+    "dataworks_refresh_probe_results": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/detector-sets/{set_id}/results/refresh"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Refresh probe results"
+    },
+    "dataworks_request_global_warning_level": {
+      "calls": [
+        {
+          "method": "PUT",
+          "path": "/api/v1/settings/shortcut-level"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Request global warning level"
+    },
+    "dataworks_request_warning_level": {
+      "calls": [
+        {
+          "method": "PUT",
+          "path": "/api/v1/datasets/{dataset_id}/shortcut-level"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Request warning level"
+    },
+    "dataworks_request_warning_level_clear": {
+      "calls": [
+        {
+          "method": "DELETE",
+          "path": "/api/v1/datasets/{dataset_id}/shortcut-level"
+        }
+      ],
+      "destructiveHint": true,
+      "readOnlyHint": false,
+      "title": "Request warning level clear"
+    },
+    "dataworks_reread_behaviour_definition": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/detector-sets/{set_id}/behaviour-definition/reread"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Reread behaviour definition"
+    },
+    "dataworks_reset_environment": {
+      "calls": [
+        {
+          "method": "DELETE",
+          "path": "/api/v1/settings/{key}"
+        }
+      ],
+      "destructiveHint": true,
+      "readOnlyHint": false,
+      "title": "Reset environment"
+    },
+    "dataworks_resolve_behaviour": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/behaviours/{key}/resolve"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Resolve behaviour"
+    },
+    "dataworks_resume_detector_send": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/detector-sends/{send_id}/resume"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Resume detector send"
+    },
+    "dataworks_resume_generation": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/generation-runs/{run_id}/resume"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Resume generation"
+    },
+    "dataworks_resume_label_run": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/label-runs/{run_id}/resume"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Resume label run"
+    },
+    "dataworks_resume_minimal_pair_chain": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/minimal-pair-chains/{chain_id}/resume"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Resume minimal pair chain"
+    },
+    "dataworks_review_decide": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/review-items/{item_id}/decisions"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Review decide"
+    },
+    "dataworks_review_disagreements": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/label-runs/handoffs/{handoff_id}/review"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Review disagreements"
+    },
+    "dataworks_revise_recipe": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/recipes/{recipe_id}/revisions"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Revise recipe"
+    },
+    "dataworks_run_contamination_check": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/versions/{version_id}/contamination"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Run contamination check"
+    },
+    "dataworks_run_diversity_report": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/versions/{version_id}/diversity"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Run diversity report"
+    },
+    "dataworks_run_leakage_check": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/versions/{version_id}/leakage"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Run leakage check"
+    },
+    "dataworks_run_profile": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/versions/{version_id}/profile"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Run profile"
+    },
+    "dataworks_run_publish_checks": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/versions/{version_id}/publish-checks"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Run publish checks"
+    },
+    "dataworks_run_shortcut_audit": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/versions/{version_id}/shortcut-audit"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Run shortcut audit"
+    },
+    "dataworks_run_version_check": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/versions/{version_id}/checks"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Run version check"
+    },
+    "dataworks_save_code_rule": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/code-rules"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Save code rule"
+    },
+    "dataworks_save_config_version": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/config-versions"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Save config version"
+    },
+    "dataworks_save_generation_template": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/generation-templates"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Save generation template"
+    },
+    "dataworks_save_recipe": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/recipes"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Save recipe"
+    },
+    "dataworks_save_rubric": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/rubrics"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Save rubric"
+    },
+    "dataworks_save_rule_set": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/rule-sets"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Save rule set"
+    },
+    "dataworks_save_template": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/decision-templates"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Save template"
+    },
+    "dataworks_search_hf_datasets": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/sources/hf/search"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Search HF datasets"
+    },
+    "dataworks_send_detector_set": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/detector-sets/{set_id}/send"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/publish-builds/{build_id}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Send detector set"
+    },
+    "dataworks_send_detector_sets": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/detector-sets/send"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/publish-builds/{build_id}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Send detector sets"
+    },
+    "dataworks_set_calibration_target": {
+      "calls": [
+        {
+          "method": "PUT",
+          "path": "/api/v1/calibration-targets"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Set calibration target"
+    },
+    "dataworks_set_endpoint_key": {
+      "calls": [
+        {
+          "method": "PUT",
+          "path": "/api/v1/endpoint-roles/{role}"
+        }
+      ],
+      "destructiveHint": true,
+      "readOnlyHint": false,
+      "title": "Set endpoint key"
+    },
+    "dataworks_set_environment": {
+      "calls": [
+        {
+          "method": "PUT",
+          "path": "/api/v1/settings/{key}"
+        }
+      ],
+      "destructiveHint": true,
+      "readOnlyHint": false,
+      "title": "Set environment"
+    },
+    "dataworks_set_hf_token": {
+      "calls": [
+        {
+          "method": "PUT",
+          "path": "/api/v1/settings/{key}"
+        }
+      ],
+      "destructiveHint": true,
+      "readOnlyHint": false,
+      "title": "Set HF token"
+    },
+    "dataworks_set_rubric_behaviour": {
+      "calls": [
+        {
+          "method": "PATCH",
+          "path": "/api/v1/rubrics/{rubric_id}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Set rubric behaviour"
+    },
+    "dataworks_start_generation": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/generation-runs"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Start generation"
+    },
+    "dataworks_start_label_run": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/label-runs"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Start label run"
+    },
+    "dataworks_start_minimal_pairs": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/minimal-pair-chains"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Start minimal pairs"
+    },
+    "dataworks_start_steered_pairs": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/generation-runs"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Start steered pairs"
+    },
+    "dataworks_test_code_rule": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/code-rules/test"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Test code rule"
+    },
+    "dataworks_test_endpoint_role": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/endpoint-roles/{role}/test"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Test endpoint role"
+    },
+    "dataworks_unarchive_approval": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/approvals/{approval_id}/unarchive"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Unarchive approval"
+    },
+    "dataworks_unarchive_code_rule": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/code-rules/{name}/unarchive"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Unarchive code rule"
+    },
+    "dataworks_unarchive_dataset": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/datasets/{dataset_id}/unarchive"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Unarchive dataset"
+    },
+    "dataworks_unarchive_generation_run": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/generation-runs/{run_id}/unarchive"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Unarchive generation run"
+    },
+    "dataworks_unarchive_label_run": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/label-runs/{run_id}/unarchive"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Unarchive label run"
+    },
+    "dataworks_unarchive_rule_set": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/rule-sets/{name}/unarchive"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Unarchive rule set"
+    },
+    "dataworks_update_dataset": {
+      "calls": [
+        {
+          "method": "PATCH",
+          "path": "/api/v1/datasets/{dataset_id}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Update dataset"
+    },
+    "dataworks_update_detector_set": {
+      "calls": [
+        {
+          "method": "PATCH",
+          "path": "/api/v1/detector-sets/{set_id}"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Update detector set"
+    },
+    "dataworks_upload_file": {
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/api/v1/sources/meta"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/sources/uploads"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Upload file"
+    },
+    "dataworks_validate_operator_params": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/operators/{name}/{version}/validate"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Validate operator params"
+    },
+    "dataworks_validate_recipe": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/recipes/validate"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Validate recipe"
+    },
+    "dataworks_validate_rule_set": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/rule-sets/validate"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Validate rule set"
+    },
+    "dataworks_validate_trl": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/versions/{version_id}/trl-validation"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": true,
+      "title": "Validate TRL"
+    },
+    "dataworks_verify_hub_hashes": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/publishes/{publish_id}/reverify"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Verify hub hashes"
+    },
+    "dataworks_verify_rebuild": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/api/v1/versions/{version_id}/verify-rebuild"
+        }
+      ],
+      "destructiveHint": false,
+      "readOnlyHint": false,
+      "title": "Verify rebuild"
+    }
+  },
+  "version": 2
+}
